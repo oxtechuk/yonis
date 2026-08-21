@@ -11,6 +11,7 @@ use App\Http\Controllers\ApiController;
 */
 
 // 1. Public Routes
+Route::get('/config', [ApiController::class, 'getApiConfig']);
 Route::post('/login', [ApiController::class, 'login']);
 Route::post('/register', [ApiController::class, 'register']);
 Route::get('/doctor/profile', [ApiController::class, 'getDoctorProfile']);
@@ -36,4 +37,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // Patient Booking actions
     Route::get('/patient/bookings', [ApiController::class, 'getPatientBookings']);
     Route::post('/booking/{id}/cancel', [ApiController::class, 'cancelBooking']);
+    Route::post('/booking/{id}/reschedule', [ApiController::class, 'rescheduleBooking']);
 });
+

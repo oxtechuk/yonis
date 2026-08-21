@@ -59,6 +59,9 @@
                     <a href="{{ route('admin.settings') }}" class="sidebar-link @if(Route::is('admin.settings')) active @endif">
                         <i class="bi bi-gear me-2"></i> <span class="link-text">إعدادات المنصة</span>
                     </a>
+                    <a href="{{ route('admin.api-control') }}" class="sidebar-link @if(Route::is('admin.api-control')) active @endif">
+                        <i class="bi bi-code-slash me-2"></i> <span class="link-text">تحكم الـ API</span>
+                    </a>
                 </div>
                 <hr class="text-secondary mt-5">
                 <a href="{{ route('home') }}" class="sidebar-link">

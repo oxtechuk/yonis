@@ -130,20 +130,18 @@ class AdminDashboardController extends Controller
     }
 
     /**
-     * Store manual booking created by Admin/Doctor
+     * Reschedule booking date & time by Admin
      */
-    public function storeBooking(Request $request)
+    public function rescheduleBooking(Request $request, $id)
     {
         $request->validate([
-            'patient_id' => 'required|exists:users,id',
-            'service_id' => 'required|exists:services,id',
             'date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|string',
-            'payment_status' => 'required|in:Paid,Pending',
         ]);
 
-        $service = Service::findOrFail($request->service_id);
-        $duration = $service->duration;
+        $booking = Booking::findOrFail($id);
+        $service = $booking->service;
+        $duration = $service ? $service->duration : 30;
 
         $startTime = Carbon::parse($request->start_time);
         $endTime = $startTime->copy()->addMinutes($duration);
@@ -152,7 +150,63 @@ class AdminDashboardController extends Controller
         $endTimeStr = $endTime->format('H:i:s');
         $dateStr = Carbon::parse($request->date)->format('Y-m-d');
 
-        return DB::transaction(function () use ($request, $service, $dateStr, $startTimeStr, $endTimeStr, $duration) {
+        // Check for double booking overlap excluding current booking
+        $overlapExists = Booking::where('date', $dateStr)
+            ->where('id', '!=', $booking->id)
+            ->whereIn('status', ['AwaitingPayment', 'Confirmed', 'Completed'])
+            ->where(function ($query) use ($startTimeStr, $endTimeStr) {
+                $query->where('start_time', '<', $endTimeStr)
+                      ->where('end_time', '>', $startTimeStr);
+            })
+            ->exists();
+
+        if ($overlapExists) {
+            return redirect()->back()->with('error', 'عذراً، هذا الموعد الجديد يتعارض مع حجز آخر.');
+        }
+
+        $booking->update([
+            'date' => $dateStr,
+            'start_time' => $startTimeStr,
+            'end_time' => $endTimeStr,
+            'rescheduled_at' => now(),
+            'reschedule_count' => $booking->reschedule_count + 1,
+        ]);
+
+        Log::info("Booking {$booking->booking_reference} rescheduled by Admin to {$dateStr} {$startTimeStr}");
+
+        return redirect()->back()->with('success', 'تم تعديل موعد الحجز وإعادة جدولته بنجاح.');
+    }
+
+    /**
+     * Store manual booking created by Admin/Doctor
+     */
+    public function storeBooking(Request $request)
+    {
+        $request->validate([
+            'patient_id' => 'required|exists:users,id',
+            'service_id' => 'required|exists:services,id',
+            'booking_type' => 'nullable|in:clinic,online',
+            'consultation_type' => 'nullable|in:clinic,chat,voice,video',
+            'date' => 'required|date|after_or_equal:today',
+            'start_time' => 'required|string',
+            'payment_status' => 'required|in:Paid,Pending',
+        ]);
+
+        $service = Service::findOrFail($request->service_id);
+        $duration = $service->duration;
+
+        $bookingType = $request->booking_type ?? 'clinic';
+        $consultationType = $request->consultation_type ?? ($bookingType === 'clinic' ? 'clinic' : 'video');
+        $calculatedPrice = $service->getPriceForChannel($consultationType);
+
+        $startTime = Carbon::parse($request->start_time);
+        $endTime = $startTime->copy()->addMinutes($duration);
+
+        $startTimeStr = $startTime->format('H:i:s');
+        $endTimeStr = $endTime->format('H:i:s');
+        $dateStr = Carbon::parse($request->date)->format('Y-m-d');
+
+        return DB::transaction(function () use ($request, $service, $dateStr, $startTimeStr, $endTimeStr, $bookingType, $consultationType, $calculatedPrice) {
             
             // Double booking prevention check
             $overlapExists = Booking::where('date', $dateStr)
@@ -180,6 +234,9 @@ class AdminDashboardController extends Controller
                 'booking_reference' => $bookingRef,
                 'patient_id' => $request->patient_id,
                 'service_id' => $service->id,
+                'booking_type' => $bookingType,
+                'consultation_type' => $consultationType,
+                'price' => $calculatedPrice,
                 'date' => $dateStr,
                 'start_time' => $startTimeStr,
                 'end_time' => $endTimeStr,
@@ -190,7 +247,7 @@ class AdminDashboardController extends Controller
             Payment::create([
                 'booking_id' => $booking->id,
                 'payment_intent_id' => 'cash_clinic_' . Str::random(10),
-                'amount' => $service->price,
+                'amount' => $calculatedPrice,
                 'currency' => 'usd',
                 'status' => $request->payment_status,
             ]);
@@ -298,19 +355,29 @@ class AdminDashboardController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'type' => 'nullable|in:clinic,online,both',
             'price' => 'required|numeric|min:0',
+            'clinic_price' => 'nullable|numeric|min:0',
+            'chat_price' => 'nullable|numeric|min:0',
+            'voice_price' => 'nullable|numeric|min:0',
+            'video_price' => 'nullable|numeric|min:0',
             'duration' => 'required|integer|min:5',
         ]);
 
         Service::create([
             'title' => $request->title,
             'description' => $request->description,
+            'type' => $request->type ?? 'both',
             'price' => $request->price,
+            'clinic_price' => $request->clinic_price ?? $request->price,
+            'chat_price' => $request->chat_price ?? $request->price,
+            'voice_price' => $request->voice_price ?? $request->price,
+            'video_price' => $request->video_price ?? $request->price,
             'duration' => $request->duration,
             'is_active' => $request->has('is_active'),
         ]);
 
-        return redirect()->back()->with('success', 'تم إضافة الخدمة بنجاح.');
+        return redirect()->back()->with('success', 'تم إضافة الخدمة وتخصيص أسعار القنوات بنجاح.');
     }
 
     /**
@@ -321,7 +388,12 @@ class AdminDashboardController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'type' => 'nullable|in:clinic,online,both',
             'price' => 'required|numeric|min:0',
+            'clinic_price' => 'nullable|numeric|min:0',
+            'chat_price' => 'nullable|numeric|min:0',
+            'voice_price' => 'nullable|numeric|min:0',
+            'video_price' => 'nullable|numeric|min:0',
             'duration' => 'required|integer|min:5',
         ]);
 
@@ -329,12 +401,85 @@ class AdminDashboardController extends Controller
         $service->update([
             'title' => $request->title,
             'description' => $request->description,
+            'type' => $request->type ?? 'both',
             'price' => $request->price,
+            'clinic_price' => $request->clinic_price ?? $request->price,
+            'chat_price' => $request->chat_price ?? $request->price,
+            'voice_price' => $request->voice_price ?? $request->price,
+            'video_price' => $request->video_price ?? $request->price,
             'duration' => $request->duration,
             'is_active' => $request->has('is_active'),
         ]);
 
-        return redirect()->back()->with('success', 'تم تحديث الخدمة بنجاح.');
+        return redirect()->back()->with('success', 'تم تحديث بيانات الخدمة وأسعار القنوات بنجاح.');
+    }
+
+    /**
+     * API Control Settings View
+     */
+    public function apiControl()
+    {
+        $settings = [
+            'api_enabled' => Setting::get('api_enabled', '1'),
+            'clinic_booking_enabled' => Setting::get('clinic_booking_enabled', '1'),
+            'online_booking_enabled' => Setting::get('online_booking_enabled', '1'),
+            'chat_enabled' => Setting::get('chat_enabled', '1'),
+            'voice_enabled' => Setting::get('voice_enabled', '1'),
+            'video_enabled' => Setting::get('video_enabled', '1'),
+            'max_reschedule_allowed' => Setting::get('max_reschedule_allowed', '2'),
+            'min_reschedule_notice_hours' => Setting::get('min_reschedule_notice_hours', '24'),
+        ];
+
+        // Fetch Tokens
+        $tokens = DB::table('personal_access_tokens')
+            ->join('users', 'personal_access_tokens.tokenable_id', '=', 'users.id')
+            ->select('personal_access_tokens.*', 'users.name as user_name', 'users.email as user_email', 'users.phone as user_phone')
+            ->orderBy('personal_access_tokens.created_at', 'desc')
+            ->limit(20)
+            ->get();
+
+        $stats = [
+            'total_tokens' => DB::table('personal_access_tokens')->count(),
+            'total_api_bookings' => Booking::count(),
+            'online_bookings' => Booking::where('booking_type', 'online')->count(),
+            'clinic_bookings' => Booking::where('booking_type', 'clinic')->count(),
+            'chat_bookings' => Booking::where('consultation_type', 'chat')->count(),
+            'voice_bookings' => Booking::where('consultation_type', 'voice')->count(),
+            'video_bookings' => Booking::where('consultation_type', 'video')->count(),
+        ];
+
+        return view('admin.api_control', compact('settings', 'tokens', 'stats'));
+    }
+
+    /**
+     * Update API Control Settings
+     */
+    public function updateApiControl(Request $request)
+    {
+        $request->validate([
+            'max_reschedule_allowed' => 'required|integer|min:0',
+            'min_reschedule_notice_hours' => 'required|integer|min:0',
+        ]);
+
+        Setting::set('api_enabled', $request->has('api_enabled') ? '1' : '0');
+        Setting::set('clinic_booking_enabled', $request->has('clinic_booking_enabled') ? '1' : '0');
+        Setting::set('online_booking_enabled', $request->has('online_booking_enabled') ? '1' : '0');
+        Setting::set('chat_enabled', $request->has('chat_enabled') ? '1' : '0');
+        Setting::set('voice_enabled', $request->has('voice_enabled') ? '1' : '0');
+        Setting::set('video_enabled', $request->has('video_enabled') ? '1' : '0');
+        Setting::set('max_reschedule_allowed', (string) $request->max_reschedule_allowed);
+        Setting::set('min_reschedule_notice_hours', (string) $request->min_reschedule_notice_hours);
+
+        return redirect()->back()->with('success', 'تم حفظ وتطبيق إعدادات الـ API بنجاح.');
+    }
+
+    /**
+     * Revoke personal access token
+     */
+    public function revokeToken($id)
+    {
+        DB::table('personal_access_tokens')->where('id', $id)->delete();
+        return redirect()->back()->with('success', 'تم إلغاء رمـز الـ Token بنجاح.');
     }
 
     /**

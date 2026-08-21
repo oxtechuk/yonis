@@ -46,6 +46,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Bookings
     Route::get('/bookings', [AdminDashboardController::class, 'bookings'])->name('bookings');
     Route::post('/bookings/{id}/status', [AdminDashboardController::class, 'updateBookingStatus'])->name('bookings.status');
+    Route::post('/bookings/{id}/reschedule', [AdminDashboardController::class, 'rescheduleBooking'])->name('bookings.reschedule');
     
     // Patients
     Route::get('/patients', [AdminDashboardController::class, 'patients'])->name('patients');
@@ -78,9 +79,27 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/settings', [AdminDashboardController::class, 'settings'])->name('settings');
     Route::post('/settings', [AdminDashboardController::class, 'updateSettings'])->name('settings.update');
 
+    // API Control Panel
+    Route::get('/api-control', [AdminDashboardController::class, 'apiControl'])->name('api-control');
+    Route::post('/api-control', [AdminDashboardController::class, 'updateApiControl'])->name('api-control.update');
+    Route::post('/api-control/token/{id}/delete', [AdminDashboardController::class, 'revokeToken'])->name('api-control.token.revoke');
+
     // Add Patient manually
     Route::post('/patients/store', [AdminDashboardController::class, 'storePatient'])->name('patients.store');
 
     // Add Booking manually
     Route::post('/bookings/store', [AdminDashboardController::class, 'storeBooking'])->name('bookings.store');
 });
+
+// ═══ SEO Routes ══════════════════════════════════════════════
+Route::get('/sitemap.xml', function () {
+    $services = App\Models\Service::where('is_active', true)->get();
+    $content = view('seo.sitemap', compact('services'))->render();
+    return response($content, 200)->header('Content-Type', 'application/xml');
+})->name('sitemap');
+
+Route::get('/robots.txt', function () {
+    $content = view('seo.robots')->render();
+    return response($content, 200)->header('Content-Type', 'text/plain');
+})->name('robots');
+
