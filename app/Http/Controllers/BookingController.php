@@ -81,30 +81,18 @@ class BookingController extends Controller
         // Start DB Transaction to prevent race conditions (Double Booking)
         return DB::transaction(function () use ($request, $service, $dateStr, $startTimeStr, $endTimeStr, $duration) {
             
-            // Check if user needs registration
-            $patient = null;
+            $patientId = null;
+            $tempUserData = null;
+
             if (Auth::check()) {
-                $patient = Auth::user();
+                $patientId = Auth::id();
             } else {
-                // Check if email already exists
-                if (User::where('email', $request->email)->exists()) {
-                    return response()->json([
-                        'message' => 'هذا البريد الإلكتروني مسجل بالفعل. يرجى تسجيل الدخول أولاً.',
-                        'errors' => ['email' => ['البريد الإلكتروني مسجل بالفعل.']]
-                    ], 422);
-                }
-
-                // Create new user (patient)
-                $patient = User::create([
+                $tempUserData = [
                     'name' => $request->name,
-                    'email' => $request->email,
                     'phone' => $request->phone,
-                    'role' => 'patient',
-                    'password' => Hash::make($request->password),
-                ]);
-
-                // Log the user in
-                Auth::login($patient);
+                    'email' => $request->email ?? null,
+                    'password' => $request->password,
+                ];
             }
 
             // 3. Double Booking prevention check (Lock table for writing)
@@ -133,11 +121,14 @@ class BookingController extends Controller
             // 5. Create Booking record
             $booking = Booking::create([
                 'booking_reference' => $bookingRef,
-                'patient_id' => $patient->id,
+                'patient_id' => $patientId,
                 'service_id' => $service->id,
                 'date' => $dateStr,
                 'start_time' => $startTimeStr,
                 'end_time' => $endTimeStr,
+                'title' => $request->title ?? $service->name,
+                'notes' => $request->notes ?? null,
+                'temp_user_data' => $tempUserData,
                 'status' => 'AwaitingPayment',
             ]);
 

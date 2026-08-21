@@ -15,11 +15,15 @@ class Booking extends Model
         'date',
         'start_time',
         'end_time',
+        'title',
+        'notes',
+        'temp_user_data',
         'status',
     ];
 
     protected $casts = [
         'date' => 'date',
+        'temp_user_data' => 'array',
     ];
 
     /**

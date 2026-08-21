@@ -6,16 +6,23 @@ use App\Http\Controllers\ApiController;
 
 /*
 |--------------------------------------------------------------------------
-| API Routes
+| API Routes for Mobile Client (Flutter)
 |--------------------------------------------------------------------------
 */
 
-// 1. Public Routes for Flutter Mobile Clients
+// 1. Public Routes
 Route::post('/login', [ApiController::class, 'login']);
 Route::post('/register', [ApiController::class, 'register']);
 Route::get('/doctor/profile', [ApiController::class, 'getDoctorProfile']);
 Route::get('/services', [ApiController::class, 'getServices']);
 Route::get('/slots', [ApiController::class, 'getSlots']);
+
+// Reels / Video Testimonials
+Route::get('/reels', [ApiController::class, 'getReels']);
+
+// Booking Checkout Flow (Guest registers & pays via Stripe, account created upon confirmation)
+Route::post('/checkout/initialize', [ApiController::class, 'initializeCheckout']);
+Route::post('/checkout/confirm', [ApiController::class, 'confirmCheckout']);
 
 // 2. Protected Routes (Token Auth required)
 Route::middleware('auth:sanctum')->group(function () {
@@ -26,8 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
-    // Booking actions
-    Route::post('/booking/create', [ApiController::class, 'createBooking']);
+    // Patient Booking actions
     Route::get('/patient/bookings', [ApiController::class, 'getPatientBookings']);
     Route::post('/booking/{id}/cancel', [ApiController::class, 'cancelBooking']);
 });

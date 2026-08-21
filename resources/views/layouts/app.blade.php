@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'د. يونس أحمد - حجز استشارات طبية')</title>
+    <title>@yield('title', 'المعالج النفسي يونس المرشد - عيادة الاستشارات النفسية والأسرية')</title>
 
     @php
         $gaId = \App\Models\Setting::get('google_analytics_id');
@@ -34,92 +34,107 @@
             fbq('init', '{{ $metaId }}');
             fbq('track', 'PageView');
         </script>
-        <noscript>
-            <img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id={{ $metaId }}&ev=PageView&noscript=1"/>
-        </noscript>
     @endif
     
+    <!-- Google Fonts: Tajawal -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+
     <!-- Bootstrap 5.3.3 RTL CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css">
     
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
-    <!-- Custom CSS -->
+    <!-- Custom Royal Indigo CSS -->
     <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
     
     @yield('styles')
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
 
     <!-- Premium Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-premium sticky-top py-3">
+    <nav class="navbar navbar-expand-lg navbar-premium sticky-top py-3">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="{{ route('home') }}">
-                <i class="bi bi-heart-pulse-fill text-danger me-2"></i>
-                <span>عِيادتي</span>
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{{ route('home') }}">
+                <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm" style="width: 44px; height: 44px; background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); font-size: 1.3rem;">
+                    Ψ
+                </div>
+                <div class="d-flex flex-column">
+                    <span class="fw-black lh-1" style="color: var(--primary-color); font-weight: 900; font-size: 1.25rem;">يونس المرشد</span>
+                    <span class="text-secondary small fw-bold" style="font-size: 0.72rem; letter-spacing: 0.5px;">للعلاج النفسي والتطوير الذاتي</span>
+                </div>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
+
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav ms-auto align-items-lg-center gap-1 my-3 my-lg-0">
                     <li class="nav-item">
                         <a class="nav-link @if(Route::is('home')) active @endif" href="{{ route('home') }}">الرئيسية</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('home') }}#about">عن الدكتور</a>
+                        <a class="nav-link" href="{{ route('home') }}#about">عن المعالج</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('home') }}#services">الخدمات الاستشارية</a>
+                        <a class="nav-link" href="{{ route('home') }}#services">أنواع الجلسات</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('home') }}#gallery">المعرض والاحتفالات</a>
+                        <a class="nav-link" href="{{ route('home') }}#reels-section">فيديوهات وتوعية</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('home') }}#booking-section">احجز الآن</a>
+                        <a class="nav-link" href="{{ route('home') }}#booking-wizard">احجز استشارتك</a>
                     </li>
                 </ul>
+
                 <div class="d-flex align-items-center me-lg-3 gap-2">
                     @auth
-                        <a href="{{ Auth::user()->isAdmin() ? route('admin.dashboard') : route('patient.dashboard') }}" class="btn btn-premium btn-sm">
-                            <i class="bi bi-speedometer2 me-1"></i> لوحة التحكم
+                        <a href="{{ Auth::user()->isAdmin() ? route('admin.dashboard') : route('patient.dashboard') }}" class="btn btn-royal-primary btn-sm px-4">
+                            <i class="bi bi-person-circle me-1"></i> حسابي وجلساتي
                         </a>
                         <form action="{{ route('logout') }}" method="POST" class="d-inline">
                             @csrf
-                            <button type="submit" class="btn btn-outline-light btn-sm rounded-pill px-3">تسجيل الخروج</button>
+                            <button type="submit" class="btn btn-outline-secondary btn-sm rounded-pill px-3">تسجيل خروج</button>
                         </form>
                     @else
-                        <a href="{{ route('login') }}" class="btn btn-outline-light btn-sm rounded-pill px-3">تسجيل الدخول</a>
-                        <a href="{{ route('register') }}" class="btn btn-premium btn-sm">حساب جديد</a>
+                        <a href="{{ route('login') }}" class="btn btn-royal-outline btn-sm px-4">تسجيل الدخول</a>
+                        <a href="{{ route('home') }}#booking-wizard" class="btn btn-royal-primary btn-sm px-4">احجز موعدك</a>
                     @endauth
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Page Content -->
-    <main class="py-4">
+    <!-- Main Content -->
+    <main class="flex-grow-1">
         @yield('content')
     </main>
 
     <!-- Footer -->
-    <footer class="bg-dark text-white py-5 mt-auto border-top border-secondary">
+    <footer class="bg-dark text-white py-5 mt-5 border-top border-secondary">
         <div class="container">
-            <div class="row gy-4">
+            <div class="row gy-4 align-items-center">
                 <div class="col-md-6 text-center text-md-start">
-                    <h5 class="fw-bold mb-3"><i class="bi bi-heart-pulse-fill text-danger me-2"></i> عيادة د. يونس أحمد</h5>
-                    <p class="text-secondary">نوفر رعاية طبية فائقة الجودة لمرضانا بأحدث الوسائل والتقنيات.</p>
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-2 mb-3">
+                        <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center fw-bold" style="width: 36px; height: 36px; font-size: 1.1rem; color: var(--primary-color) !important;">
+                            Ψ
+                        </div>
+                        <h5 class="fw-bold mb-0 text-white">المعالج النفسي يونس المرشد</h5>
+                    </div>
+                    <p class="text-secondary small mb-0">نساعدك على تجاوز الصعوبات النفسية والوصول إلى حياة متوازنة وواعية. استشارات تخصصية فردية وزوجية في العراق وخارجه.</p>
                 </div>
                 <div class="col-md-6 text-center text-md-end">
-                    <h5 class="fw-bold mb-3">تواصل معنا</h5>
+                    <h6 class="fw-bold mb-3 text-gold" style="color: var(--accent-gold);">تابعنا على منصات التواصل</h6>
                     <div class="d-flex justify-content-center justify-content-md-end gap-3 fs-4 mb-3">
-                        <a href="#" class="text-white"><i class="bi bi-facebook"></i></a>
-                        <a href="#" class="text-white"><i class="bi bi-twitter-x"></i></a>
-                        <a href="#" class="text-white"><i class="bi bi-instagram"></i></a>
-                        <a href="#" class="text-white"><i class="bi bi-linkedin"></i></a>
+                        <a href="#" class="text-white-50 text-hover-white"><i class="bi bi-tiktok"></i></a>
+                        <a href="#" class="text-white-50 text-hover-white"><i class="bi bi-youtube"></i></a>
+                        <a href="#" class="text-white-50 text-hover-white"><i class="bi bi-instagram"></i></a>
+                        <a href="#" class="text-white-50 text-hover-white"><i class="bi bi-whatsapp"></i></a>
                     </div>
-                    <p class="text-secondary mb-0">جميع الحقوق محفوظة © {{ date('Y') }}</p>
+                    <p class="text-secondary small mb-0">جميع الحقوق محفوظة © {{ date('Y') }} - المعالج النفسي يونس المرشد</p>
                 </div>
             </div>
         </div>

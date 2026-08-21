@@ -8,38 +8,58 @@ use App\Models\DoctorProfile;
 use App\Models\Service;
 use App\Models\Booking;
 use App\Models\Payment;
+use App\Models\Reel;
 use App\Services\AvailabilityService;
+use App\Services\BookingCheckoutService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use Stripe\Stripe;
+use Stripe\PaymentIntent;
+use Stripe\Refund;
 
 class ApiController extends Controller
 {
     protected AvailabilityService $availabilityService;
+    protected BookingCheckoutService $checkoutService;
 
-    public function __construct(AvailabilityService $availabilityService)
+    public function __construct(AvailabilityService $availabilityService, BookingCheckoutService $checkoutService)
     {
         $this->availabilityService = $availabilityService;
+        $this->checkoutService = $checkoutService;
     }
 
     /**
-     * Mobile login API
+     * Mobile login API (Supports Login by Phone or Email)
      */
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'login' => 'nullable|string', // phone or email
+            'phone' => 'nullable|string',
+            'email' => 'nullable|string',
             'password' => 'required|string',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $identifier = $request->login ?? $request->phone ?? $request->email;
+
+        if (empty($identifier)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'يرجى إدخال رقم الواتساب/الهاتف أو البريد الإلكتروني.'
+            ], 422);
+        }
+
+        $user = User::where('phone', $identifier)
+            ->orWhere('email', $identifier)
+            ->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
                 'success' => false,
-                'message' => 'البريد الإلكتروني أو كلمة المرور غير صحيحة.'
+                'message' => 'بيانات الدخول غير صحيحة. يرجى التحقق من رقم الواتساب/كلمة المرور.'
             ], 401);
         }
 
@@ -59,20 +79,20 @@ class ApiController extends Controller
     }
 
     /**
-     * Mobile register API
+     * Mobile register API (Manual fallback)
      */
     public function register(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'phone' => 'required|string|max:20',
+            'phone' => 'required|string|max:20|unique:users,phone',
+            'email' => 'nullable|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:8',
         ]);
 
         $user = User::create([
             'name' => $request->name,
-            'email' => $request->email,
+            'email' => $request->email ?? ('patient_' . preg_replace('/[^0-9]/', '', $request->phone) . '@yonis-app.com'),
             'phone' => $request->phone,
             'password' => Hash::make($request->password),
             'role' => 'patient',
@@ -161,18 +181,28 @@ class ApiController extends Controller
     }
 
     /**
-     * Create booking from mobile
+     * Initialize booking checkout (Step 1: Save temporary data & Generate Stripe Intent)
      */
-    public function createBooking(Request $request)
+    public function initializeCheckout(Request $request)
     {
-        $request->validate([
+        $rules = [
             'service_id' => 'required|exists:services,id',
             'date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|string',
-            'payment_intent_id' => 'required|string', // generated from client-side stripe flow
-        ]);
+            'title' => 'nullable|string|max:255',
+            'notes' => 'nullable|string',
+        ];
 
-        $patient = $request->user();
+        // If guest (not logged in), validate name, phone, password
+        if (!$request->user()) {
+            $rules['name'] = 'required|string|max:255';
+            $rules['phone'] = 'required|string|max:20';
+            $rules['password'] = 'required|string|min:6';
+            $rules['email'] = 'nullable|email|max:255';
+        }
+
+        $request->validate($rules);
+
         $service = Service::findOrFail($request->service_id);
         $duration = $service->duration;
 
@@ -183,7 +213,7 @@ class ApiController extends Controller
         $endTimeStr = $endTime->format('H:i:s');
         $dateStr = Carbon::parse($request->date)->format('Y-m-d');
 
-        return DB::transaction(function () use ($request, $patient, $service, $dateStr, $startTimeStr, $endTimeStr) {
+        return DB::transaction(function () use ($request, $service, $dateStr, $startTimeStr, $endTimeStr) {
             // Check double booking
             $overlapExists = Booking::where('date', $dateStr)
                 ->whereIn('status', ['AwaitingPayment', 'Confirmed', 'Completed'])
@@ -206,43 +236,163 @@ class ApiController extends Controller
                 $bookingRef = 'BK-' . strtoupper(Str::random(8));
             } while (Booking::where('booking_reference', $bookingRef)->exists());
 
-            // Create booking
+            $patientId = $request->user() ? $request->user()->id : null;
+            $tempUserData = null;
+
+            if (!$patientId) {
+                $tempUserData = [
+                    'name' => $request->name,
+                    'phone' => $request->phone,
+                    'email' => $request->email ?? null,
+                    'password' => $request->password,
+                ];
+            }
+
+            // Create booking record with temp_user_data
             $booking = Booking::create([
                 'booking_reference' => $bookingRef,
-                'patient_id' => $patient->id,
+                'patient_id' => $patientId,
                 'service_id' => $service->id,
                 'date' => $dateStr,
                 'start_time' => $startTimeStr,
                 'end_time' => $endTimeStr,
-                'status' => 'Confirmed', // marked as Confirmed since mobile client paid via Stripe PaymentSheet before calling this
+                'title' => $request->title ?? $service->name,
+                'notes' => $request->notes ?? null,
+                'temp_user_data' => $tempUserData,
+                'status' => 'AwaitingPayment',
             ]);
 
-            // Create payment logs
+            // Create Stripe PaymentIntent
+            $clientSecret = null;
+            $paymentIntentId = null;
+
+            try {
+                $stripeSecret = config('services.stripe.secret');
+                if (!empty($stripeSecret) && !str_contains($stripeSecret, 'placeholder')) {
+                    Stripe::setApiKey($stripeSecret);
+                    $intent = PaymentIntent::create([
+                        'amount' => (int) ($service->price * 100), // amount in cents/halalas
+                        'currency' => 'usd',
+                        'metadata' => [
+                            'booking_reference' => $bookingRef,
+                        ],
+                    ]);
+                    $clientSecret = $intent->client_secret;
+                    $paymentIntentId = $intent->id;
+                } else {
+                    $clientSecret = 'mock_secret_' . Str::random(20);
+                    $paymentIntentId = 'mock_pi_' . Str::random(20);
+                }
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'فشل الاتصال ببوابة الدفع Stripe: ' . $e->getMessage()
+                ], 500);
+            }
+
+            // Record payment log
             Payment::create([
                 'booking_id' => $booking->id,
-                'payment_intent_id' => $request->payment_intent_id,
+                'payment_intent_id' => $paymentIntentId,
                 'amount' => $service->price,
                 'currency' => 'usd',
-                'status' => 'Paid', // marked as Paid directly
+                'status' => 'Pending',
             ]);
 
             return response()->json([
                 'success' => true,
                 'booking_reference' => $bookingRef,
+                'client_secret' => $clientSecret,
+                'amount' => $service->price,
                 'booking' => $booking
             ], 201);
         });
     }
 
     /**
-     * Get patient bookings list
+     * Confirm checkout after client payment completion (Step 2: Account Creation & Token generation)
+     */
+    public function confirmCheckout(Request $request)
+    {
+        $request->validate([
+            'booking_reference' => 'required|string',
+            'payment_intent_id' => 'nullable|string',
+        ]);
+
+        $booking = Booking::where('booking_reference', $request->booking_reference)->firstOrFail();
+        $payment = $booking->payment;
+
+        if (!$payment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'لم يتم العثور على سجل الدفع لهذا الحجز.'
+            ], 404);
+        }
+
+        // Process account creation & update booking to Confirmed
+        $patient = $this->checkoutService->confirmBookingPayment($booking, $payment);
+
+        // Generate Auth token for the user so client app is automatically logged in
+        $token = $patient->createToken('mobile-token')->plainTextToken;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم تأكيد الحجز وإنشاء الحساب بنجاح!',
+            'token' => $token,
+            'user' => [
+                'id' => $patient->id,
+                'name' => $patient->name,
+                'phone' => $patient->phone,
+                'email' => $patient->email,
+                'role' => $patient->role,
+            ],
+            'booking' => $booking->fresh(['service', 'patient'])
+        ]);
+    }
+
+    /**
+     * Get Reels / Video Testimonials (TikTok / YouTube / Direct)
+     */
+    public function getReels()
+    {
+        $reels = Reel::where('is_active', true)
+            ->orderBy('sort_order', 'asc')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'reels' => $reels
+        ]);
+    }
+
+    /**
+     * Get patient bookings list (Filter by tabs: upcoming, completed, cancelled)
      */
     public function getPatientBookings(Request $request)
     {
         $patient = $request->user();
-        $bookings = Booking::where('patient_id', $patient->id)
-            ->with(['service', 'payment'])
-            ->orderBy('date', 'desc')
+        $tab = $request->query('tab'); // upcoming, completed, cancelled
+
+        $query = Booking::where('patient_id', $patient->id)
+            ->with(['service', 'payment']);
+
+        if ($tab === 'upcoming') {
+            $query->whereIn('status', ['Confirmed', 'AwaitingPayment'])
+                  ->where('date', '>=', Carbon::today()->format('Y-m-d'));
+        } elseif ($tab === 'completed') {
+            $query->where(function ($q) {
+                $q->where('status', 'Completed')
+                  ->orWhere(function ($q2) {
+                      $q2->where('status', 'Confirmed')
+                         ->where('date', '<', Carbon::today()->format('Y-m-d'));
+                  });
+            });
+        } elseif ($tab === 'cancelled') {
+            $query->whereIn('status', ['CancelledByPatient', 'CancelledByDoctor', 'Expired']);
+        }
+
+        $bookings = $query->orderBy('date', 'desc')
             ->orderBy('start_time', 'desc')
             ->get();
 

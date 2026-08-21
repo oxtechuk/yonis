@@ -18,9 +18,9 @@ class DatabaseSeeder extends Seeder
     {
         // 1. Create Doctor Admin User
         $doctorUser = User::create([
-            'name' => 'د. يونس أحمد',
+            'name' => 'المعالج النفسي يونس المرشد',
             'email' => 'dr.yonis@example.com',
-            'phone' => '+201234567890',
+            'phone' => '+9647700000000',
             'role' => 'admin',
             'password' => Hash::make('password'),
         ]);
@@ -29,96 +29,120 @@ class DatabaseSeeder extends Seeder
         User::create([
             'name' => 'أحمد محمد علي',
             'email' => 'patient@example.com',
-            'phone' => '+201111222333',
+            'phone' => '+966512345678',
             'role' => 'patient',
             'password' => Hash::make('password'),
         ]);
 
-        // 3. Create Doctor Profile
+        // 3. Create Doctor Profile (Psychological Therapist Yonis Al-Murshid - Iraq)
         DoctorProfile::create([
             'user_id' => $doctorUser->id,
-            'title' => 'استشاري أول جراحة العظام والمفاصل والمناظير',
-            'bio' => 'دكتور يونس أحمد، استشاري جراحة العظام والمفاصل والمناظير وإصابات الملاعب. يمتلك خبرة واسعة تمتد لأكثر من 15 عاماً في تشخيص وعلاج مشاكل المفاصل وإجراء العمليات الدقيقة باستخدام أحدث التقنيات الطبية العالمية. حائز على البورد الأوروبي والعديد من العضويات الأكاديمية والمهنية المرموقة.',
+            'title' => 'معالج نفسي مرخص وأخصائي الاستشارات الفردية والأسرية - العراق',
+            'bio' => 'معالج نفسي مرخص بخبرة تزيد عن 10 سنوات في تقديم الاستشارات النفسية الفردية والزوجية. أعتمد على العلاج المعرفي السلوكي (CBT) وأساليب الوعي التام لمساعدة الأفراد على فهم ذواتهم بشكل أعمق وتطوير آليات صحية للتعامل مع ضغوط الحياة. أؤمن بتوفير بيئة آمنة وخالية من الأحكام لدعم رحلتك نحو التعافي.',
             'education' => [
-                'زمالة كلية الجراحين الملكية البريطانية (FRCS)',
-                'دكتوراه جراحة العظام والكسور - جامعة عين شمس',
-                'عضو الجمعية الأوروبية لجراحة مناظير الركبة وإصابات الملاعب (ESSKA)',
-                'بكالوريوس الطب والجراحة العامة بتقدير امتياز مع مرتبة الشرف'
+                'ماجستير علم النفس الكلينيكي والعلاج النفسي',
+                'دبلوم عالي في العلاج المعرفي السلوكي (CBT)',
+                'شهادة ممارسة العلاج النفسي المعتمدة من الاتحاد العربي للمعالجين النفسيين',
+                'بكالوريوس علم النفس والعلوم التربوية'
             ],
             'experience' => [
-                'رئيس قسم جراحة العظام بمستشفى الشروق الدولي (2020 - حالياً)',
-                'استشاري جراحة المفاصل الصناعية والمناظير بالمستشفى السعودي الألماني (2016 - 2020)',
-                'طبيب زمالة بمستشفيات كينجز كوليدج في لندن، المملكة المتحدة (2012 - 2015)',
-                'عضو هيئة التدريس بقسم جراحة العظام بجامعة عين شمس'
+                'استشاري العلاج النفسي - عيادة يونس المرشد التخصصية (2015 - حالياً)',
+                'خبير العلاج المعرفي السلوكي والاستشارات الأسرية',
+                'محاضر ومدرّب في مهارات الوعي التام وإدارة التوتر والقلق',
+                'مقدم برامج التوعية النفسية والصحة النفسية عبر المنصات الرقمية'
             ],
             'certificates' => [
-                'شهادة التميز الأكاديمي والعملي في جراحات الركبة المتقدمة من سويسرا',
-                'عضو معتمد في الجمعية السويسرية لتثبيت الكسور (AO Trauma)',
-                'درع التكريم من نقابة الأطباء للتميز المهني لعام 2024'
+                'شهادة التميز في العلاج النفسي والخدمات الاستشارية 2024',
+                'عضوية الجمعية العالمية للصحة النفسية والعلاج السلوكي',
+                'شهادة الإشراف الكلينيكي على برامج التعافي من القلق والصدمات'
             ],
             'specialties' => [
-                'عمليات تغيير مفاصل الركبة والحوض بمفاصل صناعية حديثة',
-                'علاج تمزق الرباط الصليبي والغضاريف الهلالية بالمناظير',
-                'تثبيت الكسور المعقدة والتشوهات العظمية للكبار والأطفال',
-                'علاج الخشونة وحقن المفاصل باستخدام البلازما الغنية بالصفائح الدموية (PRP)'
+                'اضطراب القلق والتوتر',
+                'الاكتئاب وضغوط الحياة',
+                'الاستشارات الزوجية والأسرية',
+                'الوعي التام والتطوير الذاتي',
+                'فرط الحركة ونقص الانتباه (ADHD)',
+                'التعافي من الصدمات النفسية',
+                'الإدمان والسلوكيات القهرية'
             ],
             'social_links' => [
                 'facebook' => 'https://facebook.com',
-                'twitter' => 'https://twitter.com',
+                'tiktok' => 'https://tiktok.com',
                 'instagram' => 'https://instagram.com',
-                'linkedin' => 'https://linkedin.com'
+                'youtube' => 'https://youtube.com'
             ],
             'gallery' => [
-                'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=800&q=80',
-                'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=800&q=80',
-                'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80',
-                'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80'
+                'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&q=80'
             ]
         ]);
 
-        // 4. Create Services
+        // 4. Create Services matching app design (15m: 150 SAR, 30m: 250 SAR, 45m: 350 SAR)
         Service::create([
-            'title' => 'استشارة في العيادة (كشف أول مرة)',
-            'description' => 'كشف أولي دقيق في العيادة لتشخيص آلام المفاصل أو الكسيرات وتشخيصها باستخدام الأشعة، مع وضع خطة علاجية متكاملة.',
-            'price' => 50.00,
-            'duration' => 30, // 30 minutes
+            'title' => 'جلسة استشارة نفسية - 15 دقيقة',
+            'description' => 'جلسة فورية سريعة لتقييم الحالة النفسية وتقديم النصائح العاجلة.',
+            'price' => 150.00,
+            'duration' => 15,
             'is_active' => true,
         ]);
 
         Service::create([
-            'title' => 'كشف مستعجل (دون حجز مسبق)',
-            'description' => 'جلسة كشف عاجلة مخصصة للحالات الطارئة أو الكسور المفاجئة والآلام الحادة التي لا تحتمل الانتظار.',
-            'price' => 90.00,
-            'duration' => 20, // 20 minutes
+            'title' => 'جلسة استشارة نفسية - 30 دقيقة',
+            'description' => 'جلسة استشارية شاملة لتشخيص التوتر، القلق، وتقديم الدعم النفسي.',
+            'price' => 250.00,
+            'duration' => 30,
             'is_active' => true,
         ]);
 
         Service::create([
-            'title' => 'استشارة مرئية أونلاين (فيديو)',
-            'description' => 'جلسة استشارية عن بعد لمدة 30 دقيقة عبر الإنترنت لمناقشة نتائج التحاليل والأشعة وتحديث خطة العلاج والدواء.',
-            'price' => 40.00,
-            'duration' => 30, // 30 minutes
+            'title' => 'جلسة استشارة نفسية - 45 دقيقة',
+            'description' => 'جلسة علاجية مكثفة وتفصيلية لمناقشة المشاكل النفسية العميقة وتحديد خطة العلاج.',
+            'price' => 350.00,
+            'duration' => 45,
             'is_active' => true,
         ]);
 
-        Service::create([
-            'title' => 'استشارة متابعة (إعادة)',
-            'description' => 'متابعة دورية لمراقبة تحسن الحالة، والتأكد من نجاح خطة العلاج، أو تغيير الجبائر وإزالة الخيوط الجراحية.',
-            'price' => 20.00,
-            'duration' => 15, // 15 minutes
+        // 5. Create Reels / Video Testimonials (TikTok / YouTube / Direct)
+        \App\Models\Reel::create([
+            'title' => 'قصة نجاح مع العلاج السلوكي المعرفي - تجربة عميل',
+            'thumbnail_url' => 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80',
+            'video_url' => 'https://www.tiktok.com/@dr.yonis/video/7123456789012345678',
+            'platform' => 'tiktok',
+            'duration' => 45,
+            'sort_order' => 1,
             'is_active' => true,
         ]);
 
-        // 5. Create Availabilities (Working Hours)
+        \App\Models\Reel::create([
+            'title' => 'كيف تتغلب على القلق وتوتر العمل؟ د. يونس',
+            'thumbnail_url' => 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80',
+            'video_url' => 'https://www.youtube.com/shorts/dQw4w9WgXcQ',
+            'platform' => 'youtube',
+            'duration' => 60,
+            'sort_order' => 2,
+            'is_active' => true,
+        ]);
+
+        \App\Models\Reel::create([
+            'title' => 'رأي أحد المراجعين بعد 4 جلسات استشارية',
+            'thumbnail_url' => 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=600&q=80',
+            'video_url' => 'https://www.tiktok.com/@dr.yonis/video/7987654321098765432',
+            'platform' => 'tiktok',
+            'duration' => 30,
+            'sort_order' => 3,
+            'is_active' => true,
+        ]);
+
+        // 6. Create Availabilities (Working Hours)
         // 0 = Sunday, 1 = Monday, 2 = Tuesday, 3 = Wednesday, 4 = Thursday, 5 = Friday, 6 = Saturday
-        // We will seed working days: Saturday, Sunday, Monday, Wednesday, Thursday
-        // Time format: HH:MM
         $workingDays = [
-            0 => ['start' => '14:00', 'end' => '20:00'], // Sunday
-            1 => ['start' => '14:00', 'end' => '20:00'], // Monday
-            3 => ['start' => '14:00', 'end' => '20:00'], // Wednesday
-            4 => ['start' => '14:00', 'end' => '20:00'], // Thursday
-            6 => ['start' => '12:00', 'end' => '18:00'], // Saturday
+            0 => ['start' => '09:00', 'end' => '21:00'], // Sunday
+            1 => ['start' => '09:00', 'end' => '21:00'], // Monday
+            2 => ['start' => '09:00', 'end' => '21:00'], // Tuesday
+            3 => ['start' => '09:00', 'end' => '21:00'], // Wednesday
+            4 => ['start' => '09:00', 'end' => '21:00'], // Thursday
+            6 => ['start' => '10:00', 'end' => '18:00'], // Saturday
         ];
 
         foreach ($workingDays as $day => $times) {

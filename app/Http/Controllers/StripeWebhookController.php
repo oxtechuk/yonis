@@ -10,8 +10,17 @@ use Illuminate\Support\Facades\Log;
 use Stripe\Webhook;
 use Stripe\Event;
 
+use App\Services\BookingCheckoutService;
+
 class StripeWebhookController extends Controller
 {
+    protected BookingCheckoutService $checkoutService;
+
+    public function __construct(BookingCheckoutService $checkoutService)
+    {
+        $this->checkoutService = $checkoutService;
+    }
+
     /**
      * Handle incoming Stripe webhooks.
      */
@@ -64,10 +73,9 @@ class StripeWebhookController extends Controller
             $paymentIntentId = $stripeObject['id'] ?? null;
             if ($paymentIntentId) {
                 $payment = Payment::where('payment_intent_id', $paymentIntentId)->first();
-                if ($payment) {
-                    $payment->update(['status' => 'Paid']);
-                    $payment->booking->update(['status' => 'Confirmed']);
-                    Log::info("Booking Ref {$payment->booking->booking_reference} confirmed via Stripe Webhook.");
+                if ($payment && $payment->booking) {
+                    $this->checkoutService->confirmBookingPayment($payment->booking, $payment);
+                    Log::info("Booking Ref {$payment->booking->booking_reference} confirmed and user account processed via Stripe Webhook.");
                 }
             }
         }
