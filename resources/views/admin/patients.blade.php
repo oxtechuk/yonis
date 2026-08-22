@@ -1,26 +1,28 @@
 @extends('layouts.admin')
 
-@section('title', 'سجلات المرضى')
+@section('title', 'سجلات المرضى والمراجعين')
 
 @section('content')
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-body">
-        <h5 class="fw-bold mb-3"><i class="bi bi-search me-1 text-teal" style="color: var(--accent-color);"></i> البحث عن مريض</h5>
+<div class="card border-0 shadow-sm mb-4 rounded-4 d-print-none">
+    <div class="card-body p-4">
+        <h5 class="fw-bold mb-3 text-primary d-flex align-items-center gap-2">
+            <i class="bi bi-search fs-5"></i> البحث في سجلات المرضى والمراجعين
+        </h5>
         <form action="{{ route('admin.patients') }}" method="GET" class="row g-3">
             <div class="col-md-9">
                 <input type="text" name="search" class="form-control" placeholder="ابحث باسم المريض، الجوال، البريد الإلكتروني..." value="{{ request('search') }}">
             </div>
             <div class="col-md-3 d-grid">
-                <button type="submit" class="btn btn-premium">بحث</button>
+                <button type="submit" class="btn btn-primary rounded-pill fw-bold">بحث وتصفية</button>
             </div>
         </form>
     </div>
 </div>
 
-<div class="card border-0 shadow-sm">
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
     <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
-        <h5 class="fw-bold m-0">سجل العملاء والمرضى المسجلين</h5>
-        <button type="button" class="btn btn-premium btn-sm" data-bs-toggle="modal" data-bs-target="#addPatientModal">
+        <h5 class="fw-bold m-0"><i class="bi bi-people-fill text-primary me-2"></i> سجل المرضى والمراجعين المسجلين</h5>
+        <button type="button" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#addPatientModal">
             <i class="bi bi-person-plus-fill me-1"></i> إضافة مريض يدوي
         </button>
     </div>
@@ -40,21 +42,25 @@
                 <tbody>
                     @forelse($patients as $patient)
                         <tr>
-                            <td class="ps-4 fw-bold text-dark">{{ $patient->name }}</td>
+                            <td class="ps-4">
+                                <div class="fw-bold text-dark">{{ $patient->name }}</div>
+                            </td>
                             <td>{{ $patient->phone }}</td>
-                            <td>{{ $patient->email }}</td>
+                            <td class="font-monospace text-secondary">{{ $patient->email }}</td>
                             <td>{{ $patient->created_at->format('Y-m-d') }}</td>
                             <td>
-                                <span class="badge bg-secondary px-3 py-2 rounded-pill">{{ $patient->bookings_count }} حجوزات</span>
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1.5 rounded-pill">{{ $patient->bookings_count }} حجوزات</span>
                             </td>
                             <td class="pe-4 text-end">
-                                <a href="{{ route('admin.patients.details', $patient->id) }}" class="btn btn-sm btn-premium-outline rounded-pill px-3">عرض السجل الطبي</a>
+                                <a href="{{ route('admin.patients.details', $patient->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                    <i class="bi bi-folder2-open me-1"></i> عرض السجل الطبي
+                                </a>
                             </td>
                         </tr>
                     @empty
                         <tr>
                             <td colspan="6" class="text-center py-5 text-secondary">
-                                <i class="bi bi-people-fill fs-1 d-block mb-3"></i>
+                                <i class="bi bi-people fs-1 d-block mb-3 text-secondary"></i>
                                 لم يتم العثور على أي مرضى مسجلين.
                             </td>
                         </tr>
@@ -71,9 +77,9 @@
 <!-- Add Patient Modal -->
 <div class="modal fade" id="addPatientModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content border-0 shadow">
+        <div class="modal-content border-0 shadow rounded-4">
             <div class="modal-header bg-light">
-                <h5 class="modal-title fw-bold">إضافة حساب مريض جديد</h5>
+                <h5 class="modal-title fw-bold"><i class="bi bi-person-plus-fill text-primary me-2"></i> إضافة حساب مريض جديد</h5>
                 <button type="button" class="btn-close ms-0" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="{{ route('admin.patients.store') }}" method="POST">
@@ -98,7 +104,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary btn-sm rounded-pill" data-bs-dismiss="modal">إلغاء</button>
-                    <button type="submit" class="btn btn-premium btn-sm">حفظ المريض</button>
+                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold">حفظ وتأكيد المريض</button>
                 </div>
             </form>
         </div>

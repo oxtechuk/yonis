@@ -19,6 +19,7 @@
         $secondaryColor = \App\Models\Setting::get('secondary_color', '#1e3a8a');
         $siteLogo = \App\Models\Setting::get('site_logo', '');
         $siteTitle = \App\Models\Setting::get('site_title', 'إدارة العيادة');
+        $currentUser = auth()->user();
     @endphp
 
     <style>
@@ -53,33 +54,60 @@
                     <a href="{{ route('admin.dashboard') }}" class="sidebar-link @if(Route::is('admin.dashboard')) active @endif">
                         <i class="bi bi-speedometer2 me-2"></i> <span class="link-text">الإحصائيات</span>
                     </a>
-                    <a href="{{ route('admin.bookings') }}" class="sidebar-link @if(Route::is('admin.bookings')) active @endif">
-                        <i class="bi bi-calendar-event me-2"></i> <span class="link-text">الحجوزات</span>
-                    </a>
-                    <a href="{{ route('admin.calendar') }}" class="sidebar-link @if(Route::is('admin.calendar')) active @endif">
-                        <i class="bi bi-calendar-range me-2"></i> <span class="link-text">تقويم المواعيد</span>
-                    </a>
-                    <a href="{{ route('admin.patients') }}" class="sidebar-link @if(Route::is('admin.patients*')) active @endif">
-                        <i class="bi bi-people me-2"></i> <span class="link-text">المرضى</span>
-                    </a>
-                    <a href="{{ route('admin.payments') }}" class="sidebar-link @if(Route::is('admin.payments')) active @endif">
-                        <i class="bi bi-credit-card me-2"></i> <span class="link-text">المدفوعات</span>
-                    </a>
-                    <a href="{{ route('admin.services') }}" class="sidebar-link @if(Route::is('admin.services')) active @endif">
-                        <i class="bi bi-heart-pulse me-2"></i> <span class="link-text">الخدمات والأسعار</span>
-                    </a>
-                    <a href="{{ route('admin.availability') }}" class="sidebar-link @if(Route::is('admin.availability')) active @endif">
-                        <i class="bi bi-clock me-2"></i> <span class="link-text">مواعيد العمل</span>
-                    </a>
-                    <a href="{{ route('admin.portfolio') }}" class="sidebar-link @if(Route::is('admin.portfolio')) active @endif">
-                        <i class="bi bi-file-person me-2"></i> <span class="link-text">الصفحة التعريفية</span>
-                    </a>
-                    <a href="{{ route('admin.settings') }}" class="sidebar-link @if(Route::is('admin.settings')) active @endif">
-                        <i class="bi bi-gear me-2"></i> <span class="link-text">إعدادات المنصة</span>
-                    </a>
-                    <a href="{{ route('admin.api-control') }}" class="sidebar-link @if(Route::is('admin.api-control')) active @endif">
-                        <i class="bi bi-code-slash me-2"></i> <span class="link-text">تحكم الـ API</span>
-                    </a>
+
+                    @if($currentUser && $currentUser->hasPermission('manage_bookings'))
+                        <a href="{{ route('admin.bookings') }}" class="sidebar-link @if(Route::is('admin.bookings')) active @endif">
+                            <i class="bi bi-calendar-event me-2"></i> <span class="link-text">الحجوزات</span>
+                        </a>
+                        <a href="{{ route('admin.calendar') }}" class="sidebar-link @if(Route::is('admin.calendar')) active @endif">
+                            <i class="bi bi-calendar-range me-2"></i> <span class="link-text">تقويم المواعيد</span>
+                        </a>
+                    @endif
+
+                    @if($currentUser && $currentUser->hasPermission('manage_patients'))
+                        <a href="{{ route('admin.patients') }}" class="sidebar-link @if(Route::is('admin.patients*')) active @endif">
+                            <i class="bi bi-people me-2"></i> <span class="link-text">المرضى</span>
+                        </a>
+                    @endif
+
+                    @if($currentUser && $currentUser->hasPermission('manage_payments'))
+                        <a href="{{ route('admin.payments') }}" class="sidebar-link @if(Route::is('admin.payments')) active @endif">
+                            <i class="bi bi-credit-card me-2"></i> <span class="link-text">المدفوعات والتقارير</span>
+                        </a>
+                    @endif
+
+                    @if($currentUser && $currentUser->hasPermission('manage_services'))
+                        <a href="{{ route('admin.services') }}" class="sidebar-link @if(Route::is('admin.services')) active @endif">
+                            <i class="bi bi-heart-pulse me-2"></i> <span class="link-text">الخدمات والأسعار</span>
+                        </a>
+                    @endif
+
+                    @if($currentUser && $currentUser->hasPermission('manage_availability'))
+                        <a href="{{ route('admin.availability') }}" class="sidebar-link @if(Route::is('admin.availability')) active @endif">
+                            <i class="bi bi-clock me-2"></i> <span class="link-text">مواعيد العمل</span>
+                        </a>
+                    @endif
+
+                    @if($currentUser && $currentUser->hasPermission('manage_portfolio'))
+                        <a href="{{ route('admin.portfolio') }}" class="sidebar-link @if(Route::is('admin.portfolio')) active @endif">
+                            <i class="bi bi-file-person me-2"></i> <span class="link-text">الصفحة التعريفية</span>
+                        </a>
+                    @endif
+
+                    @if($currentUser && $currentUser->hasPermission('manage_staff'))
+                        <a href="{{ route('admin.staff.index') }}" class="sidebar-link @if(Route::is('admin.staff*')) active @endif">
+                            <i class="bi bi-person-gear me-2"></i> <span class="link-text">إدارة الموظفين</span>
+                        </a>
+                    @endif
+
+                    @if($currentUser && $currentUser->hasPermission('manage_settings'))
+                        <a href="{{ route('admin.settings') }}" class="sidebar-link @if(Route::is('admin.settings')) active @endif">
+                            <i class="bi bi-gear me-2"></i> <span class="link-text">إعدادات المنصة</span>
+                        </a>
+                        <a href="{{ route('admin.api-control') }}" class="sidebar-link @if(Route::is('admin.api-control')) active @endif">
+                            <i class="bi bi-code-slash me-2"></i> <span class="link-text">تحكم الـ API</span>
+                        </a>
+                    @endif
                 </div>
                 <hr class="text-secondary mt-5">
                 <a href="{{ route('home') }}" class="sidebar-link">
@@ -102,10 +130,14 @@
                         <button class="btn btn-outline-secondary d-md-none me-2" type="button" data-bs-toggle="collapse" data-bs-target=".admin-sidebar">
                             <i class="bi bi-list"></i>
                         </button>
-                        <h4 class="m-0 fw-bold text-dark">أهلاً بك، د. يونس</h4>
+                        <h4 class="m-0 fw-bold text-dark">أهلاً بك، {{ $currentUser ? $currentUser->name : 'المستخدم' }}</h4>
                     </div>
                     <div>
-                        <span class="badge bg-primary px-3 py-2 fs-6 rounded-pill">مسؤول النظام</span>
+                        @if($currentUser && $currentUser->isAdmin())
+                            <span class="badge bg-primary px-3 py-2 fs-6 rounded-pill"><i class="bi bi-shield-lock-fill me-1"></i> مسؤول النظام</span>
+                        @else
+                            <span class="badge bg-info-subtle text-info border border-info-subtle px-3 py-2 fs-6 rounded-pill"><i class="bi bi-person-badge-fill me-1"></i> موظف صلاحيات</span>
+                        @endif
                     </div>
                 </header>
                 
@@ -171,7 +203,6 @@
                 if (sidebar) sidebar.classList.add('collapsed');
                 if (mainContent) mainContent.classList.add('expanded');
                 
-                // Use a DOMContentLoaded listener to update the icon once it renders
                 window.addEventListener('DOMContentLoaded', () => {
                     const icon = document.querySelector('#sidebarCollapseBtn i');
                     if (icon) icon.className = 'bi bi-chevron-bar-left text-light';

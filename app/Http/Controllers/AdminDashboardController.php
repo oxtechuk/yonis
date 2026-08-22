@@ -66,23 +66,220 @@ class AdminDashboardController extends Controller
             $query->where('status', $request->status);
         }
 
-        if ($request->filled('date')) {
-            $query->where('date', $request->date);
+        if ($request->filled('service_id')) {
+            $query->where('service_id', $request->service_id);
+        }
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('date', '>=', $request->start_date);
+        }
+
+        if ($request->filled('end_date')) {
+            $query->whereDate('date', '<=', $request->end_date);
         }
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->whereHas('patient', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%");
-            })->orWhere('booking_reference', 'like', "%{$search}%");
+            $query->where(function($q) use ($search) {
+                $q->whereHas('patient', function ($pq) use ($search) {
+                    $pq->where('name', 'like', "%{$search}%")
+                      ->orWhere('phone', 'like', "%{$search}%");
+                })->orWhere('booking_reference', 'like', "%{$search}%");
+            });
         }
 
-        $bookings = $query->paginate(15);
+        $bookings = $query->paginate(15)->withQueryString();
         $allPatients = User::where('role', 'patient')->orderBy('name', 'asc')->get();
         $allServices = Service::where('is_active', true)->get();
 
         return view('admin.bookings', compact('bookings', 'allPatients', 'allServices'));
+    }
+
+    /**
+     * Export Bookings Report CSV
+     */
+    public function exportBookingsReport(Request $request)
+    {
+        $query = Booking::with(['patient', 'service', 'payment'])
+            ->orderBy('date', 'desc');
+
+        if ($request->filled('status')) $query->where('status', $request->status);
+        if ($request->filled('service_id')) $query->where('service_id', $request->service_id);
+        if ($request->filled('start_date')) $query->whereDate('date', '>=', $request->start_date);
+        if ($request->filled('end_date')) $query->whereDate('date', '<=', $request->end_date);
+
+        $bookings = $query->get();
+
+        $filename = 'bookings_report_' . date('Y-m-d') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function () use ($bookings) {
+            $file = fopen('php://output', 'w');
+            fputs($file, "\xEF\xBB\xBF"); // UTF-8 BOM
+            fputcsv($file, ['رقم المرجع', 'اسم المراجع', 'رقم الهاتف', 'الخدمة', 'التاريخ', 'الوقت', 'المبلغ', 'حالة الحجز', 'حالة الدفع']);
+
+            foreach ($bookings as $b) {
+                fputcsv($file, [
+                    $b->booking_reference,
+                    $b->patient->name ?? '',
+                    $b->patient->phone ?? '',
+                    $b->service->title ?? '',
+                    $b->date->format('Y-m-d'),
+                    $b->start_time . ' - ' . $b->end_time,
+                    ($b->payment ? $b->payment->amount : ($b->service ? $b->service->price : 0)) . ' USD',
+                    $b->status,
+                    $b->payment->status ?? 'Unpaid'
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Payments logs list
+     */
+    public function payments(Request $request)
+    {
+        $query = Payment::with(['booking.patient', 'booking.service'])
+            ->orderBy('created_at', 'desc');
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        $totalRevenue = (clone $query)->where('status', 'Paid')->sum('amount');
+        $payments = $query->paginate(15)->withQueryString();
+
+        return view('admin.payments', compact('payments', 'totalRevenue'));
+    }
+
+    /**
+     * Export Payments Financial Report CSV
+     */
+    public function exportPaymentsReport(Request $request)
+    {
+        $query = Payment::with(['booking.patient', 'booking.service'])
+            ->orderBy('created_at', 'desc');
+
+        if ($request->filled('status')) $query->where('status', $request->status);
+        if ($request->filled('start_date')) $query->whereDate('created_at', '>=', $request->start_date);
+        if ($request->filled('end_date')) $query->whereDate('created_at', '<=', $request->end_date);
+
+        $payments = $query->get();
+
+        $filename = 'financial_report_' . date('Y-m-d') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function () use ($payments) {
+            $file = fopen('php://output', 'w');
+            fputs($file, "\xEF\xBB\xBF"); // UTF-8 BOM
+            fputcsv($file, ['رقم العملية', 'رقم المرجع', 'اسم المراجع', 'الخدمة', 'المبلغ', 'العملة', 'حالة الدفع', 'تاريخ العملية']);
+
+            foreach ($payments as $p) {
+                fputcsv($file, [
+                    $p->payment_intent_id,
+                    $p->booking->booking_reference ?? '',
+                    $p->booking->patient->name ?? '',
+                    $p->booking->service->title ?? '',
+                    $p->amount,
+                    strtoupper($p->currency),
+                    $p->status,
+                    $p->created_at->format('Y-m-d H:i:s')
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Store new manual booking by Admin
+     */
+    public function storeBooking(Request $request)
+    {
+        $request->validate([
+            'patient_id' => 'required|exists:users,id',
+            'service_id' => 'required|exists:services,id',
+            'booking_type' => 'required|in:clinic,online',
+            'consultation_type' => 'required|in:clinic,chat,voice,video',
+            'date' => 'required|date|after_or_equal:today',
+            'start_time' => 'required|string',
+            'payment_status' => 'required|in:Paid,Pending',
+        ]);
+
+        return DB::transaction(function () use ($request) {
+            $service = Service::findOrFail($request->service_id);
+            $startTime = Carbon::parse($request->start_time);
+            $endTime = $startTime->copy()->addMinutes($service->duration);
+
+            $startTimeStr = $startTime->format('H:i:s');
+            $endTimeStr = $endTime->format('H:i:s');
+            $dateStr = Carbon::parse($request->date)->format('Y-m-d');
+
+            // Double booking check
+            $overlapExists = Booking::where('date', $dateStr)
+                ->whereIn('status', ['AwaitingPayment', 'Confirmed', 'Completed'])
+                ->where(function ($query) use ($startTimeStr, $endTimeStr) {
+                    $query->where('start_time', '<', $endTimeStr)
+                          ->where('end_time', '>', $startTimeStr);
+                })
+                ->exists();
+
+            if ($overlapExists) {
+                return redirect()->back()->with('error', 'عذراً، هذا الموعد يتعارض مع حجز آخر.');
+            }
+
+            $bookingRef = 'YN-' . strtoupper(Str::random(6));
+
+            $calculatedPrice = $service->price;
+            if ($request->consultation_type === 'chat' && isset($service->pricing['chat'])) {
+                $calculatedPrice = $service->pricing['chat'];
+            } elseif ($request->consultation_type === 'voice' && isset($service->pricing['voice'])) {
+                $calculatedPrice = $service->pricing['voice'];
+            } elseif ($request->consultation_type === 'video' && isset($service->pricing['video'])) {
+                $calculatedPrice = $service->pricing['video'];
+            }
+
+            $booking = Booking::create([
+                'booking_reference' => $bookingRef,
+                'patient_id' => $request->patient_id,
+                'service_id' => $request->service_id,
+                'booking_type' => $request->booking_type,
+                'consultation_type' => $request->consultation_type,
+                'price' => $calculatedPrice,
+                'date' => $dateStr,
+                'start_time' => $startTimeStr,
+                'end_time' => $endTimeStr,
+                'status' => 'Confirmed',
+            ]);
+
+            Payment::create([
+                'booking_id' => $booking->id,
+                'payment_intent_id' => 'cash_manual_' . Str::random(8),
+                'amount' => $calculatedPrice,
+                'currency' => 'usd',
+                'status' => $request->payment_status,
+            ]);
+
+            return redirect()->back()->with('success', 'تم إضافة الحجز بنجاح.');
+        });
     }
 
     /**
@@ -180,91 +377,6 @@ class AdminDashboardController extends Controller
     }
 
     /**
-     * Store manual booking created by Admin/Doctor
-     */
-    public function storeBooking(Request $request)
-    {
-        $request->validate([
-            'patient_id' => 'required|exists:users,id',
-            'service_id' => 'required|exists:services,id',
-            'booking_type' => 'nullable|in:clinic,online',
-            'consultation_type' => 'nullable|in:clinic,chat,voice,video',
-            'date' => 'required|date|after_or_equal:today',
-            'start_time' => 'required|string',
-            'payment_status' => 'required|in:Paid,Pending',
-        ]);
-
-        $service = Service::findOrFail($request->service_id);
-        $duration = $service->duration;
-
-        $bookingType = $request->booking_type ?? 'clinic';
-        $consultationType = $request->consultation_type ?? ($bookingType === 'clinic' ? 'clinic' : 'video');
-        $calculatedPrice = $service->getPriceForChannel($consultationType);
-
-        $startTime = Carbon::parse($request->start_time);
-        $endTime = $startTime->copy()->addMinutes($duration);
-
-        $startTimeStr = $startTime->format('H:i:s');
-        $endTimeStr = $endTime->format('H:i:s');
-        $dateStr = Carbon::parse($request->date)->format('Y-m-d');
-
-        return DB::transaction(function () use ($request, $service, $dateStr, $startTimeStr, $endTimeStr, $bookingType, $consultationType, $calculatedPrice) {
-            
-            // Double booking prevention check
-            $overlapExists = Booking::where('date', $dateStr)
-                ->whereIn('status', ['AwaitingPayment', 'Confirmed', 'Completed'])
-                ->where(function ($query) use ($startTimeStr, $endTimeStr) {
-                    $query->where(function ($q) use ($startTimeStr, $endTimeStr) {
-                        $q->where('start_time', '<', $endTimeStr)
-                          ->where('end_time', '>', $startTimeStr);
-                    });
-                })
-                ->lockForUpdate()
-                ->exists();
-
-            if ($overlapExists) {
-                return redirect()->back()->with('error', 'عذراً، هذا الموعد يتعارض مع حجز قائم بالفعل.');
-            }
-
-            // Generate booking reference
-            do {
-                $bookingRef = 'BK-' . strtoupper(Str::random(8));
-            } while (Booking::where('booking_reference', $bookingRef)->exists());
-
-            // Create Booking
-            $booking = Booking::create([
-                'booking_reference' => $bookingRef,
-                'patient_id' => $request->patient_id,
-                'service_id' => $service->id,
-                'booking_type' => $bookingType,
-                'consultation_type' => $consultationType,
-                'price' => $calculatedPrice,
-                'date' => $dateStr,
-                'start_time' => $startTimeStr,
-                'end_time' => $endTimeStr,
-                'status' => 'Confirmed', // Confirmed directly by admin
-            ]);
-
-            // Create Payment
-            Payment::create([
-                'booking_id' => $booking->id,
-                'payment_intent_id' => 'cash_clinic_' . Str::random(10),
-                'amount' => $calculatedPrice,
-                'currency' => 'usd',
-                'status' => $request->payment_status,
-            ]);
-
-            // Log Notification action
-            if (Setting::get('notify_new_booking') === '1') {
-                $patient = User::find($request->patient_id);
-                Log::info("Email Notification: New Booking {$bookingRef} created manually. Email sent to {$patient->email}");
-            }
-
-            return redirect()->back()->with('success', 'تم تسجيل الحجز يدوياً بنجاح.');
-        });
-    }
-
-    /**
      * Patients list
      */
     public function patients(Request $request)
@@ -322,22 +434,6 @@ class AdminDashboardController extends Controller
             ->get();
 
         return view('admin.patient_details', compact('patient', 'bookings'));
-    }
-
-    /**
-     * Payments logs list
-     */
-    public function payments(Request $request)
-    {
-        $query = Payment::with(['booking.patient', 'booking.service'])
-            ->orderBy('created_at', 'desc');
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        $payments = $query->paginate(15);
-        return view('admin.payments', compact('payments'));
     }
 
     /**
