@@ -14,6 +14,20 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
     
+    @php
+        $primaryColor = \App\Models\Setting::get('primary_color', '#3B52A4');
+        $secondaryColor = \App\Models\Setting::get('secondary_color', '#1e3a8a');
+        $siteLogo = \App\Models\Setting::get('site_logo', '');
+        $siteTitle = \App\Models\Setting::get('site_title', 'إدارة العيادة');
+    @endphp
+
+    <style>
+        :root {
+            --primary-color: {{ $primaryColor }};
+            --primary-dark: {{ $secondaryColor }};
+        }
+    </style>
+    
     @yield('styles')
 </head>
 <body class="bg-light">
@@ -24,8 +38,12 @@
             <!-- Sidebar -->
             <nav class="col-md-3 col-lg-2 d-md-block admin-sidebar collapse sidebar p-3 d-print-none">
                 <div class="d-flex align-items-center mb-4 px-2">
-                    <i class="bi bi-heart-pulse-fill text-danger fs-2 me-2"></i>
-                    <h5 class="m-0 fw-bold text-white brand-text">إدارة العيادة</h5>
+                    @if(!empty($siteLogo))
+                        <img src="{{ $siteLogo }}" alt="Logo" class="me-2" style="max-height: 40px; border-radius: 8px;">
+                    @else
+                        <i class="bi bi-heart-pulse-fill text-danger fs-2 me-2"></i>
+                    @endif
+                    <h5 class="m-0 fw-bold text-white brand-text">{{ $siteTitle }}</h5>
                     <button class="btn btn-sm text-secondary ms-auto d-none d-md-block p-1" id="sidebarCollapseBtn" onclick="toggleSidebar()" style="background: transparent; border: none; font-size: 1.25rem;">
                         <i class="bi bi-chevron-bar-right text-light"></i>
                     </button>

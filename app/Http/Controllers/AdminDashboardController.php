@@ -11,6 +11,8 @@ use App\Models\BlockedTime;
 use App\Models\Booking;
 use App\Models\Payment;
 use App\Models\Setting;
+use App\Models\Reel;
+use App\Models\Testimonial;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -556,13 +558,15 @@ class AdminDashboardController extends Controller
     }
 
     /**
-     * Show Doctor Portfolio Editor
+     * Show Doctor Portfolio & Content Editor
      */
     public function portfolio()
     {
         $doctor = Auth::user();
         $profile = DoctorProfile::firstOrCreate(['user_id' => $doctor->id]);
-        return view('admin.portfolio', compact('profile'));
+        $reels = Reel::latest()->get();
+        $testimonials = Testimonial::latest()->get();
+        return view('admin.portfolio', compact('profile', 'reels', 'testimonials'));
     }
 
     /**
@@ -575,23 +579,30 @@ class AdminDashboardController extends Controller
 
         $request->validate([
             'title' => 'required|string|max:255',
+            'title_en' => 'nullable|string|max:255',
             'bio' => 'required|string',
-            'education' => 'required|array',
-            'experience' => 'required|array',
-            'certificates' => 'required|array',
-            'specialties' => 'required|array',
+            'bio_en' => 'nullable|string',
+            'education' => 'nullable|array',
+            'experience' => 'nullable|array',
+            'certificates' => 'nullable|array',
+            'specialties' => 'nullable|array',
+            'specialties_en' => 'nullable|array',
             'facebook' => 'nullable|url',
             'twitter' => 'nullable|url',
             'instagram' => 'nullable|url',
             'linkedin' => 'nullable|url',
-            'gallery_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'hero_image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
+            'about_image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
+            'site_logo_file' => 'nullable|image|mimes:jpeg,png,jpg,webp,svg|max:2048',
+            'gallery_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:3072',
         ]);
 
         // Filter empty values from arrays
-        $education = array_values(array_filter($request->education));
-        $experience = array_values(array_filter($request->experience));
-        $certificates = array_values(array_filter($request->certificates));
-        $specialties = array_values(array_filter($request->specialties));
+        $education = array_values(array_filter($request->education ?? []));
+        $experience = array_values(array_filter($request->experience ?? []));
+        $certificates = array_values(array_filter($request->certificates ?? []));
+        $specialties = array_values(array_filter($request->specialties ?? []));
+        $specialties_en = array_values(array_filter($request->specialties_en ?? []));
 
         $social_links = [
             'facebook' => $request->facebook,
@@ -600,11 +611,30 @@ class AdminDashboardController extends Controller
             'linkedin' => $request->linkedin,
         ];
 
+        // Hero Image Upload
+        $heroImage = $profile->hero_image;
+        if ($request->hasFile('hero_image_file')) {
+            $path = $request->file('hero_image_file')->store('branding', 'public');
+            $heroImage = asset('storage/' . $path);
+        }
+
+        // About Image Upload
+        $aboutImage = $profile->about_image;
+        if ($request->hasFile('about_image_file')) {
+            $path = $request->file('about_image_file')->store('branding', 'public');
+            $aboutImage = asset('storage/' . $path);
+        }
+
+        // Site Logo Upload
+        if ($request->hasFile('site_logo_file')) {
+            $path = $request->file('site_logo_file')->store('branding', 'public');
+            Setting::set('site_logo', asset('storage/' . $path));
+        }
+
         // Handle gallery image uploads
         $gallery = $profile->gallery ?? [];
         if ($request->hasFile('gallery_images')) {
             foreach ($request->file('gallery_images') as $file) {
-                // Store in public/gallery folder
                 $path = $file->store('gallery', 'public');
                 $gallery[] = asset('storage/' . $path);
             }
@@ -612,16 +642,21 @@ class AdminDashboardController extends Controller
 
         $profile->update([
             'title' => $request->title,
+            'title_en' => $request->title_en ?: null,
             'bio' => $request->bio,
+            'bio_en' => $request->bio_en ?: null,
+            'hero_image' => $heroImage,
+            'about_image' => $aboutImage,
             'education' => $education,
             'experience' => $experience,
             'certificates' => $certificates,
             'specialties' => $specialties,
+            'specialties_en' => $specialties_en,
             'social_links' => $social_links,
             'gallery' => $gallery,
         ]);
 
-        return redirect()->back()->with('success', 'تم تحديث بيانات الصفحة التعريفية بنجاح.');
+        return redirect()->back()->with('success', 'تم تحديث بيانات الصفحة والعدسات بنجاح.');
     }
 
     /**
@@ -635,12 +670,10 @@ class AdminDashboardController extends Controller
         $profile = DoctorProfile::where('user_id', $doctor->id)->firstOrFail();
         $gallery = $profile->gallery ?? [];
 
-        // Remove from array
         $gallery = array_values(array_filter($gallery, function ($url) use ($request) {
             return $url !== $request->image_url;
         }));
 
-        // Delete from local storage if it's local
         if (str_contains($request->image_url, '/storage/gallery/')) {
             $filename = basename($request->image_url);
             Storage::disk('public')->delete('gallery/' . $filename);
@@ -652,11 +685,112 @@ class AdminDashboardController extends Controller
     }
 
     /**
+     * Store new Video Reel
+     */
+    public function storeReel(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'title_en' => 'nullable|string|max:255',
+            'video_url' => 'nullable|string',
+            'video_file' => 'nullable|file|mimes:mp4,mov,avi,webm|max:51200',
+            'thumbnail_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
+            'duration' => 'nullable|integer',
+        ]);
+
+        $videoUrl = $request->video_url;
+        if ($request->hasFile('video_file')) {
+            $path = $request->file('video_file')->store('reels', 'public');
+            $videoUrl = asset('storage/' . $path);
+        }
+
+        $thumbnailUrl = 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=500&q=80';
+        if ($request->hasFile('thumbnail_file')) {
+            $path = $request->file('thumbnail_file')->store('reels/thumbnails', 'public');
+            $thumbnailUrl = asset('storage/' . $path);
+        }
+
+        Reel::create([
+            'title' => $request->title,
+            'title_en' => $request->title_en ?: null,
+            'video_url' => $videoUrl ?: '#',
+            'thumbnail_url' => $thumbnailUrl,
+            'duration' => $request->duration ?: 60,
+            'platform' => 'Internal',
+            'is_active' => true,
+        ]);
+
+        return redirect()->back()->with('success', 'تم إضافة الفيديوه التوعوي بنجاح.');
+    }
+
+    /**
+     * Delete Video Reel
+     */
+    public function deleteReel($id)
+    {
+        $reel = Reel::findOrFail($id);
+        $reel->delete();
+        return redirect()->back()->with('success', 'تم حذف الفيديو بنجاح.');
+    }
+
+    /**
+     * Store new Testimonial
+     */
+    public function storeTestimonial(Request $request)
+    {
+        $request->validate([
+            'client_name_ar' => 'required|string|max:255',
+            'client_name_en' => 'nullable|string|max:255',
+            'content_ar' => 'required|string',
+            'content_en' => 'nullable|string',
+            'rating' => 'required|integer|min:1|max:5',
+            'avatar_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+        ]);
+
+        $avatarUrl = null;
+        if ($request->hasFile('avatar_file')) {
+            $path = $request->file('avatar_file')->store('testimonials', 'public');
+            $avatarUrl = asset('storage/' . $path);
+        }
+
+        Testimonial::create([
+            'client_name_ar' => $request->client_name_ar,
+            'client_name_en' => $request->client_name_en ?: null,
+            'content_ar' => $request->content_ar,
+            'content_en' => $request->content_en ?: null,
+            'rating' => $request->rating,
+            'client_avatar' => $avatarUrl,
+            'is_active' => true,
+        ]);
+
+        return redirect()->back()->with('success', 'تم إضافة رأي العميل بنجاح.');
+    }
+
+    /**
+     * Delete Testimonial
+     */
+    public function deleteTestimonial($id)
+    {
+        $testimonial = Testimonial::findOrFail($id);
+        $testimonial->delete();
+        return redirect()->back()->with('success', 'تم حذف رأي العميل بنجاح.');
+    }
+
+    /**
      * Settings Page View
      */
     public function settings()
     {
         $settings = [
+            'site_title' => Setting::get('site_title', 'إدارة العيادة'),
+            'doctor_name' => Setting::get('doctor_name', 'يونس المرشد'),
+            'site_logo' => Setting::get('site_logo', ''),
+            'primary_color' => Setting::get('primary_color', '#3B52A4'),
+            'secondary_color' => Setting::get('secondary_color', '#1e3a8a'),
+            'google_site_verification' => Setting::get('google_site_verification', ''),
+            'meta_description' => Setting::get('meta_description', 'احجز استشارتك النفسية الآن مع المعالج يونس المرشد. جلسات فردية وزوجية وأسرية بخبرة أكثر من 10 سنوات.'),
+            'meta_keywords' => Setting::get('meta_keywords', 'معالج نفسي, استشارة نفسية, علاج نفسي, يونس المرشد, حجز موعد نفسي, اكتئاب, قلق, علاج زوجي'),
+            'og_image' => Setting::get('og_image', ''),
             'google_analytics_id' => Setting::get('google_analytics_id', ''),
             'meta_pixel_id' => Setting::get('meta_pixel_id', ''),
             'notify_new_booking' => Setting::get('notify_new_booking', '1'),
@@ -671,16 +805,50 @@ class AdminDashboardController extends Controller
     public function updateSettings(Request $request)
     {
         $request->validate([
+            'site_title' => 'nullable|string|max:255',
+            'doctor_name' => 'nullable|string|max:255',
+            'site_logo' => 'nullable|string',
+            'logo_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'primary_color' => 'nullable|string|max:20',
+            'secondary_color' => 'nullable|string|max:20',
+            'google_site_verification' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string',
+            'meta_keywords' => 'nullable|string',
+            'og_image' => 'nullable|string',
+            'og_image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'google_analytics_id' => 'nullable|string|max:50',
             'meta_pixel_id' => 'nullable|string|max:50',
         ]);
 
-        Setting::set('google_analytics_id', $request->google_analytics_id);
-        Setting::set('meta_pixel_id', $request->meta_pixel_id);
+        // Handle logo file upload
+        if ($request->hasFile('logo_file')) {
+            $path = $request->file('logo_file')->store('branding', 'public');
+            Setting::set('site_logo', asset('storage/' . $path));
+        } elseif ($request->filled('site_logo')) {
+            Setting::set('site_logo', $request->site_logo);
+        }
+
+        // Handle OG image file upload
+        if ($request->hasFile('og_image_file')) {
+            $path = $request->file('og_image_file')->store('branding', 'public');
+            Setting::set('og_image', asset('storage/' . $path));
+        } elseif ($request->filled('og_image')) {
+            Setting::set('og_image', $request->og_image);
+        }
+
+        if ($request->filled('site_title')) Setting::set('site_title', $request->site_title);
+        if ($request->filled('doctor_name')) Setting::set('doctor_name', $request->doctor_name);
+        if ($request->filled('primary_color')) Setting::set('primary_color', $request->primary_color);
+        if ($request->filled('secondary_color')) Setting::set('secondary_color', $request->secondary_color);
+        Setting::set('google_site_verification', $request->google_site_verification ?? '');
+        Setting::set('meta_description', $request->meta_description ?? '');
+        Setting::set('meta_keywords', $request->meta_keywords ?? '');
+        Setting::set('google_analytics_id', $request->google_analytics_id ?? '');
+        Setting::set('meta_pixel_id', $request->meta_pixel_id ?? '');
         Setting::set('notify_new_booking', $request->has('notify_new_booking') ? '1' : '0');
         Setting::set('notify_cancellation', $request->has('notify_cancellation') ? '1' : '0');
 
-        return redirect()->back()->with('success', 'تم حفظ جميع الإعدادات وتأكيد تفعيلها بنجاح.');
+        return redirect()->back()->with('success', 'تم حفظ جميع إعدادات المنصة، الهوية البصرية، والـ SEO بنجاح!');
     }
 
     /**

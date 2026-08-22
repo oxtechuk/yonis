@@ -10,11 +10,16 @@ class DoctorProfile extends Model
     protected $fillable = [
         'user_id',
         'title',
+        'title_en',
         'bio',
+        'bio_en',
+        'hero_image',
+        'about_image',
         'education',
         'experience',
         'certificates',
         'specialties',
+        'specialties_en',
         'social_links',
         'gallery',
     ];
@@ -24,6 +29,7 @@ class DoctorProfile extends Model
         'experience' => 'array',
         'certificates' => 'array',
         'specialties' => 'array',
+        'specialties_en' => 'array',
         'social_links' => 'array',
         'gallery' => 'array',
     ];

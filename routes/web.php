@@ -8,8 +8,14 @@ use App\Http\Controllers\PatientDashboardController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\StripeWebhookController;
 
-// 1. Public / Landing Page Route
+// 1. Public / Landing Page Route & Language Switch
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/lang/{locale}', function ($locale) {
+    if (in_array($locale, ['ar', 'en'])) {
+        session(['locale' => $locale]);
+    }
+    return redirect()->back();
+})->name('lang.switch');
 
 // 2. Authentication Routes
 Route::middleware('guest')->group(function () {
@@ -66,10 +72,14 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/availability/block', [AdminDashboardController::class, 'storeBlockedTime'])->name('availability.block.store');
     Route::post('/availability/block/{id}/delete', [AdminDashboardController::class, 'deleteBlockedTime'])->name('availability.block.delete');
     
-    // Doctor Portfolio
+    // Doctor Portfolio & Content Editor
     Route::get('/portfolio', [AdminDashboardController::class, 'portfolio'])->name('portfolio');
     Route::post('/portfolio', [AdminDashboardController::class, 'updatePortfolio'])->name('portfolio.update');
     Route::post('/portfolio/image/delete', [AdminDashboardController::class, 'deleteGalleryImage'])->name('portfolio.image.delete');
+    Route::post('/portfolio/reel', [AdminDashboardController::class, 'storeReel'])->name('portfolio.reel.store');
+    Route::delete('/portfolio/reel/{id}', [AdminDashboardController::class, 'deleteReel'])->name('portfolio.reel.delete');
+    Route::post('/portfolio/testimonial', [AdminDashboardController::class, 'storeTestimonial'])->name('portfolio.testimonial.store');
+    Route::delete('/portfolio/testimonial/{id}', [AdminDashboardController::class, 'deleteTestimonial'])->name('portfolio.testimonial.delete');
 
     // Calendar
     Route::get('/calendar', [AdminDashboardController::class, 'calendar'])->name('calendar');

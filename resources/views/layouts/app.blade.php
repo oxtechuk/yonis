@@ -1,14 +1,23 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {{-- ── SEO Core Meta ─────────────────────────────────────── --}}
+    @php
+        $primaryColor = \App\Models\Setting::get('primary_color', '#3B52A4');
+        $secondaryColor = \App\Models\Setting::get('secondary_color', '#1e3a8a');
+        $siteLogo = \App\Models\Setting::get('site_logo', '');
+        $defaultMetaDesc = \App\Models\Setting::get('meta_description', 'احجز استشارتك النفسية الآن مع المعالج يونس المرشد. جلسات فردية وزوجية وأسرية بخبرة أكثر من 10 سنوات. حجز أونلاين عبر شات أو صوت أو فيديو، أو في العيادة.');
+        $defaultMetaKeys = \App\Models\Setting::get('meta_keywords', 'معالج نفسي, استشارة نفسية, علاج نفسي, يونس المرشد, حجز موعد نفسي, اكتئاب, قلق, علاج زوجي');
+        $isAr = app()->getLocale() === 'ar';
+    @endphp
+
     <title>@yield('title', 'المعالج النفسي يونس المرشد - استشارات نفسية وأسرية متخصصة')</title>
-    <meta name="description" content="@yield('meta_description', 'احجز استشارتك النفسية الآن مع المعالج يونس المرشد. جلسات فردية وزوجية وأسرية بخبرة أكثر من 10 سنوات. حجز أونلاين عبر شات أو صوت أو فيديو، أو في العيادة.')">
-    <meta name="keywords" content="@yield('meta_keywords', 'معالج نفسي, استشارة نفسية, علاج نفسي, يونس المرشد, حجز موعد نفسي, اكتئاب, قلق, علاج زوجي')">
+    <meta name="description" content="@yield('meta_description', $defaultMetaDesc)">
+    <meta name="keywords" content="@yield('meta_keywords', $defaultMetaKeys)">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="{{ url()->current() }}">
 
@@ -21,10 +30,10 @@
     {{-- ── Open Graph (Facebook / WhatsApp Preview) ─────────── --}}
     @php $ogImg = \App\Models\Setting::get('og_image', ''); @endphp
     <meta property="og:type" content="website">
-    <meta property="og:locale" content="ar_AR">
+    <meta property="og:locale" content="{{ $isAr ? 'ar_AR' : 'en_US' }}">
     <meta property="og:site_name" content="يونس المرشد - للعلاج النفسي">
     <meta property="og:title" content="@yield('title', 'المعالج النفسي يونس المرشد')">
-    <meta property="og:description" content="@yield('meta_description', 'استشارات نفسية متخصصة - احجز موعدك الآن')">
+    <meta property="og:description" content="@yield('meta_description', $defaultMetaDesc)">
     <meta property="og:url" content="{{ url()->current() }}">
     @if(!empty($ogImg))
         <meta property="og:image" content="{{ $ogImg }}">
@@ -33,27 +42,27 @@
     {{-- ── Twitter Card ──────────────────────────────────────── --}}
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="@yield('title', 'المعالج النفسي يونس المرشد')">
-    <meta name="twitter:description" content="@yield('meta_description', 'استشارات نفسية متخصصة - احجز موعدك الآن')">
+    <meta name="twitter:description" content="@yield('meta_description', $defaultMetaDesc)">
 
     {{-- ── Schema.org: Physician + MedicalClinic ─────────────── --}}
     <script type="application/ld+json">
     {
-        "@context": "https://schema.org",
-        "@graph": [
+        "@@context": "https://schema.org",
+        "@@graph": [
             {
-                "@type": "Physician",
+                "@@type": "Physician",
                 "name": "{{ \App\Models\Setting::get('doctor_name', 'يونس المرشد') }}",
                 "description": "معالج نفسي مرخص بخبرة أكثر من 10 سنوات في الاستشارات النفسية والعلاج المعرفي السلوكي",
                 "url": "{{ url('/') }}",
                 "medicalSpecialty": "Psychiatry",
                 "availableService": [
-                    {"@type": "MedicalTherapy", "name": "استشارة نفسية فردية"},
-                    {"@type": "MedicalTherapy", "name": "استشارة زوجية وأسرية"},
-                    {"@type": "MedicalTherapy", "name": "علاج الاكتئاب والقلق"}
+                    {"@@type": "MedicalTherapy", "name": "استشارة نفسية فردية"},
+                    {"@@type": "MedicalTherapy", "name": "استشارة زوجية وأسرية"},
+                    {"@@type": "MedicalTherapy", "name": "علاج الاكتئاب والقلق"}
                 ]
             },
             {
-                "@type": "MedicalClinic",
+                "@@type": "MedicalClinic",
                 "name": "عيادة يونس المرشد للاستشارات النفسية",
                 "url": "{{ url('/') }}",
                 "description": "عيادة متخصصة في الاستشارات النفسية الفردية والأسرية والزوجية"
@@ -91,13 +100,17 @@
         </script>
     @endif
 
-    {{-- ── Fonts: Tajawal ────────────────────────────────────── --}}
+    {{-- ── Fonts: Tajawal & Inter ────────────────────────────── --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 
-    {{-- ── Bootstrap 5.3.3 RTL ───────────────────────────────── --}}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css">
+    {{-- ── Bootstrap 5.3.3 CSS ───────────────────────────────── --}}
+    @if($isAr)
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css">
+    @else
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    @endif
 
     {{-- ── Bootstrap Icons ────────────────────────────────────── --}}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -108,52 +121,76 @@
     {{-- ── Custom CSS ─────────────────────────────────────────── --}}
     <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
 
+    <style>
+        :root {
+            --primary-color: {{ $primaryColor }};
+            --primary-dark: {{ $secondaryColor }};
+        }
+    </style>
+
     {{-- ── Sitemap ──────────────────────────────────────────────── --}}
     <link rel="sitemap" type="application/xml" href="/sitemap.xml">
 
     @yield('styles')
 </head>
-<body class="d-flex flex-column min-vh-100">
+<body class="d-flex flex-column min-vh-100 {{ $isAr ? 'rtl-mode' : 'ltr-mode' }}">
 
-    {{-- ═══ Navbar ════════════════════════════════════════════ --}}
-    <nav class="navbar navbar-expand-lg navbar-premium sticky-top py-2" id="mainNavbar">
+    {{-- ═══ LUXURY FLOATING GLASSMORPHIC NAVBAR ════════════════════ --}}
+    <header class="navbar-floating-wrapper" id="mainHeaderWrapper">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="{{ route('home') }}">
-                <div class="navbar-logo-circle">Ψ</div>
-                <div class="d-flex flex-column">
-                    <span class="fw-black lh-1" style="color: var(--primary-color); font-size: 1.2rem;">يونس المرشد</span>
-                    <span class="text-secondary small" style="font-size: 0.68rem; letter-spacing: 0.4px;">للعلاج النفسي والتطوير الذاتي</span>
-                </div>
-            </a>
-
-            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-lg-center gap-1 my-3 my-lg-0">
-                    <li class="nav-item"><a class="nav-link @if(Route::is('home')) active @endif" href="{{ route('home') }}">الرئيسية</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ route('home') }}#about">عن المعالج</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ route('home') }}#services">الجلسات</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ route('home') }}#reels-section">فيديوهات</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ route('home') }}#booking-wizard">احجز موعدك</a></li>
-                </ul>
-
-                <div class="d-flex align-items-center me-lg-3 gap-2">
-                    @auth
-                        <a href="{{ Auth::user()->isAdmin() ? route('admin.dashboard') : route('patient.dashboard') }}" class="btn btn-royal-primary btn-sm px-4">
-                            <i class="bi bi-person-circle me-1"></i> حسابي
-                        </a>
+            <nav class="navbar navbar-expand-lg navbar-floating-capsule p-0">
+                <a class="navbar-brand d-flex align-items-center gap-2 me-0 me-lg-2" href="{{ route('home') }}">
+                    @if(!empty($siteLogo))
+                        <img src="{{ $siteLogo }}" alt="Logo" style="max-height: 38px; border-radius: 6px;">
                     @else
-                        <a href="{{ route('login') }}" class="btn btn-royal-outline btn-sm px-4">دخول</a>
-                        <a href="{{ route('home') }}#booking-wizard" class="btn btn-royal-primary btn-sm px-4">
-                            <i class="bi bi-calendar-check me-1"></i> احجز الآن
+                        <div class="navbar-logo-circle" style="width:36px; height:36px; font-size:1rem;"><i class="bi bi-heart-pulse-fill"></i></div>
+                    @endif
+                    <div class="d-flex flex-column text-start">
+                        <span class="fw-black lh-1" style="color: var(--primary-color); font-size: 1.1rem;">{{ $isAr ? 'يونس المرشد' : 'Yonis Al-Murshid' }}</span>
+                        <span class="text-secondary small" style="font-size: 0.62rem; letter-spacing: 0.3px;">{{ $isAr ? 'للعلاج النفسي والتطوير الذاتي' : 'Psychological Therapy Clinic' }}</span>
+                    </div>
+                </a>
+
+                <button class="navbar-toggler border-0 shadow-none px-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    {{-- Centered Nav Links --}}
+                    <ul class="navbar-nav mx-auto align-items-lg-center gap-1 my-2 my-lg-0">
+                        <li class="nav-item"><a class="nav-link nav-link-luxury @if(Route::is('home')) active @endif" href="{{ Route::is('home') ? '#hero' : route('home') }}">{{ __('messages.home') }}</a></li>
+                        <li class="nav-item"><a class="nav-link nav-link-luxury" href="{{ Route::is('home') ? '#about' : route('home') . '#about' }}">{{ __('messages.about') }}</a></li>
+                        <li class="nav-item"><a class="nav-link nav-link-luxury" href="{{ Route::is('home') ? '#services' : route('home') . '#services' }}">{{ __('messages.sessions') }}</a></li>
+                        <li class="nav-item"><a class="nav-link nav-link-luxury" href="{{ Route::is('home') ? '#reels-section' : route('home') . '#reels-section' }}">{{ __('messages.videos') }}</a></li>
+                    </ul>
+
+                    {{-- Left Action Buttons --}}
+                    <div class="d-flex align-items-center gap-2 ms-0 ms-lg-2">
+                        {{-- Quick Booking Button --}}
+                        <button type="button" class="btn btn-nav-booking-luxury d-inline-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#bookingModal">
+                            <i class="bi bi-calendar-check"></i> {{ __('messages.book_now') }}
+                        </button>
+
+                        {{-- Language Switcher (Icon Only) --}}
+                        <a href="{{ route('lang.switch', $isAr ? 'en' : 'ar') }}" class="btn-nav-icon-luxury" title="{{ $isAr ? 'English' : 'العربية' }}">
+                            <i class="bi bi-globe2"></i>
                         </a>
-                    @endauth
+
+                        {{-- Account (Icon Only) --}}
+                        @auth
+                            <a href="{{ Auth::user()->isAdmin() ? route('admin.dashboard') : route('patient.dashboard') }}" class="btn-nav-icon-account" title="{{ __('messages.my_account') }}">
+                                <i class="bi bi-person-fill"></i>
+                            </a>
+                        @else
+                            <a href="{{ route('login') }}" class="btn-nav-icon-account" title="{{ __('messages.login') }}">
+                                <i class="bi bi-person-fill"></i>
+                            </a>
+                        @endauth
+                    </div>
                 </div>
-            </div>
+            </nav>
         </div>
-    </nav>
+    </header>
 
     {{-- ═══ Main Content ════════════════════════════════════════ --}}
     <main class="flex-grow-1">
@@ -232,13 +269,40 @@
     {{-- ── Swiper JS ───────────────────────────────────────────── --}}
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
-    {{-- ── Navbar Scroll Effect ────────────────────────────────── --}}
+    {{-- ── Navbar Ultra-Fast 60FPS Scroll Effect ────────────────── --}}
     <script>
+        let isTicking = false;
         window.addEventListener('scroll', function() {
-            const nav = document.getElementById('mainNavbar');
-            if (nav) {
-                nav.classList.toggle('scrolled', window.scrollY > 50);
+            if (!isTicking) {
+                window.requestAnimationFrame(function() {
+                    const header = document.getElementById('mainHeaderWrapper');
+                    if (header) {
+                        header.classList.toggle('scrolled', window.scrollY > 30);
+                    }
+                    isTicking = false;
+                });
+                isTicking = true;
             }
+        }, { passive: true });
+
+        // Smooth Scroll without Page Reload
+        document.querySelectorAll('.nav-link-luxury').forEach(link => {
+            link.addEventListener('click', function(e) {
+                const targetHref = this.getAttribute('href');
+                if (targetHref && targetHref.startsWith('#')) {
+                    const targetEl = document.querySelector(targetHref);
+                    if (targetEl) {
+                        e.preventDefault();
+                        targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        // Close mobile drawer if open
+                        const navCollapse = document.getElementById('navbarNav');
+                        if (navCollapse && navCollapse.classList.contains('show')) {
+                            const bsCollapse = bootstrap.Collapse.getInstance(navCollapse);
+                            if (bsCollapse) bsCollapse.hide();
+                        }
+                    }
+                }
+            });
         });
     </script>
 

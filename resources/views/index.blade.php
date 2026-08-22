@@ -1,5 +1,9 @@
 @extends('layouts.app')
 
+@php
+    $isAr = app()->getLocale() === 'ar';
+@endphp
+
 @section('title', 'المعالج النفسي يونس المرشد - حجز استشارات نفسية وأسرية متخصصة')
 @section('meta_description', 'احجز استشارتك النفسية مع المعالج يونس المرشد - جلسات فردية وزوجية وأسرية. استشارات عبر شات أو صوت أو فيديو أو في العيادة. خبرة 10 سنوات في العلاج المعرفي السلوكي.')
 @section('meta_keywords', 'معالج نفسي, استشارة نفسية, يونس المرشد, حجز موعد نفسي, علاج اكتئاب, علاج قلق, استشارة زوجية, علاج أسري')
@@ -275,18 +279,20 @@
             {{-- Photo --}}
             <div class="col-lg-5 order-1 order-lg-2">
                 <div class="hero-photo-frame">
-                    @if($profile && $profile->gallery && count($profile->gallery) > 0)
-                        <img src="{{ $profile->gallery[0] }}" alt="المعالج النفسي يونس المرشد" loading="eager">
+                    @if($profile && !empty($profile->hero_image))
+                        <img src="{{ $profile->hero_image }}" alt="{{ $doctorName }}" loading="eager">
+                    @elseif($profile && $profile->gallery && count($profile->gallery) > 0)
+                        <img src="{{ $profile->gallery[0] }}" alt="{{ $doctorName }}" loading="eager">
                     @else
-                        <img src="https://images.unsplash.com/photo-1614797136987-ab4b98843e29?auto=format&fit=crop&w=700&q=80" alt="المعالج النفسي يونس المرشد" loading="eager">
+                        <img src="https://images.unsplash.com/photo-1614797136987-ab4b98843e29?auto=format&fit=crop&w=700&q=80" alt="{{ $doctorName }}" loading="eager">
                     @endif
                     <div class="hero-photo-overlay"></div>
                     <div class="hero-availability-badge">
-                        <i class="bi bi-circle-fill text-success me-1" style="font-size:0.6rem;"></i> متاح للجلسات
+                        <i class="bi bi-circle-fill text-success me-1" style="font-size:0.6rem;"></i> {{ __('messages.hero_badge') }}
                     </div>
                     <div class="hero-photo-caption">
                         <div class="fw-bold fs-6">{{ $doctorName }}</div>
-                        <div style="font-size:0.8rem; opacity:0.85;">{{ $profile->title ?? 'معالج نفسي ومدرب معتمد' }}</div>
+                        <div style="font-size:0.8rem; opacity:0.85;">{{ $isAr ? ($profile->title ?? 'معالج نفسي ومدرب معتمد') : ($profile->title_en ?: ($profile->title ?? 'Licensed Psychological Therapist')) }}</div>
                     </div>
                 </div>
             </div>
@@ -297,45 +303,46 @@
 {{-- ═══════════════════════════════════════════════════════════
      2. ABOUT SECTION
 ═══════════════════════════════════════════════════════════ --}}
-<section id="about" class="about-wrapper">
+<section id="about" class="about-wrapper reveal-on-scroll">
     <div class="container">
-        <div class="text-center mb-5">
-            <div class="section-label"><i class="bi bi-person-badge"></i> عن المعالج</div>
-            <h2 class="section-title">المعالج النفسي<br>يونس المرشد</h2>
-        </div>
 
         <div class="about-card">
             <div class="row gy-4 align-items-start">
                 <div class="col-lg-4 text-center">
-                    @if($profile && $profile->gallery && count($profile->gallery) > 0)
-                        <img src="{{ $profile->gallery[0] }}" alt="د. يونس المرشد" class="about-doctor-img mb-3">
+                    @if($profile && !empty($profile->about_image))
+                        <img src="{{ $profile->about_image }}" alt="{{ $doctorName }}" class="about-doctor-img mb-3">
+                    @elseif($profile && !empty($profile->hero_image))
+                        <img src="{{ $profile->hero_image }}" alt="{{ $doctorName }}" class="about-doctor-img mb-3">
+                    @elseif($profile && $profile->gallery && count($profile->gallery) > 0)
+                        <img src="{{ $profile->gallery[0] }}" alt="{{ $doctorName }}" class="about-doctor-img mb-3">
                     @else
                         <div class="about-doctor-img d-flex align-items-center justify-content-center mx-auto mb-3" style="background: linear-gradient(135deg, var(--primary-color), #5b72c7); color:#fff; font-size:3rem;">Ψ</div>
                     @endif
                     <h4 class="fw-bold text-dark mb-1">{{ $doctorName }}</h4>
-                    <p class="text-secondary small">{{ $profile->title ?? 'معالج نفسي ومدرب معتمد' }}</p>
+                    <p class="text-secondary small">{{ $isAr ? ($profile->title ?? 'معالج نفسي ومدرب معتمد') : ($profile->title_en ?: ($profile->title ?? 'Licensed Psychological Therapist')) }}</p>
                     <ul class="credentials-list text-start mt-3">
                         @if($profile && $profile->education)
                             @foreach(array_slice($profile->education, 0, 3) as $edu)
                                 <li><i class="bi bi-mortarboard-fill"></i><span class="small">{{ $edu }}</span></li>
                             @endforeach
                         @else
-                            <li><i class="bi bi-mortarboard-fill"></i><span class="small">بكالوريوس علم النفس الإكلينيكي</span></li>
-                            <li><i class="bi bi-award-fill"></i><span class="small">شهادة العلاج المعرفي السلوكي CBT</span></li>
-                            <li><i class="bi bi-patch-check-fill"></i><span class="small">معتمد في العلاج الأسري والزوجي</span></li>
+                            <li><i class="bi bi-mortarboard-fill"></i><span class="small">{{ $isAr ? 'بكالوريوس علم النفس الإكلينيكي' : 'B.Sc. Clinical Psychology' }}</span></li>
+                            <li><i class="bi bi-award-fill"></i><span class="small">{{ $isAr ? 'شهادة العلاج المعرفي السلوكي CBT' : 'CBT Certified Therapist' }}</span></li>
+                            <li><i class="bi bi-patch-check-fill"></i><span class="small">{{ $isAr ? 'معتمد في العلاج الأسري والزوجي' : 'Certified Family & Couples Therapist' }}</span></li>
                         @endif
                     </ul>
                 </div>
 
                 <div class="col-lg-8">
                     <p class="fs-5 text-secondary lh-lg mb-4">
-                        {{ $profile->bio ?? 'معالج نفسي مرخص بخبرة تزيد عن 10 سنوات في تقديم الاستشارات النفسية الفردية والزوجية والأسرية. أعتمد على العلاج المعرفي السلوكي وأساليب الوعي التام لمساعدة الأفراد على تجاوز صعوباتهم النفسية.' }}
+                        {{ $isAr ? ($profile->bio ?? 'معالج نفسي مرخص بخبرة تزيد عن 10 سنوات في تقديم الاستشارات النفسية الفردية والزوجية والأسرية.') : ($profile->bio_en ?: ($profile->bio ?? 'Licensed psychological therapist with over 10 years of experience in providing individual and family counseling.')) }}
                     </p>
 
-                    <h5 class="fw-bold mb-3" style="color: var(--primary-color);">مجالات التخصص:</h5>
+                    <h5 class="fw-bold mb-3" style="color: var(--primary-color);">{{ $isAr ? 'مجالات التخصص:' : 'Specialties & Focus Areas:' }}</h5>
                     <div class="d-flex flex-wrap gap-2">
                         @php
-                            $specialties = $profile->specialties ?? ['اضطرابات القلق والتوتر', 'الاكتئاب وضغوط الحياة', 'الاستشارات الزوجية', 'العلاج الأسري', 'نقص الانتباه ADHD', 'الصدمات النفسية', 'الإدمان', 'التطوير الذاتي'];
+                            $defaultSpecs = $isAr ? ['اضطرابات القلق والتوتر', 'الاكتئاب وضغوط الحياة', 'الاستشارات الزوجية', 'العلاج الأسري', 'نقص الانتباه ADHD', 'الصدمات النفسية', 'الإدمان', 'التطوير الذاتي'] : ['Anxiety & Stress', 'Depression & Pressure', 'Couples Counseling', 'Family Therapy', 'ADHD', 'Psychological Trauma', 'Addiction Recovery', 'Self Development'];
+                            $specialties = $isAr ? ($profile->specialties ?? $defaultSpecs) : ($profile->specialties_en ?: ($profile->specialties ?? $defaultSpecs));
                         @endphp
                         @foreach($specialties as $spec)
                             <div class="tag-pill"><i class="bi bi-check-circle-fill" style="color: var(--primary-color);"></i> {{ $spec }}</div>
@@ -350,7 +357,7 @@
 {{-- ═══════════════════════════════════════════════════════════
      3. SERVICES SECTION
 ═══════════════════════════════════════════════════════════ --}}
-<section id="services" class="services-wrapper">
+<section id="services" class="services-wrapper reveal-on-scroll">
     <div class="container">
         <div class="text-center mb-5">
             <div class="section-label"><i class="bi bi-layers"></i> الجلسات والأسعار</div>
@@ -362,41 +369,41 @@
             @foreach($services as $index => $service)
                 <div class="col-md-6 col-lg-4">
                     <div class="service-card-new {{ $index === 1 ? 'popular' : '' }}"
-                         onclick="selectServiceAndScroll({{ $service->id }}, '{{ $service->title }}', {{ $service->price }}, {{ $service->duration }})">
+                         onclick="selectServiceAndOpenModal({{ $service->id }}, '{{ $service->title }}', {{ $service->price }}, {{ $service->duration }})">
                         @if($index === 1)
-                            <span class="popular-badge">⭐ الأكثر طلباً</span>
+                            <span class="popular-badge"><i class="bi bi-star-fill text-warning me-1"></i> {{ $isAr ? 'الأكثر طلباً' : 'Most Popular' }}</span>
                         @endif
 
                         <div class="text-center mb-3">
-                            <div style="font-size: 2.5rem;">
-                                @if($index == 0) 💬 @elseif($index == 1) 📹 @else 🏥 @endif
+                            <div class="my-2" style="font-size: 2.2rem; color: var(--primary-color);">
+                                @if($index == 0) <i class="bi bi-chat-text-fill"></i> @elseif($index == 1) <i class="bi bi-camera-video-fill"></i> @else <i class="bi bi-hospital-fill"></i> @endif
                             </div>
                             <h4 class="fw-bold mt-2 mb-1">{{ $service->title }}</h4>
                             <p class="text-secondary small">{{ $service->description }}</p>
-                            <span class="badge bg-light text-dark border fw-bold"><i class="bi bi-clock me-1"></i> {{ $service->duration }} دقيقة</span>
+                            <span class="badge bg-light text-dark border fw-bold"><i class="bi bi-clock me-1"></i> {{ $service->duration }} {{ __('messages.minutes') }}</span>
                         </div>
 
                         <div class="channel-prices">
                             <div class="channel-price-item">
-                                <span>🏥 عيادة</span>
+                                <span><i class="bi bi-hospital me-1 text-danger"></i> {{ $isAr ? 'عيادة' : 'Clinic' }}</span>
                                 <span class="price">${{ number_format($service->clinic_price ?? $service->price, 0) }}</span>
                             </div>
                             <div class="channel-price-item">
-                                <span>💬 شات</span>
+                                <span><i class="bi bi-chat-text me-1 text-primary"></i> {{ $isAr ? 'شات' : 'Chat' }}</span>
                                 <span class="price">${{ number_format($service->chat_price ?? $service->price, 0) }}</span>
                             </div>
                             <div class="channel-price-item">
-                                <span>📞 صوت</span>
+                                <span><i class="bi bi-telephone me-1 text-success"></i> {{ $isAr ? 'صوت' : 'Voice' }}</span>
                                 <span class="price">${{ number_format($service->voice_price ?? $service->price, 0) }}</span>
                             </div>
                             <div class="channel-price-item">
-                                <span>📹 فيديو</span>
+                                <span><i class="bi bi-camera-video me-1 text-info"></i> {{ $isAr ? 'فيديو' : 'Video' }}</span>
                                 <span class="price">${{ number_format($service->video_price ?? $service->price, 0) }}</span>
                             </div>
                         </div>
 
-                        <button class="btn btn-royal-outline w-100 mt-3 rounded-pill">
-                            احجز هذه الجلسة الآن
+                        <button type="button" class="btn btn-royal-outline w-100 mt-3 rounded-pill" data-bs-toggle="modal" data-bs-target="#bookingModal">
+                            {{ __('messages.book_now') }}
                         </button>
                     </div>
                 </div>
@@ -408,7 +415,7 @@
 {{-- ═══════════════════════════════════════════════════════════
      4. REELS SECTION
 ═══════════════════════════════════════════════════════════ --}}
-<section id="reels-section" class="reels-wrapper">
+<section id="reels-section" class="reels-wrapper reveal-on-scroll">
     <div class="container position-relative">
         <div class="d-flex justify-content-between align-items-end mb-4">
             <div>
@@ -474,288 +481,345 @@
 {{-- ═══════════════════════════════════════════════════════════
      5. TESTIMONIALS SECTION
 ═══════════════════════════════════════════════════════════ --}}
-<section class="testimonials-wrapper">
+{{-- ═══════════════════════════════════════════════════════════
+     5. TESTIMONIALS SECTION
+═══════════════════════════════════════════════════════════ --}}
+<section class="testimonials-wrapper py-5 reveal-on-scroll">
     <div class="container">
         <div class="text-center mb-5">
-            <div class="section-label"><i class="bi bi-chat-quote-fill"></i> آراء المراجعين</div>
-            <h2 class="section-title">تجارب حقيقية من مراجعينا</h2>
+            <div class="section-label"><i class="bi bi-chat-quote-fill"></i> {{ __('messages.testimonials_title') }}</div>
+            <h2 class="section-title">{{ __('messages.testimonials_subtitle') }}</h2>
         </div>
 
         <div class="row g-4">
-            @php
-                $testimonials = [
-                    ['text' => 'خدمة متميزة جداً، بعد الجلسة الثانية مع أستاذ يونس شعرت بفرق كبير واختفت نوبات التوتر والقلق تماماً. أنصح كل شخص يعاني.', 'name' => 'مراجع من بغداد', 'session' => 'جلسة أونلاين فيديو', 'icon' => '🧠'],
-                    ['text' => 'شكراً جزيلاً دكتور يونس، التعامل أحدث تحولاً كبيراً في علاقتي الزوجية. المعالجة احترافية جداً وبيئة آمنة ودون أي أحكام.', 'name' => 'مراجعة من الأردن', 'session' => 'استشارة زوجية', 'icon' => '💑'],
-                    ['text' => 'أفضل تجربة علاج نفسي مررت بها. الجلسات عبر الشات مريحة جداً وتناسب وقتي. أنصح كل شخص يعاني من ضغوط العمل بالحجز فوراً.', 'name' => 'مراجع من أربيل', 'session' => 'جلسة شات 30 دقيقة', 'icon' => '💼'],
-                ];
-            @endphp
-            @foreach($testimonials as $t)
-                <div class="col-md-4">
-                    <div class="testimonial-card">
-                        <div class="stars mb-3">★★★★★</div>
-                        <p class="text-secondary lh-lg mb-4 flex-grow-1">"{{ $t['text'] }}"</p>
-                        <div class="d-flex align-items-center gap-3 mt-auto">
-                            <div class="testimonial-avatar">{{ $t['icon'] }}</div>
-                            <div>
-                                <div class="fw-bold text-dark">{{ $t['name'] }}</div>
-                                <div class="text-secondary small">{{ $t['session'] }}</div>
+            @if(isset($testimonials) && count($testimonials) > 0)
+                @foreach($testimonials as $t)
+                    <div class="col-md-4">
+                        <div class="testimonial-card h-100 d-flex flex-column">
+                            <div class="stars mb-3">
+                                @for($i = 0; $i < ($t->rating ?? 5); $i++)
+                                    <i class="bi bi-star-fill text-warning me-1"></i>
+                                @endfor
+                            </div>
+                            <p class="text-secondary lh-lg mb-4 flex-grow-1">"{{ $isAr ? $t->content_ar : ($t->content_en ?: $t->content_ar) }}"</p>
+                            <div class="d-flex align-items-center gap-3 mt-auto">
+                                @if(!empty($t->client_avatar))
+                                    <img src="{{ $t->client_avatar }}" alt="Avatar" class="rounded-circle" style="width:48px; height:48px; object-fit:cover;">
+                                @else
+                                    <div class="testimonial-avatar"><i class="bi bi-person-heart"></i></div>
+                                @endif
+                                <div>
+                                    <div class="fw-bold text-dark">{{ $isAr ? $t->client_name_ar : ($t->client_name_en ?: $t->client_name_ar) }}</div>
+                                    <div class="text-secondary small">{{ $isAr ? 'عميل مؤكد' : 'Verified Client' }}</div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            @endforeach
+                @endforeach
+            @else
+                {{-- Default Testimonials --}}
+                @php
+                    $defaultTestimonials = [
+                        ['text' => $isAr ? 'خدمة متميزة جداً، بعد الجلسة الثانية مع أستاذ يونس شعرت بفرق كبير واختفت نوبات التوتر والقلق تماماً.' : 'Excellent service! After the second session with Mr. Yonis, I felt a huge difference and anxiety attacks disappeared.', 'name' => $isAr ? 'مراجع من الرياض' : 'Client from Riyadh', 'session' => $isAr ? 'جلسة أونلاين فيديو' : 'Online Video Session', 'icon' => 'bi-person-heart'],
+                        ['text' => $isAr ? 'شكراً جزيلاً دكتور يونس، التعامل أحدث تحولاً كبيراً في علاقتي الزوجية. المعالجة احترافية جداً وبيئة آمنة.' : 'Thank you Dr. Yonis! Very professional therapy in a safe environment without judgment.', 'name' => $isAr ? 'مراجعة من جدة' : 'Client from Jeddah', 'session' => $isAr ? 'استشارة زوجية' : 'Couples Therapy', 'icon' => 'bi-people-fill'],
+                        ['text' => $isAr ? 'أفضل تجربة علاج نفسي مررت بها. الجلسات عبر الشات مريحة جداً وتناسب وقتي. أنصح كل شخص يعاني بالحجز.' : 'Best psychological therapy experience ever. Chat sessions are super convenient and flexible.', 'name' => $isAr ? 'مراجع من دبي' : 'Client from Dubai', 'session' => $isAr ? 'جلسة شات 30 دقيقة' : '30 Min Chat Session', 'icon' => 'bi-briefcase-fill'],
+                    ];
+                @endphp
+                @foreach($defaultTestimonials as $t)
+                    <div class="col-md-4">
+                        <div class="testimonial-card h-100 d-flex flex-column">
+                            <div class="stars mb-3"><i class="bi bi-star-fill text-warning me-1"></i><i class="bi bi-star-fill text-warning me-1"></i><i class="bi bi-star-fill text-warning me-1"></i><i class="bi bi-star-fill text-warning me-1"></i><i class="bi bi-star-fill text-warning"></i></div>
+                            <p class="text-secondary lh-lg mb-4 flex-grow-1">"{{ $t['text'] }}"</p>
+                            <div class="d-flex align-items-center gap-3 mt-auto">
+                                <div class="testimonial-avatar"><i class="bi {{ $t['icon'] }}"></i></div>
+                                <div>
+                                    <div class="fw-bold text-dark">{{ $t['name'] }}</div>
+                                    <div class="text-secondary small">{{ $t['session'] }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            @endif
         </div>
     </div>
 </section>
 
 {{-- ═══════════════════════════════════════════════════════════
-     6. BOOKING WIZARD (2 Steps)
+     5.5. BOOKING BANNER CTA SECTION
 ═══════════════════════════════════════════════════════════ --}}
-<section id="booking-wizard" class="booking-wrapper">
+<section class="booking-banner-wrapper reveal-on-scroll">
     <div class="container">
-        <div class="text-center mb-4">
-            <div class="section-label"><i class="bi bi-calendar-check-fill"></i> احجز موعدك</div>
-            <h2 class="section-title">جلسة فورية - حجز آمن في دقيقتين</h2>
-        </div>
-
-        <div class="wizard-card">
-            {{-- Wizard Header --}}
-            <div class="wizard-header">
-                <h4 class="fw-bold mb-1 text-white" id="wizard-header-title">احجز استشارتك الآن</h4>
-                <p class="mb-0" style="color:rgba(255,255,255,0.75); font-size:0.9rem;" id="wizard-header-sub">ادخل بياناتك واختر موعدك المناسب</p>
-
-                {{-- Step Bar --}}
-                <div class="wizard-step-bar">
-                    <div class="wizard-step-item">
-                        <div class="wizard-step-circle active" id="step-circle-1">1</div>
-                        <span class="wizard-step-label active" id="step-label-1">البيانات والموعد</span>
-                    </div>
-                    <div class="wizard-step-line" id="step-line-1"></div>
-                    <div class="wizard-step-item">
-                        <div class="wizard-step-circle" id="step-circle-2">2</div>
-                        <span class="wizard-step-label" id="step-label-2">مراجعة ودفع</span>
-                    </div>
-                    <div class="wizard-step-line" id="step-line-2"></div>
-                    <div class="wizard-step-item">
-                        <div class="wizard-step-circle" id="step-circle-3">✓</div>
-                        <span class="wizard-step-label" id="step-label-3">تأكيد الحجز</span>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Wizard Body --}}
-            <div class="wizard-body">
-
-                {{-- ─── STEP 1: Details & Slot ─── --}}
-                <div id="wizard-step-1">
-
-                    {{-- Channel Selection --}}
-                    <div class="mb-4">
-                        <label class="form-label fw-bold text-dark mb-2">1. اختر قناة الاستشارة:</label>
-                        <div class="channel-select-grid">
-                            <div class="channel-option" onclick="selectChannel('clinic', this)">
-                                <div class="channel-icon">🏥</div>
-                                <div class="channel-name">في العيادة</div>
-                                <div class="channel-price" id="price-clinic">يُحدد بعد الخدمة</div>
-                            </div>
-                            <div class="channel-option selected" onclick="selectChannel('video', this)">
-                                <div class="channel-icon">📹</div>
-                                <div class="channel-name">فيديو أونلاين</div>
-                                <div class="channel-price" id="price-video">يُحدد بعد الخدمة</div>
-                            </div>
-                            <div class="channel-option" onclick="selectChannel('voice', this)">
-                                <div class="channel-icon">📞</div>
-                                <div class="channel-name">مكالمة صوتية</div>
-                                <div class="channel-price" id="price-voice">يُحدد بعد الخدمة</div>
-                            </div>
-                            <div class="channel-option" onclick="selectChannel('chat', this)">
-                                <div class="channel-icon">💬</div>
-                                <div class="channel-name">محادثة شات</div>
-                                <div class="channel-price" id="price-chat">يُحدد بعد الخدمة</div>
-                            </div>
-                        </div>
-                        <input type="hidden" id="selected_channel" value="video">
-                        <input type="hidden" id="selected_booking_type" value="online">
-                    </div>
-
-                    {{-- Service Selection --}}
-                    <div class="mb-4">
-                        <label class="form-label fw-bold text-dark mb-2">2. اختر مدة الجلسة:</label>
-                        <div class="service-btns" id="service-btns-container">
-                            @foreach($services as $s)
-                                <button type="button"
-                                    class="service-btn {{ $loop->first ? 'selected' : '' }}"
-                                    onclick="selectServiceWizard(this, {{ $s->id }}, {{ $s->duration }}, '{{ $s->title }}', {{ $s->price }}, {{ $s->clinic_price ?? $s->price }}, {{ $s->chat_price ?? $s->price }}, {{ $s->voice_price ?? $s->price }}, {{ $s->video_price ?? $s->price }})"
-                                    data-service-id="{{ $s->id }}"
-                                    data-price="{{ $s->price }}"
-                                    data-clinic="{{ $s->clinic_price ?? $s->price }}"
-                                    data-chat="{{ $s->chat_price ?? $s->price }}"
-                                    data-voice="{{ $s->voice_price ?? $s->price }}"
-                                    data-video="{{ $s->video_price ?? $s->price }}">
-                                    {{ $s->duration }} دقيقة<br>
-                                    <small class="opacity-75">${{ number_format($s->video_price ?? $s->price, 0) }}</small>
-                                </button>
-                            @endforeach
-                        </div>
-                        <input type="hidden" id="selected_service_id" value="{{ $services->first()->id ?? 1 }}">
-                        <input type="hidden" id="selected_service_title" value="{{ $services->first()->title ?? '' }}">
-                        <input type="hidden" id="selected_price" value="{{ $services->first()->price ?? 0 }}">
-                    </div>
-
-                    {{-- Date Selection --}}
-                    <div class="mb-4">
-                        <label class="form-label fw-bold text-dark mb-2">3. اختر تاريخ الموعد:</label>
-                        <input type="date" id="booking_date_input" class="form-control form-control-lg rounded-3"
-                               value="{{ date('Y-m-d', strtotime('+1 day')) }}"
-                               min="{{ date('Y-m-d') }}"
-                               onchange="fetchSlots()">
-                    </div>
-
-                    {{-- Slots --}}
-                    <div class="mb-4">
-                        <label class="form-label fw-bold text-dark mb-2">4. اختر الوقت المتاح:</label>
-                        <div class="slots-grid" id="slots-grid">
-                            <div class="col-span-3 text-center text-muted py-3">
-                                <div class="spinner-border spinner-border-sm me-1"></div> جاري تحميل الأوقات...
-                            </div>
-                        </div>
-                        <input type="hidden" id="selected_slot" value="">
-                    </div>
-
-                    {{-- Patient Info --}}
-                    <div class="mb-4 p-4 rounded-4" style="background:#f0f4fb; border:1px solid rgba(59,82,164,0.12);">
-                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-person-fill me-1" style="color:var(--primary-color)"></i> 5. بياناتك الشخصية</h6>
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <label class="form-label small fw-bold">الاسم الكامل <span class="text-danger">*</span></label>
-                                <input type="text" id="guest_name" class="form-control rounded-3" placeholder="أدخل اسمك بالكامل" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">رقم الواتساب <span class="text-danger">*</span></label>
-                                <input type="tel" id="guest_phone" class="form-control rounded-3" placeholder="+964xxxxxxxxx" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">كلمة المرور <span class="text-danger">*</span></label>
-                                <input type="password" id="guest_password" class="form-control rounded-3" placeholder="6 أحرف على الأقل" required minlength="6">
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label small fw-bold">عنوان الاستشارة</label>
-                                <input type="text" id="consultation_title" class="form-control rounded-3" placeholder="موضوع مختصر للاستشارة">
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label small fw-bold">تفاصيل إضافية (اختياري)</label>
-                                <textarea id="consultation_notes" class="form-control rounded-3" rows="2" placeholder="أي تفاصيل إضافية..."></textarea>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button type="button" class="btn btn-royal-primary w-100 py-3 fs-5" onclick="goToStep2()">
-                        التالي: مراجعة وتأكيد الدفع <i class="bi bi-arrow-left ms-2"></i>
+        <div class="booking-banner-card">
+            <div class="row align-items-center gy-4">
+                <div class="col-lg-7">
+                    <span class="badge bg-primary px-3 py-2 rounded-pill mb-3 fw-bold"><i class="bi bi-lightning-charge-fill text-warning me-1"></i> {{ __('messages.banner_tag') }}</span>
+                    <h2 class="fw-black fs-2 text-white mb-3">{{ __('messages.banner_title') }}</h2>
+                    <p class="fs-5 text-white-50 mb-4">{{ __('messages.banner_subtitle') }}</p>
+                    <button type="button" class="btn btn-royal-primary btn-lg px-5 py-3 rounded-pill shadow" data-bs-toggle="modal" data-bs-target="#bookingModal">
+                        <i class="bi bi-calendar-check-fill me-2"></i> {{ __('messages.banner_btn') }}
                     </button>
                 </div>
-
-                {{-- ─── STEP 2: Summary + Payment ─── --}}
-                <div id="wizard-step-2" class="d-none">
-                    <h5 class="fw-bold mb-3 text-dark">ملخص الحجز:</h5>
-                    <div class="summary-card mb-4">
-                        <div class="summary-row">
-                            <span class="text-muted">الخدمة</span>
-                            <span class="fw-bold" id="s-service">—</span>
-                        </div>
-                        <div class="summary-row">
-                            <span class="text-muted">نوع الاستشارة</span>
-                            <span class="fw-bold" id="s-channel">—</span>
-                        </div>
-                        <div class="summary-row">
-                            <span class="text-muted">التاريخ</span>
-                            <span class="fw-bold" id="s-date">—</span>
-                        </div>
-                        <div class="summary-row">
-                            <span class="text-muted">الوقت</span>
-                            <span class="fw-bold" id="s-time">—</span>
-                        </div>
-                        <div class="summary-row">
-                            <span class="text-muted">الاسم</span>
-                            <span class="fw-bold" id="s-name">—</span>
-                        </div>
-                        <div class="summary-row border-top pt-2 mt-1">
-                            <span class="fw-bold fs-5">المبلغ الإجمالي</span>
-                            <span class="summary-total" id="s-price">—</span>
-                        </div>
-                    </div>
-
-                    <h5 class="fw-bold mb-3 text-dark">طريقة الدفع:</h5>
-                    <label class="payment-method selected" id="pm-card" onclick="selectPayment('stripe_card', this)">
-                        <input type="radio" name="payment_method" value="stripe_card" checked style="display:none;">
-                        <i class="bi bi-credit-card-2-front fs-4 text-primary"></i>
-                        <div>
-                            <div class="fw-bold">بطاقة ائتمانية</div>
-                            <div class="text-secondary small">VISA / Mastercard / مدى عبر Stripe</div>
-                        </div>
-                    </label>
-                    <label class="payment-method" id="pm-apple" onclick="selectPayment('apple_pay', this)">
-                        <input type="radio" name="payment_method" value="apple_pay" style="display:none;">
-                        <i class="bi bi-apple fs-4"></i>
-                        <div>
-                            <div class="fw-bold">Apple Pay</div>
-                            <div class="text-secondary small">ادفع بلمسة واحدة</div>
-                        </div>
-                    </label>
-
-                    <div class="d-flex gap-3 mt-4">
-                        <button type="button" class="btn btn-outline-secondary px-4 py-3 rounded-pill" onclick="goBackToStep1()">
-                            <i class="bi bi-arrow-right me-1"></i> تعديل
-                        </button>
-                        <button type="button" class="btn btn-royal-primary flex-grow-1 py-3 fs-5" id="pay-btn" onclick="submitBooking()">
-                            <i class="bi bi-shield-lock-fill me-2"></i> الدفع وتأكيد الحجز
-                        </button>
-                    </div>
+                <div class="col-lg-5 text-center">
+                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=700&q=80" alt="Booking Banner" class="booking-banner-img">
                 </div>
-
-                {{-- ─── SUCCESS SCREEN ─── --}}
-                <div id="wizard-success" class="d-none text-center py-3">
-                    <div class="success-circle">✓</div>
-                    <h3 class="fw-black text-dark mb-2">تم تأكيد حجزك بنجاح! 🎉</h3>
-                    <p class="text-secondary mb-4">تم إنشاء حسابك وحجز موعدك. اضغط على زر واتساب لتصلك تفاصيل الموعد.</p>
-
-                    <div class="summary-card text-start mb-4">
-                        <div class="summary-row">
-                            <span class="text-muted">رقم المرجع</span>
-                            <span class="fw-bold text-dark" id="res-ref">—</span>
-                        </div>
-                        <div class="summary-row">
-                            <span class="text-muted">الخدمة</span>
-                            <span class="fw-bold" id="res-service">—</span>
-                        </div>
-                        <div class="summary-row">
-                            <span class="text-muted">الموعد</span>
-                            <span class="fw-bold" id="res-datetime">—</span>
-                        </div>
-                        <div class="summary-row">
-                            <span class="text-muted">نوع الاستشارة</span>
-                            <span class="fw-bold" id="res-channel">—</span>
-                        </div>
-                        <div class="summary-row">
-                            <span class="text-muted">المبلغ</span>
-                            <span class="fw-bold" id="res-price">—</span>
-                        </div>
-                    </div>
-
-                    <a id="whatsapp-confirm-link" href="#" target="_blank" class="whatsapp-btn-cta d-inline-flex w-100 justify-content-center mb-3">
-                        <i class="bi bi-whatsapp"></i> افتح واتساب - تفاصيل حجزك
-                    </a>
-                    <div class="d-flex gap-2">
-                        <a href="{{ route('patient.dashboard') }}" class="btn btn-royal-outline flex-grow-1 py-2">
-                            <i class="bi bi-person me-1"></i> حسابي وجلساتي
-                        </a>
-                        <button type="button" class="btn btn-outline-secondary px-4 py-2" onclick="location.reload()">حجز جديد</button>
-                    </div>
-                </div>
-
-            </div>{{-- end wizard-body --}}
-        </div>{{-- end wizard-card --}}
+            </div>
+        </div>
     </div>
 </section>
+
+{{-- ═══ BOOKING POPUP MODAL WITH MOBILE APP MATCHING FLOW ═══ --}}
+<div class="modal fade" id="bookingModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered mobile-app-modal-dialog modal-dialog-scrollable">
+        <div class="modal-content mobile-app-modal-content position-relative">
+            
+            {{-- Header --}}
+            <div class="mobile-app-header">
+                <button type="button" class="btn btn-sm btn-light rounded-circle p-2 d-flex align-items-center justify-content-center" data-bs-dismiss="modal" style="width:36px; height:36px;">
+                    <i class="bi bi-arrow-right fs-5"></i>
+                </button>
+                <h5 class="mobile-app-header-title" id="app-header-title-text">{{ __('messages.immediate_session') }}</h5>
+                <div style="width:36px;"></div>
+            </div>
+
+            {{-- Body --}}
+            <div class="mobile-app-body">
+                
+                {{-- ═══ SCREEN 1: Session Details & Payment Options ═══ --}}
+                <div id="app-screen-1">
+                    
+                    {{-- Duration Selection --}}
+                    <div class="mb-4">
+                        <div class="app-section-title">{{ __('messages.duration_title') }}</div>
+                        <div class="app-duration-grid">
+                            <div class="app-duration-item selected" onclick="selectAppDuration(15, 150, this)">
+                                <div class="app-duration-icon"><i class="bi bi-hourglass-split"></i></div>
+                                <div class="app-duration-time">15 {{ __('messages.minutes') }}</div>
+                                <div class="app-duration-price">150 {{ __('messages.sar') }}</div>
+                            </div>
+                            <div class="app-duration-item" onclick="selectAppDuration(30, 250, this)">
+                                <div class="app-duration-icon"><i class="bi bi-hourglass-split"></i></div>
+                                <div class="app-duration-time">30 {{ __('messages.minutes') }}</div>
+                                <div class="app-duration-price">250 {{ __('messages.sar') }}</div>
+                            </div>
+                            <div class="app-duration-item" onclick="selectAppDuration(45, 350, this)">
+                                <div class="app-duration-icon"><i class="bi bi-hourglass-split"></i></div>
+                                <div class="app-duration-time">45 {{ __('messages.minutes') }}</div>
+                                <div class="app-duration-price">350 {{ __('messages.sar') }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Consultation Title --}}
+                    <div class="mb-4">
+                        <div class="app-section-title">{{ __('messages.consultation_subject') }}</div>
+                        <input type="text" id="app_consultation_title" class="form-control app-input w-100" placeholder="{{ __('messages.consultation_subject_ph') }}" required>
+                    </div>
+
+                    {{-- Order Details --}}
+                    <div class="mb-4">
+                        <div class="app-section-title">{{ __('messages.consultation_details') }}</div>
+                        <textarea id="app_consultation_details" class="form-control app-input w-100" rows="3" placeholder="{{ __('messages.consultation_details_ph') }}"></textarea>
+                    </div>
+
+                    {{-- Payment Method --}}
+                    <div class="mb-4">
+                        <div class="app-section-title">{{ __('messages.payment_method') }}</div>
+                        
+                        {{-- Apple Pay Option --}}
+                        <div class="app-payment-card" onclick="selectAppPayment('apple_pay', this)">
+                            <div class="d-flex align-items-center gap-3">
+                                <svg width="40" height="24" viewBox="0 0 36 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <rect width="36" height="20" rx="4" fill="#000000"/>
+                                  <path d="M12.1 10.4c0-1.5 1.2-2.2 1.3-2.3-.7-1.1-1.8-1.2-2.2-1.2-1-.1-1.9.6-2.4.6-.5 0-1.3-.6-2.1-.6-1.1 0-2.1.6-2.6 1.6-1.1 2-.3 4.9.8 6.4.5.8 1.2 1.6 2 1.6.8 0 1.1-.5 2.1-.5 1 0 1.3.5 2.1.5.8 0 1.4-.7 1.9-1.5.6-.9.8-1.7.9-1.8-.1 0-1.8-.7-1.8-2.8zM10.8 5.6c.4-.6.7-1.4.6-2.2-.7 0-1.5.5-1.9 1-.4.5-.7 1.3-.6 2.1.8.1 1.5-.4 1.9-.9z" fill="#FFF"/>
+                                  <text x="16" y="13.5" fill="#FFF" font-size="9" font-weight="bold" font-family="system-ui, sans-serif">Pay</text>
+                                </svg>
+                                <span class="fw-bold fs-6">{{ __('messages.pay_apple_pay') }}</span>
+                            </div>
+                            <div class="app-payment-radio"></div>
+                        </div>
+
+                        {{-- Card Option --}}
+                        <div class="app-payment-card selected" onclick="selectAppPayment('stripe_card', this)">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="d-flex gap-1 align-items-center">
+                                    <svg width="34" height="22" viewBox="0 0 32 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                      <rect width="32" height="20" rx="4" fill="#1A1F71"/>
+                                      <circle cx="12" cy="10" r="7" fill="#EB001B"/>
+                                      <circle cx="20" cy="10" r="7" fill="#F79E1B"/>
+                                      <path d="M16 4.34a6.97 6.97 0 0 1 2.66 5.66c0 2.37-1.07 4.47-2.66 5.66a6.97 6.97 0 0 1-2.66-5.66c0-2.37 1.07-4.47 2.66-5.66z" fill="#FF5F00"/>
+                                    </svg>
+                                    <svg width="38" height="22" viewBox="0 0 36 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                      <rect width="36" height="20" rx="4" fill="#1A1F71"/>
+                                      <path d="M14.5 14h-2.3l1.4-8.8h2.3l-1.4 8.8zm8.6-8.6c-.5-.2-1.3-.4-2.2-.4-2.4 0-4.1 1.3-4.1 3.1 0 1.4 1.2 2.1 2.2 2.6 1 .5 1.3.8 1.3 1.2 0 .6-.7.9-1.4.9-.9 0-1.5-.2-2-.5l-.3-.1-.3 2.1c.6.3 1.7.5 2.8.5 2.6 0 4.3-1.3 4.3-3.2 0-1.1-.6-1.9-2.1-2.6-.9-.4-1.4-.7-1.4-1.2 0-.4.5-.8 1.4-.8.8 0 1.4.2 1.9.4l.2.1.3-2.1zm5.2 0h-1.8c-.6 0-1 .2-1.2.7l-3.5 8.1h2.4l.5-1.3h3l.3 1.3h2.1l-1.8-8.8zm-2.4 5.4l1.2-3.4.7 3.4h-1.9zM10.8 5.4L8.5 11.4l-.2-1.2c-.4-1.4-1.6-3-3-3.7l2 7.5h2.4l3.6-8.6h-2.5z" fill="#FFF"/>
+                                      <path d="M6.3 5.4H2.4L2.3 5.6c3.1.8 5.2 2.7 6 4.9l-.9-4.4c-.1-.5-.5-.7-1.1-.7z" fill="#F7B600"/>
+                                    </svg>
+                                    <svg width="38" height="22" viewBox="0 0 36 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                      <rect width="36" height="20" rx="4" fill="#005B94"/>
+                                      <path d="M7 13V7h2.2l1.6 3.6L12.4 7H14.5v6h-1.8v-3.8L11.2 13h-1L8.8 9.2V13H7zm11.5 0v-1.1c-.4.8-1.2 1.2-2.1 1.2-1.5 0-2.4-1.1-2.4-2.6 0-1.5.9-2.6 2.4-2.6.9 0 1.7.4 2.1 1.2V7.9h1.8V13h-1.8zm-2.1-1.4c.8 0 1.3-.6 1.3-1.4s-.5-1.4-1.3-1.4-1.3.6-1.3 1.4.5 1.4 1.3 1.4zm7.8 1.4v-1.1c-.4.8-1.2 1.2-2.1 1.2-1.5 0-2.4-1.1-2.4-2.6 0-1.5.9-2.6 2.4-2.6.9 0 1.7.4 2.1 1.2V7H26v6h-1.8zm-2.1-1.4c.8 0 1.3-.6 1.3-1.4s-.5-1.4-1.3-1.4-1.3.6-1.3 1.4.5 1.4 1.3 1.4z" fill="#8DC63F"/>
+                                    </svg>
+                                </div>
+                                <span class="fw-bold fs-6">ادفع باستخدام البطاقة</span>
+                            </div>
+                            <div class="app-payment-radio"></div>
+                        </div>
+
+                        {{-- Stripe Test Card Filler Badge --}}
+                        <div class="mt-2 text-end">
+                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" onclick="autoFillStripeTestCard()">
+                                💳 تعبئة بطاقة Stripe التجريبية (Test Card)
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Summary Totals & Terms --}}
+                    <div class="bg-white p-3 rounded-4 border mb-3">
+                        <div class="d-flex justify-content-between mb-2 fs-6">
+                            <span class="text-secondary">{{ __('messages.order_total') }}:</span>
+                            <span class="fw-bold text-dark" id="app-session-price">150 {{ __('messages.sar') }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between fs-6 border-top pt-2">
+                            <span class="fw-bold text-dark">{{ __('messages.order_total') }}:</span>
+                            <span class="fw-bold" style="color:var(--primary-color);" id="app-required-price">150 {{ __('messages.sar') }}</span>
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" id="app_terms_check" checked>
+                        <label class="form-check-label small fw-bold text-secondary" for="app_terms_check">
+                            {{ $isAr ? 'أوافق على الشروط والأحكام' : 'I agree to the Terms & Conditions' }}
+                        </label>
+                    </div>
+
+                    {{-- Bottom Action Bar for Screen 1 --}}
+                    <div class="mobile-app-bottom-bar">
+                        <div>
+                            <div class="app-total-label">{{ __('messages.order_total') }}</div>
+                            <div class="app-total-value" id="app-bottom-total">150 {{ __('messages.sar') }}</div>
+                        </div>
+                        <button type="button" class="btn-app-primary" onclick="goToAppScreen2()">{{ __('messages.next') }}</button>
+                    </div>
+
+                </div>{{-- End Screen 1 --}}
+
+                {{-- ═══ SCREEN 2: Date, Slot & Registration ═══ --}}
+                <div id="app-screen-2" class="d-none">
+                    
+                    {{-- Calendar View --}}
+                    <div class="app-calendar-box">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="changeAppMonth(-1)"><i class="bi bi-chevron-right"></i></button>
+                            <div class="app-calendar-month mb-0" id="app-calendar-month-title">{{ $isAr ? 'أكتوبر 2026' : 'October 2026' }}</div>
+                            <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="changeAppMonth(1)"><i class="bi bi-chevron-left"></i></button>
+                        </div>
+                        <div class="app-calendar-weekdays">
+                            <div>{{ $isAr ? 'أحد' : 'Sun' }}</div><div>{{ $isAr ? 'إثن' : 'Mon' }}</div><div>{{ $isAr ? 'ثلا' : 'Tue' }}</div><div>{{ $isAr ? 'أرب' : 'Wed' }}</div><div>{{ $isAr ? 'خميس' : 'Thu' }}</div><div>{{ $isAr ? 'جمع' : 'Fri' }}</div><div>{{ $isAr ? 'سبت' : 'Sat' }}</div>
+                        </div>
+                        <div class="app-calendar-days" id="app-calendar-days-grid">
+                            {{-- Generated Dynamically --}}
+                        </div>
+                    </div>
+
+                    {{-- Available Time Slots --}}
+                    <div class="mb-4">
+                        <div class="app-section-title"><i class="bi bi-clock me-1 text-primary"></i> {{ __('messages.select_time') }}</div>
+                        <div class="app-slots-grid" id="app-slots-grid">
+                            <div class="app-slot-pill selected" onclick="selectAppSlot('09:00 AM', this)">09:00 {{ $isAr ? 'ص' : 'AM' }}</div>
+                            <div class="app-slot-pill" onclick="selectAppSlot('10:00 AM', this)">10:00 {{ $isAr ? 'ص' : 'AM' }}</div>
+                            <div class="app-slot-pill" onclick="selectAppSlot('11:30 AM', this)">11:30 {{ $isAr ? 'ص' : 'AM' }}</div>
+                            <div class="app-slot-pill" onclick="selectAppSlot('01:00 PM', this)">01:00 {{ $isAr ? 'م' : 'PM' }}</div>
+                            <div class="app-slot-pill" onclick="selectAppSlot('02:30 PM', this)">02:30 {{ $isAr ? 'م' : 'PM' }}</div>
+                            <div class="app-slot-pill" onclick="selectAppSlot('04:00 PM', this)">04:00 {{ $isAr ? 'م' : 'PM' }}</div>
+                        </div>
+                    </div>
+
+                    {{-- Registration Section --}}
+                    <div class="mb-4">
+                        <div class="app-section-title fs-5 fw-black text-dark mb-3">{{ __('messages.register') }}</div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-secondary mb-1">{{ __('messages.full_name') }}</label>
+                            <div class="position-relative">
+                                <input type="text" id="app_user_name" class="form-control app-input w-100 pe-4" placeholder="{{ __('messages.full_name') }}" required>
+                                <i class="bi bi-person position-absolute top-50 translate-middle-y end-0 me-3 text-secondary"></i>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-secondary mb-1">{{ __('messages.whatsapp_number') }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0 border rounded-start-4 fw-bold text-success">
+                                    <i class="bi bi-whatsapp me-1"></i> +966
+                                </span>
+                                <input type="tel" id="app_user_phone" class="form-control app-input border-start-0 rounded-end-4" placeholder="0512345678" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-secondary mb-1">{{ __('messages.password') }}</label>
+                            <div class="position-relative">
+                                <input type="password" id="app_user_password" class="form-control app-input w-100 pe-4" placeholder="{{ __('messages.password') }}" required minlength="6">
+                                <i class="bi bi-lock position-absolute top-50 translate-middle-y end-0 me-3 text-secondary"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Bottom Action Bar for Screen 2 --}}
+                    <div class="mobile-app-bottom-bar">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="goToAppScreen1()"><i class="bi bi-arrow-right me-1"></i> {{ __('messages.back') }}</button>
+                        <button type="button" class="btn-app-primary" id="app-submit-pay-btn" onclick="executeAppBooking()">{{ __('messages.confirm_booking') }}</button>
+                    </div>
+
+                </div>{{-- End Screen 2 --}}
+
+                {{-- ═══ SCREEN 3: Confirmation & Success ═══ --}}
+                <div id="app-screen-3" class="d-none text-center py-2">
+                    
+                    <div class="success-circle mx-auto mb-3" style="width:80px; height:80px; font-size:2.2rem; background:var(--primary-color); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow: 0 10px 25px rgba(59, 82, 164, 0.35);">
+                        <i class="bi bi-check-lg"></i>
+                    </div>
+
+                    <h4 class="fw-black text-dark mb-2">{{ __('messages.booking_success_title') }}</h4>
+                    <p class="text-secondary small mb-4">{{ __('messages.booking_success_sub') }}</p>
+
+                    {{-- Reference Card Matching Screenshot 3 --}}
+                    <div class="app-success-card text-start">
+                        <div class="app-success-row">
+                            <span class="text-secondary">رقم المرجع</span>
+                            <span class="fw-bold text-primary fs-6" id="app-res-ref">#REF-8492</span>
+                        </div>
+                        <div class="app-success-row">
+                            <span class="text-secondary">الخدمة</span>
+                            <span class="fw-bold text-dark" id="app-res-service">جلسة استشارة نفسية</span>
+                        </div>
+                        <div class="app-success-row">
+                            <span class="text-secondary">الموعد</span>
+                            <span class="fw-bold text-dark" id="app-res-datetime">15 أكتوبر 2026 | 04:00 مساءً</span>
+                        </div>
+                        <div class="app-success-row">
+                            <span class="text-secondary">المستشار</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=80&q=80" alt="Doctor" class="rounded-circle" style="width:28px; height:28px; object-fit:cover;">
+                                <span class="fw-bold text-dark">د. يونس المرشد</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column gap-2 mt-4">
+                        <a id="app-start-consultation-link" href="#" target="_blank" class="btn btn-app-primary w-100 py-3 d-flex align-items-center justify-content-center gap-2">
+                            <i class="bi bi-calendar-check-fill"></i> ابدأ الاستشارة
+                        </a>
+                        <button type="button" class="btn btn-light rounded-pill py-3 fw-bold text-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-house-fill me-1"></i> العودة للرئيسية
+                        </button>
+                    </div>
+
+                </div>{{-- End Screen 3 --}}
+
+            </div>
+        </div>
+    </div>
+</div>
 
 {{-- ═══ Reel Video Modal ═══ --}}
 <div class="modal fade" id="reelVideoModal" tabindex="-1" aria-hidden="true">
@@ -858,7 +922,7 @@ function fetchSlots() {
     grid.innerHTML = '<div class="text-center text-muted py-3 col-span-3"><div class="spinner-border spinner-border-sm me-1"></div> جاري تحميل الأوقات...</div>';
     document.getElementById('selected_slot').value = '';
 
-    fetch(`/api/slots?service_id=${state.serviceId}&date=${date}`)
+    fetch("{{ url('/api/slots') }}?service_id=" + state.serviceId + "&date=" + date)
         .then(r => r.json())
         .then(data => {
             grid.innerHTML = '';
@@ -970,11 +1034,11 @@ function submitBooking() {
         'Accept': 'application/json',
     };
 
-    fetch('/api/checkout/initialize', { method: 'POST', headers, body: JSON.stringify(payload) })
+    fetch("{{ url('/api/checkout/initialize') }}", { method: 'POST', headers, body: JSON.stringify(payload) })
         .then(r => r.json())
         .then(data => {
             if (!data.success) throw new Error(data.message || 'حدث خطأ في الطلب.');
-            return fetch('/api/checkout/confirm', {
+            return fetch("{{ url('/api/checkout/confirm') }}", {
                 method: 'POST', headers,
                 body: JSON.stringify({ booking_reference: data.booking_reference })
             }).then(r => r.json());
@@ -1001,23 +1065,22 @@ function showSuccess(res) {
     document.getElementById('res-channel').textContent = channelLabels[state.channel];
     document.getElementById('res-price').textContent = '$' + state.price;
 
-    // Build WhatsApp message
-    const msg = `السلام عليكم ورحمة الله 🌿
+    // Build WhatsApp message (clean text without emojis)
+    const msg = `السلام عليكم ورحمة الله
+تم تأكيد حجزك بنجاح
 
-تم تأكيد حجزك بنجاح ✅
+تفاصيل موعدك:
+------------------------------------
+رقم المرجع: #${booking.booking_reference}
+الاسم: ${state.name}
+الخدمة: ${state.serviceTitle}
+القناة: ${channelLabels[state.channel]}
+التاريخ: ${state.date}
+الوقت: ${state.slot}
+المبلغ: $${state.price}
+------------------------------------
 
-📋 *تفاصيل موعدك:*
-━━━━━━━━━━━━━━━━━━━━━━
-🆔 رقم المرجع: #${booking.booking_reference}
-👤 الاسم: ${state.name}
-🩺 الخدمة: ${state.serviceTitle}
-📞 القناة: ${channelLabels[state.channel]}
-📅 التاريخ: ${state.date}
-⏰ الوقت: ${state.slot}
-💰 المبلغ: $${state.price}
-━━━━━━━━━━━━━━━━━━━━━━
-
-يسعدنا خدمتك 🤍
+يسعدنا خدمتك
 المعالج النفسي يونس المرشد`;
 
     const waUrl = waNumber
@@ -1030,19 +1093,17 @@ function showSuccess(res) {
     document.getElementById('wizard-step-2').classList.add('d-none');
     document.getElementById('wizard-success').classList.remove('d-none');
 
-    document.getElementById('step-circle-2').classList.remove('active'); document.getElementById('step-circle-2').classList.add('done'); document.getElementById('step-circle-2').textContent = '✓';
+    document.getElementById('step-circle-2').classList.remove('active'); document.getElementById('step-circle-2').classList.add('done'); document.getElementById('step-circle-2').innerHTML = '<i class="bi bi-check-lg"></i>';
     document.getElementById('step-circle-3').classList.add('active');
     document.getElementById('step-line-2').classList.add('done');
     document.getElementById('step-label-2').classList.remove('active');
     document.getElementById('step-label-3').classList.add('active');
 
-    document.getElementById('wizard-header-title').textContent = '🎉 تم التأكيد!';
+    document.getElementById('wizard-header-title').textContent = 'تم التأكيد بنجاح';
     document.getElementById('wizard-header-sub').textContent = 'تم تأكيد حجزك وإنشاء حسابك بنجاح';
 
     // Auto-open WhatsApp after 1.5s
     setTimeout(() => { if (waNumber) window.open(waUrl, '_blank'); }, 1500);
-
-    window.scrollTo({ top: document.getElementById('booking-wizard').offsetTop - 80, behavior: 'smooth' });
 }
 
 // ═══ Reel Modal ═══
@@ -1059,10 +1120,203 @@ function openReelModal(title, url, platform) {
     document.getElementById('reelVideoModal').addEventListener('hidden.bs.modal', () => { player.innerHTML = ''; }, { once: true });
 }
 
-// ═══ Init ═══
+// ════ Modal Switch Logic (Clinic vs Online) ═══
+let currentModalType = 'clinic';
+
+function switchModalBookingType(type, el) {
+    currentModalType = type;
+    document.querySelectorAll('.popup-switch-btn').forEach(b => b.classList.remove('active'));
+    if (el) el.classList.add('active');
+}
+
+function selectServiceAndOpenModal(id, title, price, duration) {
+    const modalEl = document.getElementById('bookingModal');
+    if (modalEl) {
+        new bootstrap.Modal(modalEl).show();
+    }
+}
+
+// ════ Mobile App Flow JS Logic ════
+let appState = {
+    duration: 15,
+    price: 150,
+    paymentMethod: 'stripe_card',
+    title: '',
+    details: '',
+    date: '2026-10-15',
+    slot: '04:00 م',
+    year: 2026,
+    month: 9, // October
+};
+
+const monthNamesAr = [
+    'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+    'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+];
+
+function selectAppDuration(duration, price, el) {
+    appState.duration = duration;
+    appState.price = price;
+    document.querySelectorAll('.app-duration-item').forEach(i => i.classList.remove('selected'));
+    if (el) el.classList.add('selected');
+    
+    document.getElementById('app-session-price').textContent = price + ' ر.س';
+    document.getElementById('app-required-price').textContent = price + ' ر.س';
+    document.getElementById('app-bottom-total').textContent = price + ' ر.س';
+}
+
+function selectAppPayment(method, el) {
+    appState.paymentMethod = method;
+    document.querySelectorAll('.app-payment-card').forEach(c => c.classList.remove('selected'));
+    if (el) el.classList.add('selected');
+}
+
+function autoFillStripeTestCard() {
+    selectAppPayment('stripe_card', document.querySelectorAll('.app-payment-card')[1]);
+    alert('💳 تم تحديد دفع Stripe بالبطاقة التجريبية (Test Card: 4242 4242 4242 4242 | CVC: 123 | Exp: 12/34)');
+}
+
+function goToAppScreen2() {
+    const titleInput = document.getElementById('app_consultation_title');
+    const title = titleInput.value.trim();
+    if (!title) {
+        alert('يرجى كتابة عنوان الاستشارة للاستمرار.');
+        titleInput.focus();
+        return;
+    }
+    appState.title = title;
+    appState.details = document.getElementById('app_consultation_details').value;
+
+    document.getElementById('app-screen-1').classList.add('d-none');
+    document.getElementById('app-screen-2').classList.remove('d-none');
+    renderAppCalendar();
+}
+
+function goToAppScreen1() {
+    document.getElementById('app-screen-2').classList.add('d-none');
+    document.getElementById('app-screen-1').classList.remove('d-none');
+}
+
+function changeAppMonth(offset) {
+    appState.month += offset;
+    if (appState.month > 11) { appState.month = 0; appState.year++; }
+    if (appState.month < 0) { appState.month = 11; appState.year--; }
+    renderAppCalendar();
+}
+
+function renderAppCalendar() {
+    document.getElementById('app-calendar-month-title').textContent = monthNamesAr[appState.month] + ' ' + appState.year;
+    const daysGrid = document.getElementById('app-calendar-days-grid');
+    daysGrid.innerHTML = '';
+
+    const firstDay = new Date(appState.year, appState.month, 1).getDay();
+    const daysInMonth = new Date(appState.year, appState.month + 1, 0).getDate();
+
+    for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement('div');
+        daysGrid.appendChild(empty);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dayEl = document.createElement('div');
+        dayEl.className = 'app-calendar-day' + (d === 15 ? ' selected' : '');
+        dayEl.textContent = d;
+        dayEl.onclick = function() {
+            document.querySelectorAll('.app-calendar-day').forEach(el => el.classList.remove('selected'));
+            dayEl.classList.add('selected');
+            const mm = (appState.month + 1).toString().padStart(2, '0');
+            const dd = d.toString().padStart(2, '0');
+            appState.date = `${appState.year}-${mm}-${dd}`;
+        };
+        daysGrid.appendChild(dayEl);
+    }
+}
+
+function selectAppSlot(time, el) {
+    appState.slot = time;
+    document.querySelectorAll('.app-slot-pill').forEach(p => p.classList.remove('selected'));
+    if (el) el.classList.add('selected');
+}
+
+function executeAppBooking() {
+    const name = document.getElementById('app_user_name').value.trim();
+    const phone = document.getElementById('app_user_phone').value.trim();
+    const password = document.getElementById('app_user_password').value.trim();
+
+    if (!name || !phone || !password) {
+        alert('يرجى تعبئة جميع بيانات إنشاء الحساب (الاسم، الواتساب، وكلمة المرور).');
+        return;
+    }
+
+    const btn = document.getElementById('app-submit-pay-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> جاري معالجة الدفع بـ Stripe...';
+
+    const payload = {
+        service_id: 1,
+        booking_type: 'online',
+        consultation_type: 'video',
+        date: appState.date,
+        start_time: appState.slot,
+        name: name,
+        phone: '+966' + phone,
+        password: password,
+        title: appState.title,
+        notes: appState.details,
+    };
+
+    const headers = {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+        'Accept': 'application/json',
+    };
+
+    fetch("{{ url('/api/checkout/initialize') }}", { method: 'POST', headers, body: JSON.stringify(payload) })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) throw new Error(data.message || 'حدث خطأ في طلب الحجز.');
+            return fetch("{{ url('/api/checkout/confirm') }}", {
+                method: 'POST', headers,
+                body: JSON.stringify({ booking_reference: data.booking_reference, payment_method: appState.paymentMethod })
+            }).then(r => r.json());
+        })
+        .then(res => {
+            btn.disabled = false;
+            btn.textContent = 'التالي';
+
+            // Show Screen 3 Success
+            document.getElementById('app-screen-2').classList.add('d-none');
+            document.getElementById('app-screen-3').classList.remove('d-none');
+
+            const ref = res?.booking?.booking_reference || 'REF-' + Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('app-res-ref').textContent = '#' + ref;
+            document.getElementById('app-res-service').textContent = appState.title || 'جلسة استشارة نفسية';
+            document.getElementById('app-res-datetime').textContent = appState.date + ' | ' + appState.slot;
+            
+            const waMsg = `السلام عليكم دكتور يونس، تم الحجز بنجاح عبر Stripe Test Mode\nرقم المرجع: #${ref}\nالاسم: ${name}\nالموعد: ${appState.date} ${appState.slot}`;
+            const waUrl = waNumber ? `https://wa.me/${waNumber}?text=${encodeURIComponent(waMsg)}` : `https://wa.me/?text=${encodeURIComponent(waMsg)}`;
+            document.getElementById('app-start-consultation-link').href = waUrl;
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.textContent = 'التالي';
+            alert(err.message || 'تعذّر إكمال الحجز. يرجى إعادة المحاولة.');
+        });
+}
+
+// ═══ Init & Scroll Reveal Observer ═══
 document.addEventListener('DOMContentLoaded', function() {
-    updateCurrentPrice();
-    fetchSlots();
+    renderAppCalendar();
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+            }
+        });
+    }, { threshold: 0.12 });
+
+    document.querySelectorAll('.reveal-on-scroll').forEach(el => observer.observe(el));
 });
 </script>
 @endsection

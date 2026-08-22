@@ -1,8 +1,8 @@
 {
 	"info": {
 		"_postman_id": "4b68e98a-2114-41d3-a5ff-9876543210ab",
-		"name": "Doctor Booking System Mobile API",
-		"description": "جميع قنوات الاتصال البرمجية (APIs) لربط تطبيق الموبايل (Flutter) بالخلفية لعيادة د. يونس، تشتمل على التوثيق، جلب المواعيد، الحجز، والدفع وإلغاء المواعيد.",
+		"name": "Doctor Yonis Booking API - Mobile Client (Flutter)",
+		"description": "المجموعة الكاملة لجميع نقاط الاتصال البرمجية (APIs) لربط تطبيق الموبايل (Flutter) بالخلفية لعيادة د. يونس المرشد. تشتمل على: التوثيق، حالة الخادم والإعدادات، ملف الطبيب والخدمات والمقاطع التوعوية، جلب المواعيد المتاحة، تدفق الحجز والدفع Stripe، لوحة التحكم الخاصة بالمريض، إلغاء الحجز، وإعادة الجدولة.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -10,7 +10,7 @@
 			"name": "1. Authentication",
 			"item": [
 				{
-					"name": "Register Patient",
+					"name": "Register Patient (إنشاء حساب جديد)",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -27,7 +27,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"محمد عبد الله\",\n    \"email\": \"mohamed@example.com\",\n    \"phone\": \"+201234567890\",\n    \"password\": \"password123\"\n}"
+							"raw": "{\n    \"name\": \"محمد عبد الله\",\n    \"phone\": \"+9647712345678\",\n    \"email\": \"mohamed@example.com\",\n    \"password\": \"password123\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/register",
@@ -38,12 +38,13 @@
 								"api",
 								"register"
 							]
-						}
+						},
+						"description": "تسجيل حساب مريض جديد في التطبيق برقم الواتساب والبريد وكلمة المرور."
 					},
 					"response": []
 				},
 				{
-					"name": "Login Patient",
+					"name": "Login Patient (تسجيل الدخول)",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -60,7 +61,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\": \"mohamed@example.com\",\n    \"password\": \"password123\"\n}"
+							"raw": "{\n    \"login\": \"+9647712345678\",\n    \"password\": \"password123\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/login",
@@ -71,12 +72,13 @@
 								"api",
 								"login"
 							]
-						}
+						},
+						"description": "تسجيل دخول المريض بواسطة البريد الإلكتروني أو رقم الواتساب والكلمة السرية للحصول على Bearer Token."
 					},
 					"response": []
 				},
 				{
-					"name": "Logout Patient",
+					"name": "Logout Patient (تسجيل الخروج)",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -105,12 +107,13 @@
 								"api",
 								"logout"
 							]
-						}
+						},
+						"description": "إلغاء التوكن الخاص بالجلسة الحالية من السيرفر."
 					},
 					"response": []
 				},
 				{
-					"name": "Get Authenticated User",
+					"name": "Get Authenticated User (بيانات المريض الحالي)",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -139,17 +142,43 @@
 								"api",
 								"user"
 							]
-						}
+						},
+						"description": "إرجاع بيانات المريض الحالية (ID، الاسم، البريد، رقم الواتساب، الدور)."
 					},
 					"response": []
 				}
 			]
 		},
 		{
-			"name": "2. Doctor & Services Info",
+			"name": "2. Doctor & System Info",
 			"item": [
 				{
-					"name": "Get Doctor Portfolio",
+					"name": "Get System Config & Status (إعدادات وحالة API)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/config",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"config"
+							]
+						},
+						"description": "جلب إعدادات ومفاتيح التشغيل (الحجز الأونلاين/العيادة، الشات، الصوت، الفيديو، حد إعادة الجدولة)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Doctor Profile (الملف الشخصي للطبيب)",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -169,12 +198,13 @@
 								"doctor",
 								"profile"
 							]
-						}
+						},
+						"description": "جلب السيرة الذاتية، التخصصات، المؤهلات العلمية، معرض الصور وسنوات الخبرة لـ د. يونس."
 					},
 					"response": []
 				},
 				{
-					"name": "Get Services List",
+					"name": "Get Services List (أنواع الجلسات والأسعار)",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -193,17 +223,13 @@
 								"api",
 								"services"
 							]
-						}
+						},
+						"description": "قائمة الاستشارات المتاحة بالمدد والأسعار لكل قناة تواصل (عيادة، شات، صوت، فيديو)."
 					},
 					"response": []
-				}
-			]
-		},
-		{
-			"name": "3. Booking Engine",
-			"item": [
+				},
 				{
-					"name": "Get Available Slots",
+					"name": "Get Reels (المقاطع التوعوية والفيديوهات)",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -214,7 +240,37 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/api/slots?service_id=1&date=2026-08-20",
+							"raw": "{{baseUrl}}/api/reels",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"reels"
+							]
+						},
+						"description": "جلب قائمة مقاطع الفيديو التوعوية القصيرة من TikTok و YouTube shorts."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Booking & Checkout Engine",
+			"item": [
+				{
+					"name": "Get Available Slots (جلب الأوقات المتاحة للحجز)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/slots?service_id=1&date=2026-08-25",
 							"host": [
 								"{{baseUrl}}"
 							],
@@ -226,20 +282,21 @@
 								{
 									"key": "service_id",
 									"value": "1",
-									"description": "معرّف الخدمة المطلوبة"
+									"description": "معرّف الجلسة"
 								},
 								{
 									"key": "date",
-									"value": "2026-08-20",
-									"description": "تاريخ الزيارة (YYYY-MM-DD)"
+									"value": "2026-08-25",
+									"description": "التاريخ المطلوب (YYYY-MM-DD)"
 								}
 							]
-						}
+						},
+						"description": "حساب الأوقات المتاحة تلقائياً بخصم المواعيد المحجوزة مسبقاً وأوقات الراحة."
 					},
 					"response": []
 				},
 				{
-					"name": "Create Booking",
+					"name": "Step 1: Initialize Checkout (بدء الحجز وتوليد Stripe PaymentIntent)",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -266,24 +323,75 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"service_id\": 1,\n    \"date\": \"2026-08-20\",\n    \"start_time\": \"14:30\",\n    \"payment_intent_id\": \"pi_3MtwZa2eZvKYlo2C1wXXX\"\n}"
+							"raw": "{\n    \"service_id\": 1,\n    \"booking_type\": \"online\",\n    \"consultation_type\": \"video\",\n    \"date\": \"2026-08-25\",\n    \"start_time\": \"14:30\",\n    \"title\": \"استشارة حول نوبات القلق والتوتر\",\n    \"notes\": \"أفضل الموعد مساءً إن أمكن\",\n    \"name\": \"مستفيد جديد\",\n    \"phone\": \"+9647799887766\",\n    \"password\": \"password123\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/api/booking/create",
+							"raw": "{{baseUrl}}/api/checkout/initialize",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"api",
-								"booking",
-								"create"
+								"checkout",
+								"initialize"
 							]
-						}
+						},
+						"description": "خطوة 1: اختيار الجلسة والوقت وقناة التواصل وادخال البيانات. تقوم بالتحقق من عدم التعارض وإرجاع client_secret و booking_reference لـ Stripe."
 					},
 					"response": []
 				},
 				{
-					"name": "Get Patient Bookings",
+					"name": "Step 2: Confirm Checkout (تأكيد الحجز بعد استكمال الدفع)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"booking_reference\": \"BK-ABC12345\",\n    \"payment_intent_id\": \"pi_3MtwZa2eZvKYlo2C1wXXX\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/checkout/confirm",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"checkout",
+								"confirm"
+							]
+						},
+						"description": "خطوة 2: يتم استدعاؤها بعد نجاح عملية الدفع في Stripe لموبايل Flutter. ينشئ حساب المستفيد (إذا كان زائر) ويرجع Token وتأكيد الموعد النهائي."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Patient Bookings Management",
+			"item": [
+				{
+					"name": "Get Patient Bookings (جلب مواعيد المريض)",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -304,7 +412,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/api/patient/bookings",
+							"raw": "{{baseUrl}}/api/patient/bookings?tab=upcoming",
 							"host": [
 								"{{baseUrl}}"
 							],
@@ -312,13 +420,21 @@
 								"api",
 								"patient",
 								"bookings"
+							],
+							"query": [
+								{
+									"key": "tab",
+									"value": "upcoming",
+									"description": "خيارات الفلترة: upcoming, completed, cancelled"
+								}
 							]
-						}
+						},
+						"description": "عرض قائمة مواعيد المريض الحالية أو المكتملة أو الملغية."
 					},
 					"response": []
 				},
 				{
-					"name": "Cancel Booking (Refund)",
+					"name": "Cancel Booking (إلغاء الموعد واسترداد المبلغ)",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -349,31 +465,58 @@
 								"1",
 								"cancel"
 							]
-						}
+						},
+						"description": "إلغاء الموعد. إذا كان الإلغاء قبل أكثر من 24 ساعة، يتم معالجة طلب الاسترداد المالي تلقائياً عبر Stripe."
+					},
+					"response": []
+				},
+				{
+					"name": "Reschedule Booking (إعادة جدولة وتغيير الموعد)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"date\": \"2026-08-28\",\n    \"start_time\": \"16:00\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/booking/2/reschedule",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"booking",
+								"2",
+								"reschedule"
+							]
+						},
+						"description": "تغيير تاريخ ووقت الجلسة بشرط عدم تجاوز عدد المرات المسموح به ورعاية مهلة الإشعار المسبق."
 					},
 					"response": []
 				}
 			]
-		}
-	],
-	"event": [
-		{
-			"listen": "prerequest",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
-		},
-		{
-			"listen": "test",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
 		}
 	],
 	"variable": [
@@ -384,7 +527,7 @@
 		},
 		{
 			"key": "token",
-			"value": "your_bearer_token_here",
+			"value": "1|mobile_sanctum_token_placeholder",
 			"type": "string"
 		}
 	]

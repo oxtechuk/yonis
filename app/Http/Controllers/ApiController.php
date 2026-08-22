@@ -257,7 +257,8 @@ class ApiController extends Controller
         $duration = $service->duration;
         $calculatedPrice = $service->getPriceForChannel($consultationType);
 
-        $startTime = Carbon::parse($request->start_time);
+        $timeString = str_replace(['ص', 'م'], ['AM', 'PM'], $request->start_time);
+        $startTime = Carbon::parse(trim($timeString));
         $endTime = $startTime->copy()->addMinutes($duration);
 
         $startTimeStr = $startTime->format('H:i:s');

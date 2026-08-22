@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DoctorProfile;
 use App\Models\Service;
 use App\Models\Reel;
+use App\Models\Testimonial;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 
@@ -19,6 +20,7 @@ class HomeController extends Controller
         $profile = DoctorProfile::with('user')->first();
         $services = Service::where('is_active', true)->get();
         $reels = Reel::where('is_active', true)->orderBy('sort_order', 'asc')->get();
+        $testimonials = Testimonial::where('is_active', true)->latest()->get();
 
         $whatsappNumber = Setting::get('whatsapp_number', '+964xxxxxxxxx');
         $googleVerification = Setting::get('google_site_verification', '');
@@ -26,9 +28,8 @@ class HomeController extends Controller
         $ogImage = Setting::get('og_image', '');
 
         return view('index', compact(
-            'profile', 'services', 'reels',
+            'profile', 'services', 'reels', 'testimonials',
             'whatsappNumber', 'googleVerification', 'doctorName', 'ogImage'
         ));
     }
 }
-
