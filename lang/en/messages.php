@@ -81,5 +81,8 @@ return [
     'reels_subtitle' => 'Quick psychological guidance for a more balanced and fulfilling life',
     'testimonials_title' => 'What Our Clients Say',
     'testimonials_subtitle' => 'Real success stories and feedback from people who transformed their lives',
+    'gallery_label' => 'Events & Gallery',
+    'gallery_title' => 'Clinic Gallery & Events',
+    'gallery_subtitle' => 'Explore photos from our workshops, events, and clinic center',
     'watch_video' => 'Watch Video',
 ];

@@ -17,7 +17,7 @@
     display: flex;
     align-items: center;
     overflow: hidden;
-    background: linear-gradient(135deg, #0d1b4b 0%, #1e3a8a 45%, #2d5be3 100%);
+    background: linear-gradient(135deg, #1C2752 0%, #4055A5 55%, #5F7CD4 100%);
 }
 .hero-section::before {
     content: '';
@@ -29,18 +29,18 @@
     position: absolute;
     border-radius: 50%;
     filter: blur(80px);
-    opacity: 0.3;
+    opacity: 0.25;
     animation: floatOrb 8s ease-in-out infinite alternate;
 }
-.hero-orb-1 { width: 400px; height: 400px; background: #4f93ff; top: -100px; right: -50px; }
-.hero-orb-2 { width: 300px; height: 300px; background: #a78bfa; bottom: -80px; left: 10%; animation-delay: -3s; }
+.hero-orb-1 { width: 400px; height: 400px; background: #6D8FD6; top: -100px; right: -50px; }
+.hero-orb-2 { width: 300px; height: 300px; background: #D4AF37; bottom: -80px; left: 10%; animation-delay: -3s; }
 @keyframes floatOrb { from { transform: translateY(0) scale(1); } to { transform: translateY(-30px) scale(1.05); } }
 
 .hero-badge {
     display: inline-flex; align-items: center; gap: 8px;
     background: rgba(255,255,255,0.12);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.25);
     color: #fff;
     padding: 0.5rem 1.2rem;
     border-radius: 50px;
@@ -53,8 +53,8 @@
 @keyframes pulse-badge { 0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,0.3)} 50%{box-shadow:0 0 0 8px rgba(74,222,128,0)} }
 
 .hero-title { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900; color: #fff; line-height: 1.2; }
-.hero-title .highlight { color: #7dd3fc; }
-.hero-subtitle { font-size: 1.15rem; color: rgba(255,255,255,0.8); max-width: 500px; line-height: 1.7; }
+.hero-title .highlight { color: #F7EFE0; }
+.hero-subtitle { font-size: 1.15rem; color: rgba(255,255,255,0.88); max-width: 500px; line-height: 1.7; }
 
 .hero-stats { display: flex; gap: 2rem; flex-wrap: wrap; margin-top: 2rem; }
 .hero-stat { text-align: center; }
@@ -353,6 +353,90 @@
         </div>
     </div>
 </section>
+
+{{-- ═══════════════════════════════════════════════════════════
+     2.5. GALLERY COLLAGE SECTION
+═══════════════════════════════════════════════════════════ --}}
+<section id="gallery" class="gallery-wrapper py-5 reveal-on-scroll">
+    <div class="container">
+        <div class="text-center mb-5">
+            <div class="section-label"><i class="bi bi-images"></i> {{ __('messages.gallery_label') }}</div>
+            <h2 class="section-title text-dark">{{ __('messages.gallery_title') }}</h2>
+            <p class="section-subtitle">{{ __('messages.gallery_subtitle') }}</p>
+        </div>
+
+        @php
+            $galleryImages = ($profile && !empty($profile->gallery) && count($profile->gallery) > 0)
+                ? $profile->gallery
+                : [
+                    'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1000&q=80',
+                    'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=600&q=80',
+                ];
+            $totalGalleryCount = count($galleryImages);
+            $remainingGalleryCount = max(0, $totalGalleryCount - 5);
+        @endphp
+
+        <div class="gallery-grid-collage">
+            <!-- Large Image 1 -->
+            <div class="gallery-item item-large" onclick="openLightbox(0)">
+                <img src="{{ $galleryImages[0] }}" alt="Gallery Image 1" loading="lazy">
+                <div class="gallery-overlay"><i class="bi bi-arrows-angle-expand"></i></div>
+            </div>
+
+            <!-- Stacked Images Col 1 -->
+            <div class="gallery-col-stacked">
+                @if(isset($galleryImages[1]))
+                    <div class="gallery-item" onclick="openLightbox(1)">
+                        <img src="{{ $galleryImages[1] }}" alt="Gallery Image 2" loading="lazy">
+                        <div class="gallery-overlay"><i class="bi bi-arrows-angle-expand"></i></div>
+                    </div>
+                @endif
+                @if(isset($galleryImages[2]))
+                    <div class="gallery-item" onclick="openLightbox(2)">
+                        <img src="{{ $galleryImages[2] }}" alt="Gallery Image 3" loading="lazy">
+                        <div class="gallery-overlay"><i class="bi bi-arrows-angle-expand"></i></div>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Stacked Images Col 2 with +X -->
+            <div class="gallery-col-stacked">
+                @if(isset($galleryImages[3]))
+                    <div class="gallery-item" onclick="openLightbox(3)">
+                        <img src="{{ $galleryImages[3] }}" alt="Gallery Image 4" loading="lazy">
+                        <div class="gallery-overlay"><i class="bi bi-arrows-angle-expand"></i></div>
+                    </div>
+                @endif
+                @if(isset($galleryImages[4]))
+                    <div class="gallery-item item-more" onclick="openLightbox(4)">
+                        <img src="{{ $galleryImages[4] }}" alt="Gallery Image 5" loading="lazy">
+                        <div class="more-overlay">
+                            <span class="more-count">+{{ $remainingGalleryCount > 0 ? $remainingGalleryCount : $totalGalleryCount }}</span>
+                        </div>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Fullscreen Lightbox Modal -->
+<div id="galleryLightboxModal" class="lightbox-modal" tabindex="-1">
+    <div class="lightbox-backdrop" onclick="closeLightbox()"></div>
+    <div class="lightbox-content">
+        <button type="button" class="btn-lightbox-close" onclick="closeLightbox()">&times;</button>
+        <div class="lightbox-counter"><span id="lightboxCurrentIndex">1</span> / <span id="lightboxTotalIndex">1</span></div>
+        <button type="button" class="btn-lightbox-arrow btn-prev" onclick="navigateLightbox(-1)"><i class="bi bi-chevron-right"></i></button>
+        <div class="lightbox-image-container">
+            <img id="lightboxActiveImg" src="" alt="Gallery Preview">
+        </div>
+        <button type="button" class="btn-lightbox-arrow btn-next" onclick="navigateLightbox(1)"><i class="bi bi-chevron-left"></i></button>
+    </div>
+</div>
 
 {{-- ═══════════════════════════════════════════════════════════
      3. SERVICES SECTION
@@ -1303,6 +1387,58 @@ function executeAppBooking() {
             alert(err.message || 'تعذّر إكمال الحجز. يرجى إعادة المحاولة.');
         });
 }
+
+// ═══ Lightbox Gallery Modal ═══
+const galleryImagesList = @json($galleryImages ?? []);
+let currentLightboxIndex = 0;
+
+function openLightbox(index) {
+    if (!galleryImagesList || galleryImagesList.length === 0) return;
+    currentLightboxIndex = index;
+    updateLightboxView();
+    const modal = document.getElementById('galleryLightboxModal');
+    if (modal) modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+    const modal = document.getElementById('galleryLightboxModal');
+    if (modal) modal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function navigateLightbox(direction) {
+    if (!galleryImagesList || galleryImagesList.length === 0) return;
+    currentLightboxIndex = (currentLightboxIndex + direction + galleryImagesList.length) % galleryImagesList.length;
+    updateLightboxView();
+}
+
+function updateLightboxView() {
+    const imgEl = document.getElementById('lightboxActiveImg');
+    const counterEl = document.getElementById('lightboxCurrentIndex');
+    const totalEl = document.getElementById('lightboxTotalIndex');
+
+    if (imgEl) {
+        imgEl.style.opacity = '0.3';
+        imgEl.style.transform = 'scale(0.96)';
+        setTimeout(() => {
+            imgEl.src = galleryImagesList[currentLightboxIndex];
+            imgEl.style.opacity = '1';
+            imgEl.style.transform = 'scale(1)';
+        }, 120);
+    }
+    if (counterEl) counterEl.textContent = currentLightboxIndex + 1;
+    if (totalEl) totalEl.textContent = galleryImagesList.length;
+}
+
+document.addEventListener('keydown', function(e) {
+    const modal = document.getElementById('galleryLightboxModal');
+    if (modal && modal.classList.contains('active')) {
+        if (e.key === 'Escape') closeLightbox();
+        if (e.key === 'ArrowRight' || e.key === 'ArrowUp') navigateLightbox(-1);
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') navigateLightbox(1);
+    }
+});
 
 // ═══ Init & Scroll Reveal Observer ═══
 document.addEventListener('DOMContentLoaded', function() {

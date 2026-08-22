@@ -1,19 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Tajawal:wght@300;400;500;700;800;900&display=swap');
 
 :root {
-    --primary-color: #3B52A4;      /* Deep Royal Blue/Indigo */
-    --primary-dark: #1e3a8a;       /* Dark Indigo for hover/active */
-    --primary-light: #5B72C7;      /* Light Indigo */
-    --accent-gold: #C5A25D;        /* Warm Luxury Gold Accent */
-    --accent-gold-light: #F4E8D1;
-    --bg-main: #F6F8FB;            /* Soft Off-White Background */
-    --text-dark: #1E293B;          /* Dark Charcoal Text */
+    --primary-color: #4055A5;      /* Official Brand Primary Warm Blue */
+    --primary-dark: #1C2752;       /* Official Brand Deep Navy */
+    --primary-light: #6D8FD6;      /* Official Brand Support Sky Blue */
+    --accent-gold: #D4AF37;        /* Official Brand Accent Gold */
+    --accent-gold-light: #F7EFE0;  /* Official Brand Calm Beige */
+    --bg-comfort: #E6F0FF;         /* Official Brand Comfort Ice Blue */
+    --bg-main: #F4F7FC;            /* Soft Neutral Page Background */
+    --text-dark: #1C2752;          /* Rich Deep Navy Text */
     --text-muted: #64748B;         /* Slate Muted Text */
-    --glass-bg: rgba(255, 255, 255, 0.95);
-    --glass-border: rgba(59, 82, 164, 0.08);
-    --card-shadow: 0 12px 30px -8px rgba(59, 82, 164, 0.1);
-    --sidebar-bg: linear-gradient(180deg, #0d1b4b 0%, #1e293b 100%);
-    --premium-font: 'Tajawal', sans-serif;
+    --glass-bg: rgba(255, 255, 255, 0.98);
+    --glass-border: rgba(109, 143, 214, 0.18);
+    --card-shadow: 0 12px 32px -8px rgba(64, 85, 165, 0.08);
+    --sidebar-bg: linear-gradient(180deg, #1C2752 0%, #2A3B7C 100%);
+    --premium-font: 'Cairo', 'Tajawal', sans-serif;
 }
 
 html {
@@ -507,10 +508,10 @@ main.expanded {
 
 /* ════ Footer ══════════════════════════════════════════════════ */
 .site-footer {
-    background: #0d1b4b;
-    background: linear-gradient(135deg, #0d1b4b 0%, #1e2f6e 100%);
+    background: #1C2752;
+    background: linear-gradient(135deg, #1C2752 0%, #151D3F 100%);
     padding: 4rem 0 2rem;
-    color: rgba(255, 255, 255, 0.75);
+    color: rgba(255, 255, 255, 0.78);
     margin-top: 0;
 }
 .footer-logo-circle {
@@ -519,12 +520,12 @@ main.expanded {
     color: #fff; display: flex; align-items: center; justify-content: center;
     font-size: 1.2rem; font-weight: 900;
 }
-.footer-text { color: rgba(255,255,255,0.6); font-size: 0.95rem; line-height: 1.7; }
+.footer-text { color: rgba(255,255,255,0.65); font-size: 0.95rem; line-height: 1.7; }
 .footer-heading { color: #fff; font-weight: 800; margin-bottom: 1.2rem; font-size: 1rem; }
 .footer-links { list-style: none; padding: 0; margin: 0; }
 .footer-links li { margin-bottom: 0.5rem; }
-.footer-links a { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
-.footer-links a:hover { color: #7dd3fc; }
+.footer-links a { color: rgba(255,255,255,0.65); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+.footer-links a:hover { color: #E6F0FF; }
 .footer-contact-item { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.7rem; font-size: 0.9rem; }
 .footer-social-btn {
     width: 38px; height: 38px; border-radius: 50%;
@@ -536,7 +537,7 @@ main.expanded {
 .footer-social-btn:hover { background: var(--primary-color); color: #fff; transform: translateY(-2px); }
 .footer-social-btn.whatsapp:hover { background: #25d366; }
 .footer-divider { border-top: 1px solid rgba(255,255,255,0.08); margin: 2.5rem 0 1.5rem; }
-.footer-bottom { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; font-size: 0.85rem; color: rgba(255,255,255,0.45); }
+.footer-bottom { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; font-size: 0.85rem; color: rgba(255,255,255,0.5); }
 .footer-badge { background: rgba(255,255,255,0.08); padding: 0.25rem 0.8rem; border-radius: 30px; font-size: 0.78rem; }
 
 /* ════ WhatsApp Floating Button ═════════════════════════════ */
@@ -566,7 +567,7 @@ section { scroll-margin-top: 80px; }
 
 /* ════ Booking Banner CTA ══════════════════════════════════════ */
 .booking-banner-wrapper {
-    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #0d1b4b 100%);
+    background: linear-gradient(135deg, #1C2752 0%, #2A3B7C 55%, #4055A5 100%);
     padding: 3.5rem 0;
     position: relative;
     overflow: hidden;
@@ -1182,6 +1183,301 @@ section { scroll-margin-top: 80px; }
     .stats-card-modern {
         padding: 1rem !important;
     }
+}
+
+/* ════ GALLERY COLLAGE & LIGHTBOX MODAL ═══════════════════════ */
+.gallery-grid-collage {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 1rem;
+    height: 480px;
+}
+
+.gallery-col-stacked {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    height: 100%;
+}
+
+.gallery-item {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    background: #1E293B;
+    height: 100%;
+}
+
+.gallery-item.item-large {
+    height: 100%;
+}
+
+.gallery-col-stacked .gallery-item {
+    height: calc(50% - 0.5rem);
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gallery-item:hover img {
+    transform: scale(1.05);
+}
+
+.gallery-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.35);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    color: #ffffff;
+    font-size: 1.8rem;
+}
+
+.gallery-item:hover .gallery-overlay {
+    opacity: 1;
+}
+
+.more-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.72);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-gold);
+    transition: background 0.3s ease;
+}
+
+.gallery-item:hover .more-overlay {
+    background: rgba(15, 23, 42, 0.85);
+}
+
+.more-count {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #F4E8D1;
+    letter-spacing: 1px;
+}
+
+/* Lightbox Modal Popup */
+.lightbox-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.lightbox-modal.active {
+    display: flex;
+}
+
+.lightbox-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 15, 29, 0.95);
+    backdrop-filter: blur(12px);
+}
+
+.lightbox-content {
+    position: relative;
+    z-index: 10;
+    width: 90vw;
+    height: 90vh;
+    max-width: 1200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lightbox-image-container {
+    max-width: 82vw;
+    max-height: 82vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lightbox-image-container img {
+    max-width: 100%;
+    max-height: 82vh;
+    border-radius: 12px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    object-fit: contain;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.btn-lightbox-close {
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+    font-size: 1.8rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.btn-lightbox-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.lightbox-counter {
+    position: absolute;
+    top: -15px;
+    left: -15px;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    padding: 0.4rem 1rem;
+    border-radius: 30px;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.btn-lightbox-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    font-size: 1.6rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+    z-index: 20;
+}
+
+.btn-lightbox-arrow:hover {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    transform: translateY(-50%) scale(1.12);
+    box-shadow: 0 10px 25px rgba(59, 82, 164, 0.4);
+}
+
+.btn-lightbox-arrow.btn-prev {
+    right: 15px;
+}
+
+.btn-lightbox-arrow.btn-next {
+    left: 15px;
+}
+
+@media (max-width: 767.98px) {
+    .gallery-grid-collage {
+        grid-template-columns: 1fr 1fr;
+        height: auto;
+    }
+    .gallery-item.item-large {
+        grid-column: span 2;
+        height: 240px;
+    }
+    .gallery-col-stacked .gallery-item {
+        height: 140px;
+    }
+    .btn-lightbox-arrow {
+        width: 42px;
+        height: 42px;
+        font-size: 1.2rem;
+    }
+}
+
+/* ════ BRAND IDENTITY COMPONENT OVERRIDES ═════════════════════ */
+.testimonials-wrapper {
+    background: linear-gradient(180deg, #F4F7FC 0%, #E6F0FF 100%);
+    padding: 5rem 0;
+}
+
+.testimonial-card {
+    background: #F7EFE0 !important; /* Official Brand Calm Cream */
+    border-radius: 24px !important;
+    padding: 2.2rem !important;
+    border: 1px solid rgba(212, 175, 55, 0.25) !important;
+    box-shadow: 0 10px 30px rgba(64, 85, 165, 0.05) !important;
+    transition: transform 0.35s ease, box-shadow 0.35s ease !important;
+}
+
+.testimonial-card:hover {
+    transform: translateY(-6px) !important;
+    box-shadow: 0 16px 36px rgba(64, 85, 165, 0.12) !important;
+}
+
+.testimonial-card .stars i {
+    color: #D4AF37 !important; /* Official Brand Accent Gold */
+    font-size: 1.1rem;
+}
+
+.testimonial-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #4055A5;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(64, 85, 165, 0.25);
+}
+
+.services-wrapper {
+    background: #E6F0FF !important; /* Official Brand Comfort Ice Blue */
+    padding: 5rem 0;
+}
+
+.service-card-new {
+    background: #FFFFFF !important;
+    border-radius: 24px !important;
+    padding: 2.2rem !important;
+    box-shadow: 0 12px 32px rgba(64, 85, 165, 0.07) !important;
+    border: 1.5px solid rgba(109, 143, 214, 0.2) !important;
+    transition: all 0.35s ease !important;
+}
+
+.service-card-new:hover {
+    transform: translateY(-8px) !important;
+    border-color: #4055A5 !important;
+    box-shadow: 0 20px 45px rgba(64, 85, 165, 0.15) !important;
+}
+
+.tag-pill {
+    background: #E6F0FF !important;
+    color: #4055A5 !important;
+    border: 1px solid rgba(109, 143, 214, 0.25) !important;
+}
+
+.tag-pill:hover {
+    background: #4055A5 !important;
+    color: #FFFFFF !important;
 }
 
 

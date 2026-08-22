@@ -103,7 +103,7 @@
     {{-- ── Fonts: Tajawal & Inter ────────────────────────────── --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Inter:wght@400;600;700;800&family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 
     {{-- ── Bootstrap 5.3.3 CSS ───────────────────────────────── --}}
     @if($isAr)
@@ -160,6 +160,7 @@
                     <ul class="navbar-nav mx-auto align-items-lg-center gap-1 my-2 my-lg-0">
                         <li class="nav-item"><a class="nav-link nav-link-luxury @if(Route::is('home')) active @endif" href="{{ Route::is('home') ? '#hero' : route('home') }}">{{ __('messages.home') }}</a></li>
                         <li class="nav-item"><a class="nav-link nav-link-luxury" href="{{ Route::is('home') ? '#about' : route('home') . '#about' }}">{{ __('messages.about') }}</a></li>
+                        <li class="nav-item"><a class="nav-link nav-link-luxury" href="{{ Route::is('home') ? '#gallery' : route('home') . '#gallery' }}">{{ __('messages.gallery_label') }}</a></li>
                         <li class="nav-item"><a class="nav-link nav-link-luxury" href="{{ Route::is('home') ? '#services' : route('home') . '#services' }}">{{ __('messages.sessions') }}</a></li>
                         <li class="nav-item"><a class="nav-link nav-link-luxury" href="{{ Route::is('home') ? '#reels-section' : route('home') . '#reels-section' }}">{{ __('messages.videos') }}</a></li>
                     </ul>
@@ -219,11 +220,11 @@
                 <div class="col-lg-4">
                     <h6 class="footer-heading">روابط سريعة</h6>
                     <ul class="footer-links">
-                        <li><a href="{{ route('home') }}#about">نبذة عن المعالج</a></li>
-                        <li><a href="{{ route('home') }}#services">أنواع الجلسات والأسعار</a></li>
-                        <li><a href="{{ route('home') }}#reels-section">مقاطع توعوية</a></li>
-                        <li><a href="{{ route('home') }}#booking-wizard">احجز استشارتك الآن</a></li>
-                        <li><a href="{{ route('login') }}">تسجيل الدخول لحسابي</a></li>
+                        <li><a href="{{ route('home') }}#about">{{ __('messages.about') }}</a></li>
+                        <li><a href="{{ route('home') }}#gallery">{{ __('messages.gallery_label') }}</a></li>
+                        <li><a href="{{ route('home') }}#services">{{ __('messages.sessions') }}</a></li>
+                        <li><a href="{{ route('home') }}#reels-section">{{ __('messages.videos') }}</a></li>
+                        <li><a href="{{ route('login') }}">{{ __('messages.login') }}</a></li>
                     </ul>
                 </div>
 
