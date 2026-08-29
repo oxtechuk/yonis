@@ -3,12 +3,13 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ApiController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\StaffController;
 use App\Http\Middleware\CheckPermission;
 
-// 🌐 Bilingual Language Switcher Route
+// Bilingual Language Switcher Route
 Route::get('/lang/switch/{lang}', function ($lang) {
     if (in_array($lang, ['ar', 'en'])) {
         session(['locale' => $lang]);
@@ -27,27 +28,23 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 // API Public Endpoints
 Route::get('/api/services', [ApiController::class, 'getServices']);
 Route::get('/api/availabilities', [ApiController::class, 'getAvailabilities']);
-Route::get('/api/slots', [ApiController::class, 'getAvailableSlots']);
+Route::get('/api/slots', [ApiController::class, 'getSlots']);
 
 // Guest & Patient Booking Flow
 Route::post('/api/bookings/checkout', [BookingController::class, 'createCheckoutSession']);
 Route::post('/api/bookings/stripe/webhook', [BookingController::class, 'stripeWebhook']);
 Route::get('/booking/success', [BookingController::class, 'bookingSuccess'])->name('booking.success');
 
-// Authentication Routes
+// Authentication Routes (Web Session Protected with Rate Limiting)
 Route::middleware('guest')->group(function () {
-    Route::get('/login', function () {
-        return view('auth.login');
-    })->name('login');
-    Route::post('/login', [ApiController::class, 'login']);
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
 
-    Route::get('/register', function () {
-        return view('auth.register');
-    })->name('register');
-    Route::post('/register', [ApiController::class, 'register']);
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
 });
 
-Route::post('/logout', [ApiController::class, 'logout'])->name('logout');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Patient Portal Routes
 Route::middleware(['auth'])->prefix('patient')->name('patient.')->group(function () {
@@ -74,12 +71,15 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('/patients', [AdminDashboardController::class, 'patients'])->name('patients');
         Route::post('/patients', [AdminDashboardController::class, 'storePatient'])->name('patients.store');
         Route::get('/patients/{id}', [AdminDashboardController::class, 'patientDetails'])->name('patients.details');
+        Route::get('/patient/profile/{id}', [AdminDashboardController::class, 'patientDetails'])->name('patient.profile');
     });
 
     // Payments & Reports (manage_payments)
     Route::middleware([CheckPermission::class . ':manage_payments'])->group(function () {
         Route::get('/payments', [AdminDashboardController::class, 'payments'])->name('payments');
         Route::get('/payments/export', [AdminDashboardController::class, 'exportPaymentsReport'])->name('payments.export');
+        Route::get('/reports', [AdminDashboardController::class, 'reports'])->name('reports');
+        Route::get('/reports/export', [AdminDashboardController::class, 'exportReportsCsv'])->name('reports.export');
         Route::get('/bookings/export', [AdminDashboardController::class, 'exportBookingsReport'])->name('bookings.export');
     });
 
@@ -88,6 +88,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('/services', [AdminDashboardController::class, 'services'])->name('services');
         Route::post('/services', [AdminDashboardController::class, 'storeService'])->name('services.store');
         Route::post('/services/{id}/update', [AdminDashboardController::class, 'updateService'])->name('services.update');
+        Route::post('/services/{id}/delete', [AdminDashboardController::class, 'deleteService'])->name('services.delete');
+        Route::delete('/services/{id}', [AdminDashboardController::class, 'deleteService'])->name('services.destroy');
     });
 
     // Availability & Work Hours (manage_availability)

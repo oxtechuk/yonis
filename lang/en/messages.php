@@ -25,6 +25,7 @@ return [
     'banner_btn' => 'Click Here to Book Now',
 
     // Modal Popup Switch
+    'immediate_session' => 'Instant Session',
     'popup_title' => 'Instant Session',
     'popup_subtitle' => 'Select session details and desired date',
     'clinic_booking' => 'In-Clinic Appointment',

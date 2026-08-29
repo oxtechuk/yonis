@@ -1,8 +1,8 @@
 {
 	"info": {
 		"_postman_id": "4b68e98a-2114-41d3-a5ff-9876543210ab",
-		"name": "Doctor Yonis Booking API - Mobile Client (Flutter)",
-		"description": "المجموعة الكاملة لجميع نقاط الاتصال البرمجية (APIs) لربط تطبيق الموبايل (Flutter) بالخلفية لعيادة د. يونس المرشد. تشتمل على: التوثيق، حالة الخادم والإعدادات، ملف الطبيب والخدمات والمقاطع التوعوية، جلب المواعيد المتاحة، تدفق الحجز والدفع Stripe، لوحة التحكم الخاصة بالمريض، إلغاء الحجز، وإعادة الجدولة.",
+		"name": "Doctor Younis Al-Murshedi Booking API - Mobile Client (Flutter)",
+		"description": "المجموعة الكاملة لجميع نقاط الاتصال البرمجية (APIs) لربط تطبيق الموبايل (Flutter) بالخلفية لعيادة د. يونس المرشدي. تشتمل على: التوثيق، حالة الخادم والإعدادات، ملف الطبيب والخدمات وروابط Gumroad، المقاطع التوعوية، جلب المواعيد المتاحة، تدفق الحجز وفحص حالة العميل والدفع، لوحة التحكم الخاصة بالمريض، وإلغاء/إعادة جدولة المواعيد.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -39,7 +39,7 @@
 								"register"
 							]
 						},
-						"description": "تسجيل حساب مريض جديد في التطبيق برقم الواتساب والبريد وكلمة المرور."
+						"description": "تسجيل حساب مريض جديد في التطبيق برقم الهاتف والبريد وكلمة المرور."
 					},
 					"response": []
 				},
@@ -61,7 +61,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"login\": \"+9647712345678\",\n    \"password\": \"password123\"\n}"
+							"raw": "{\n    \"login\": \"+9647701234567\",\n    \"password\": \"password\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/login",
@@ -73,7 +73,7 @@
 								"login"
 							]
 						},
-						"description": "تسجيل دخول المريض بواسطة البريد الإلكتروني أو رقم الواتساب والكلمة السرية للحصول على Bearer Token."
+						"description": "تسجيل دخول المريض بواسطة البريد الإلكتروني أو رقم الهاتف والكلمة السرية للحصول على Bearer Token."
 					},
 					"response": []
 				},
@@ -143,7 +143,7 @@
 								"user"
 							]
 						},
-						"description": "إرجاع بيانات المريض الحالية (ID، الاسم، البريد، رقم الواتساب، الدور)."
+						"description": "إرجاع بيانات المريض الحالية (ID، الاسم، البريد، رقم الهاتف، الدور)."
 					},
 					"response": []
 				}
@@ -199,12 +199,12 @@
 								"profile"
 							]
 						},
-						"description": "جلب السيرة الذاتية، التخصصات، المؤهلات العلمية، معرض الصور وسنوات الخبرة لـ د. يونس."
+						"description": "جلب السيرة الذاتية، التخصصات، المؤهلات العلمية، معرض الصور وسنوات الخبرة لـ د. يونس المرشدي."
 					},
 					"response": []
 				},
 				{
-					"name": "Get Services List (أنواع الجلسات والأسعار)",
+					"name": "Get Services List (أنواع الجلسات والأسعار وروابط Gumroad)",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -224,7 +224,7 @@
 								"services"
 							]
 						},
-						"description": "قائمة الاستشارات المتاحة بالمدد والأسعار لكل قناة تواصل (عيادة، شات، صوت، فيديو)."
+						"description": "قائمة الاستشارات المتاحة بالمدد والأسعار لكل قناة تواصل (عيادة، شات، صوت، فيديو) مع رابط الدفع payment_url لكل خدمة."
 					},
 					"response": []
 				},
@@ -270,7 +270,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/api/slots?service_id=1&date=2026-08-25",
+							"raw": "{{baseUrl}}/api/slots?service_id=1&date=2026-08-30",
 							"host": [
 								"{{baseUrl}}"
 							],
@@ -286,7 +286,7 @@
 								},
 								{
 									"key": "date",
-									"value": "2026-08-25",
+									"value": "2026-08-30",
 									"description": "التاريخ المطلوب (YYYY-MM-DD)"
 								}
 							]
@@ -296,18 +296,8 @@
 					"response": []
 				},
 				{
-					"name": "Step 1: Initialize Checkout (بدء الحجز وتوليد Stripe PaymentIntent)",
+					"name": "Step 0: Check User Status (فحص حالة تسجيل العميل)",
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{token}}",
-									"type": "string"
-								}
-							]
-						},
 						"method": "POST",
 						"header": [
 							{
@@ -323,7 +313,42 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"service_id\": 1,\n    \"booking_type\": \"online\",\n    \"consultation_type\": \"video\",\n    \"date\": \"2026-08-25\",\n    \"start_time\": \"14:30\",\n    \"title\": \"استشارة حول نوبات القلق والتوتر\",\n    \"notes\": \"أفضل الموعد مساءً إن أمكن\",\n    \"name\": \"مستفيد جديد\",\n    \"phone\": \"+9647799887766\",\n    \"password\": \"password123\"\n}"
+							"raw": "{\n    \"phone\": \"+9647701234567\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/checkout/check-user",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"checkout",
+								"check-user"
+							]
+						},
+						"description": "فحص ما إذا كان العميل مسجل مسبقاً في النظام. يرجع is_registered: true/false و requires_password: false/true لتحديد إظهار أو إخفاء حقل كلمة المرور في تطبيق Flutter."
+					},
+					"response": []
+				},
+				{
+					"name": "Step 1: Initialize Checkout (حجز جلسة ورابط Gumroad الخارجي)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"service_id\": 1,\n    \"booking_type\": \"online\",\n    \"consultation_type\": \"video\",\n    \"date\": \"2026-09-02\",\n    \"start_time\": \"14:30\",\n    \"title\": \"استشارة حول نوبات القلق والتوتر\",\n    \"notes\": \"جلسة فيديو عبر الإنترنت\",\n    \"name\": \"مستفيد تجريبي\",\n    \"phone\": \"+9647799887766\",\n    \"password\": \"password123\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/checkout/initialize",
@@ -336,23 +361,13 @@
 								"initialize"
 							]
 						},
-						"description": "خطوة 1: اختيار الجلسة والوقت وقناة التواصل وادخال البيانات. تقوم بالتحقق من عدم التعارض وإرجاع client_secret و booking_reference لـ Stripe."
+						"description": "خطوة 1: اختيار الجلسة والوقت وقناة التواصل وإدخال البيانات. يرجع payment_url (رابط منصة Gumroad الخاص بالدكتور)، booking_reference، و is_registered/requires_account."
 					},
 					"response": []
 				},
 				{
-					"name": "Step 2: Confirm Checkout (تأكيد الحجز بعد استكمال الدفع)",
+					"name": "Step 2: Confirm Checkout (تأكيد الحجز والدفع واستلام Token)",
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{token}}",
-									"type": "string"
-								}
-							]
-						},
 						"method": "POST",
 						"header": [
 							{
@@ -368,7 +383,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"booking_reference\": \"BK-ABC12345\",\n    \"payment_intent_id\": \"pi_3MtwZa2eZvKYlo2C1wXXX\"\n}"
+							"raw": "{\n    \"booking_reference\": \"BK-XXXXXX\",\n    \"payment_intent_id\": \"gumroad_pay_12345\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/checkout/confirm",
@@ -381,7 +396,7 @@
 								"confirm"
 							]
 						},
-						"description": "خطوة 2: يتم استدعاؤها بعد نجاح عملية الدفع في Stripe لموبايل Flutter. ينشئ حساب المستفيد (إذا كان زائر) ويرجع Token وتأكيد الموعد النهائي."
+						"description": "خطوة 2: يتم استدعاؤها بعد نجاح عملية الدفع عبر Gumroad أو Stripe. ينشئ حساب المستفيد (إذا كان زائراً) ويرجع Token، وبيانات الموعد النهائي، وحالة الحساب (is_registered: true, is_new_user: bool)."
 					},
 					"response": []
 				}
@@ -466,7 +481,7 @@
 								"cancel"
 							]
 						},
-						"description": "إلغاء الموعد. إذا كان الإلغاء قبل أكثر من 24 ساعة، يتم معالجة طلب الاسترداد المالي تلقائياً عبر Stripe."
+						"description": "إلغاء الموعد. إذا كان الإلغاء قبل أكثر من 24 ساعة، يتم معالجة طلب الاسترداد المالي تلقائياً."
 					},
 					"response": []
 				},
@@ -498,7 +513,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"date\": \"2026-08-28\",\n    \"start_time\": \"16:00\"\n}"
+							"raw": "{\n    \"date\": \"2026-09-05\",\n    \"start_time\": \"16:00\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/booking/2/reschedule",

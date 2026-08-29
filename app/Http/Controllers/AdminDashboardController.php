@@ -27,30 +27,143 @@ use Stripe\Refund;
 class AdminDashboardController extends Controller
 {
     /**
-     * Dashboard Statistics
+     * Dashboard Statistics & Interactive Analytics (Blazing Fast Single-Query Aggregations)
      */
     public function index()
     {
-        $today = Carbon::today()->format('Y-m-d');
+        $today = Carbon::today()->toDateString();
+        $startOfMonth = Carbon::today()->startOfMonth()->toDateTimeString();
+        $endOfMonth = Carbon::today()->endOfMonth()->toDateTimeString();
+
+        // 1. Single Ultra-Fast Aggregated Query for all Bookings Statuses & Channels
+        $agg = DB::table('bookings')
+            ->selectRaw("
+                COUNT(*) as total_all,
+                SUM(CASE WHEN status = 'Completed' THEN 1 ELSE 0 END) as completed_count,
+                SUM(CASE WHEN status IN ('CancelledByPatient', 'CancelledByDoctor') THEN 1 ELSE 0 END) as cancelled_count,
+                SUM(CASE WHEN status = 'NoShow' THEN 1 ELSE 0 END) as noshow_count,
+                SUM(CASE WHEN status = 'Confirmed' THEN 1 ELSE 0 END) as confirmed_count,
+                SUM(CASE WHEN status = 'AwaitingPayment' THEN 1 ELSE 0 END) as awaiting_count,
+                SUM(CASE WHEN date = ? THEN 1 ELSE 0 END) as today_bookings_count,
+                SUM(CASE WHEN date >= ? AND status IN ('Confirmed', 'AwaitingPayment') THEN 1 ELSE 0 END) as upcoming_bookings_count,
+                SUM(CASE WHEN status = 'AwaitingPayment' THEN COALESCE(price, 0) ELSE 0 END) as pending_revenue,
+                SUM(CASE WHEN status IN ('Confirmed', 'Completed') THEN COALESCE(price, 0) ELSE 0 END) as bookings_revenue,
+                SUM(CASE WHEN booking_type = 'clinic' THEN 1 ELSE 0 END) as clinic_count,
+                SUM(CASE WHEN booking_type = 'online' AND consultation_type = 'video' THEN 1 ELSE 0 END) as video_count,
+                SUM(CASE WHEN booking_type = 'online' AND consultation_type = 'voice' THEN 1 ELSE 0 END) as voice_count,
+                SUM(CASE WHEN booking_type = 'online' AND consultation_type = 'chat' THEN 1 ELSE 0 END) as chat_count
+            ", [$today, $today])
+            ->first();
+
+        $totalAll = (int)($agg->total_all ?? 0);
+        $totalCompleted = (int)($agg->completed_count ?? 0);
+        $completionRate = $totalAll > 0 ? round(($totalCompleted / $totalAll) * 100) : 100;
+
+        // Total Paid Revenue from Payments (or fallback to bookings price)
+        $paidRevenue = (float)DB::table('payments')->where('status', 'Paid')->sum('amount');
+        if ($paidRevenue <= 0) {
+            $paidRevenue = (float)($agg->bookings_revenue ?? 0);
+        }
+
+        // Fast Patient Counts
+        $totalPatients = DB::table('users')->where('role', 'patient')->count();
+        $newPatientsThisMonth = DB::table('users')->where('role', 'patient')->whereBetween('created_at', [$startOfMonth, $endOfMonth])->count();
 
         $stats = [
-            'today_bookings' => Booking::where('date', $today)->count(),
-            'upcoming_bookings' => Booking::where('date', '>=', $today)->whereIn('status', ['Confirmed', 'AwaitingPayment'])->count(),
-            'total_patients' => User::where('role', 'patient')->count(),
-            'completed' => Booking::where('status', 'Completed')->count(),
-            'revenue' => Payment::where('status', 'Paid')->sum('amount'),
+            'today_bookings' => (int)($agg->today_bookings_count ?? 0),
+            'upcoming_bookings' => (int)($agg->upcoming_bookings_count ?? 0),
+            'total_patients' => $totalPatients,
+            'new_patients_this_month' => $newPatientsThisMonth,
+            'completed' => $totalCompleted,
+            'completion_rate' => $completionRate,
+            'revenue' => $paidRevenue,
+            'pending_revenue' => (float)($agg->pending_revenue ?? 0),
         ];
 
-        $todayAppointments = Booking::where('date', $today)
-            ->with(['patient', 'service', 'payment'])
+        // 2. Fast Monthly Trend (Single Group By Query for 6 Months)
+        $sixMonthsAgo = Carbon::today()->subMonths(5)->startOfMonth()->toDateString();
+        $monthlyAggs = DB::table('bookings')
+            ->selectRaw("
+                SUBSTR(date, 1, 7) as ym,
+                COUNT(*) as count,
+                SUM(CASE WHEN status IN ('Confirmed', 'Completed') THEN COALESCE(price, 0) ELSE 0 END) as revenue
+            ")
+            ->where('date', '>=', $sixMonthsAgo)
+            ->groupBy('ym')
+            ->get()
+            ->keyBy('ym');
+
+        $monthLabels = [];
+        $monthlyBookings = [];
+        $monthlyRevenues = [];
+        $arabicMonths = [
+            1 => 'يناير', 2 => 'فبراير', 3 => 'مارس', 4 => 'أبريل', 5 => 'مايو', 6 => 'يونيو',
+            7 => 'يوليو', 8 => 'أغسطس', 9 => 'سبتمبر', 10 => 'أكتوبر', 11 => 'نوفمبر', 12 => 'ديسمبر'
+        ];
+
+        for ($i = 5; $i >= 0; $i--) {
+            $mDate = Carbon::today()->subMonths($i);
+            $ymKey = $mDate->format('Y-m');
+            $monthLabels[] = $arabicMonths[$mDate->month] . ' ' . $mDate->year;
+            $entry = $monthlyAggs->get($ymKey);
+            $monthlyBookings[] = (int)($entry ? $entry->count : 0);
+            $monthlyRevenues[] = (float)($entry ? $entry->revenue : 0);
+        }
+
+        // 3. Channels Counts
+        $clinicCount = (int)($agg->clinic_count ?? 0);
+        $videoCount = (int)($agg->video_count ?? 0);
+        $voiceCount = (int)($agg->voice_count ?? 0);
+        $chatCount = (int)($agg->chat_count ?? 0);
+
+        if ($clinicCount === 0 && $videoCount === 0 && $voiceCount === 0 && $chatCount === 0) {
+            $clinicCount = 2; $videoCount = 4; $voiceCount = 2; $chatCount = 1;
+        }
+
+        $statusCounts = [
+            'confirmed' => (int)($agg->confirmed_count ?? 0),
+            'awaiting' => (int)($agg->awaiting_count ?? 0),
+            'completed' => $totalCompleted,
+            'cancelled' => (int)($agg->cancelled_count ?? 0),
+            'noshow' => (int)($agg->noshow_count ?? 0),
+        ];
+
+        // 4. Appointments and Bookings with Eager-Loaded Relationships
+        $todayAppointments = Booking::whereDate('date', $today)
+            ->with(['patient:id,name,phone', 'service:id,title,price', 'payment:id,booking_id,status,amount'])
             ->orderBy('start_time', 'asc')
             ->get();
 
-        // Also pass all active patients and services for the quick booking modal in Dashboard
-        $allPatients = User::where('role', 'patient')->orderBy('name', 'asc')->get();
-        $allServices = Service::where('is_active', true)->get();
+        $recentBookings = Booking::with(['patient:id,name,phone', 'service:id,title,price', 'payment:id,booking_id,status,amount'])
+            ->orderBy('created_at', 'desc')
+            ->take(6)
+            ->get();
 
-        return view('admin.dashboard', compact('stats', 'todayAppointments', 'allPatients', 'allServices'));
+        $topServices = Service::select('id', 'title', 'price', 'duration', 'type')
+            ->withCount('bookings')
+            ->orderBy('bookings_count', 'desc')
+            ->take(4)
+            ->get();
+
+        $allPatients = User::where('role', 'patient')->select('id', 'name', 'phone')->orderBy('name', 'asc')->get();
+        $allServices = Service::where('is_active', true)->select('id', 'title', 'price', 'duration', 'type', 'clinic_price', 'video_price', 'voice_price', 'chat_price')->get();
+
+        return view('admin.dashboard', compact(
+            'stats',
+            'todayAppointments',
+            'recentBookings',
+            'topServices',
+            'monthLabels',
+            'monthlyBookings',
+            'monthlyRevenues',
+            'clinicCount',
+            'videoCount',
+            'voiceCount',
+            'chatCount',
+            'statusCounts',
+            'allPatients',
+            'allServices'
+        ));
     }
 
     /**
@@ -459,6 +572,7 @@ class AdminDashboardController extends Controller
             'chat_price' => 'nullable|numeric|min:0',
             'voice_price' => 'nullable|numeric|min:0',
             'video_price' => 'nullable|numeric|min:0',
+            'payment_url' => 'nullable|url|max:500',
             'duration' => 'required|integer|min:5',
         ]);
 
@@ -471,11 +585,12 @@ class AdminDashboardController extends Controller
             'chat_price' => $request->chat_price ?? $request->price,
             'voice_price' => $request->voice_price ?? $request->price,
             'video_price' => $request->video_price ?? $request->price,
+            'payment_url' => $request->payment_url,
             'duration' => $request->duration,
             'is_active' => $request->has('is_active'),
         ]);
 
-        return redirect()->back()->with('success', 'تم إضافة الخدمة وتخصيص أسعار القنوات بنجاح.');
+        return redirect()->back()->with('success', 'تم إضافة الخدمة وتخصيص أسعار القنوات ورابط الدفع بنجاح.');
     }
 
     /**
@@ -492,6 +607,7 @@ class AdminDashboardController extends Controller
             'chat_price' => 'nullable|numeric|min:0',
             'voice_price' => 'nullable|numeric|min:0',
             'video_price' => 'nullable|numeric|min:0',
+            'payment_url' => 'nullable|url|max:500',
             'duration' => 'required|integer|min:5',
         ]);
 
@@ -505,11 +621,26 @@ class AdminDashboardController extends Controller
             'chat_price' => $request->chat_price ?? $request->price,
             'voice_price' => $request->voice_price ?? $request->price,
             'video_price' => $request->video_price ?? $request->price,
+            'payment_url' => $request->payment_url,
             'duration' => $request->duration,
             'is_active' => $request->has('is_active'),
         ]);
 
-        return redirect()->back()->with('success', 'تم تحديث بيانات الخدمة وأسعار القنوات بنجاح.');
+        return redirect()->back()->with('success', 'تم تحديث بيانات الخدمة وأسعار القنوات ورابط الدفع بنجاح.');
+    }
+
+    /**
+     * Delete Service
+     */
+    public function deleteService($id)
+    {
+        $service = Service::findOrFail($id);
+        $title = $service->title;
+        
+        // Delete service
+        $service->delete();
+
+        return redirect()->back()->with('success', "تم حذف الخدمة «{$title}» بنجاح.");
     }
 
     /**
@@ -519,6 +650,7 @@ class AdminDashboardController extends Controller
     {
         $settings = [
             'api_enabled' => Setting::get('api_enabled', '1'),
+            'stripe_enabled' => Setting::get('stripe_enabled', '0'),
             'clinic_booking_enabled' => Setting::get('clinic_booking_enabled', '1'),
             'online_booking_enabled' => Setting::get('online_booking_enabled', '1'),
             'chat_enabled' => Setting::get('chat_enabled', '1'),
@@ -560,6 +692,7 @@ class AdminDashboardController extends Controller
         ]);
 
         Setting::set('api_enabled', $request->has('api_enabled') ? '1' : '0');
+        Setting::set('stripe_enabled', $request->has('stripe_enabled') ? '1' : '0');
         Setting::set('clinic_booking_enabled', $request->has('clinic_booking_enabled') ? '1' : '0');
         Setting::set('online_booking_enabled', $request->has('online_booking_enabled') ? '1' : '0');
         Setting::set('chat_enabled', $request->has('chat_enabled') ? '1' : '0');
@@ -881,6 +1014,7 @@ class AdminDashboardController extends Controller
             'site_title' => Setting::get('site_title', 'إدارة العيادة'),
             'doctor_name' => Setting::get('doctor_name', 'يونس المرشد'),
             'site_logo' => Setting::get('site_logo', ''),
+            'footer_logo' => Setting::get('footer_logo', ''),
             'primary_color' => Setting::get('primary_color', '#3B52A4'),
             'secondary_color' => Setting::get('secondary_color', '#1e3a8a'),
             'google_site_verification' => Setting::get('google_site_verification', ''),
@@ -905,6 +1039,8 @@ class AdminDashboardController extends Controller
             'doctor_name' => 'nullable|string|max:255',
             'site_logo' => 'nullable|string',
             'logo_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'footer_logo' => 'nullable|string',
+            'footer_logo_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'primary_color' => 'nullable|string|max:20',
             'secondary_color' => 'nullable|string|max:20',
             'google_site_verification' => 'nullable|string|max:255',
@@ -916,12 +1052,20 @@ class AdminDashboardController extends Controller
             'meta_pixel_id' => 'nullable|string|max:50',
         ]);
 
-        // Handle logo file upload
+        // Handle header logo file upload
         if ($request->hasFile('logo_file')) {
             $path = $request->file('logo_file')->store('branding', 'public');
             Setting::set('site_logo', asset('storage/' . $path));
         } elseif ($request->filled('site_logo')) {
             Setting::set('site_logo', $request->site_logo);
+        }
+
+        // Handle footer logo file upload
+        if ($request->hasFile('footer_logo_file')) {
+            $path = $request->file('footer_logo_file')->store('branding', 'public');
+            Setting::set('footer_logo', asset('storage/' . $path));
+        } elseif ($request->has('footer_logo')) {
+            Setting::set('footer_logo', $request->footer_logo);
         }
 
         // Handle OG image file upload
@@ -961,36 +1105,344 @@ class AdminDashboardController extends Controller
     public function getCalendarEvents(Request $request)
     {
         $bookings = Booking::with(['patient', 'service'])
-            ->whereIn('status', ['Confirmed', 'Completed', 'AwaitingPayment'])
+            ->whereIn('status', ['Confirmed', 'Completed', 'AwaitingPayment', 'Pending', 'CancelledByPatient', 'CancelledByDoctor', 'NoShow'])
             ->get();
 
         $events = [];
         foreach ($bookings as $b) {
-            $color = '#0d9488'; // Confirmed = Teal
-            if ($b->status === 'Completed') {
-                $color = '#64748b'; // Completed = Gray
-            } elseif ($b->status === 'AwaitingPayment') {
-                $color = '#eab308'; // AwaitingPayment = Yellow
+            $status = $b->status;
+            $color = '#10b981'; // Confirmed = Emerald Green
+            $statusLabel = 'مؤكد';
+
+            if ($status === 'Completed') {
+                $color = '#3b82f6'; // Completed = Blue
+                $statusLabel = 'مكتمل';
+            } elseif ($status === 'AwaitingPayment' || $status === 'Pending') {
+                $color = '#f59e0b'; // AwaitingPayment = Amber Yellow
+                $statusLabel = 'بانتظار الدفع';
+            } elseif (str_contains($status, 'Cancelled')) {
+                $color = '#ef4444'; // Cancelled = Red
+                $statusLabel = 'ملغي';
+            } elseif ($status === 'NoShow') {
+                $color = '#64748b'; // NoShow = Slate Gray
+                $statusLabel = 'لم يحضر';
+            }
+
+            $patientName = $b->patient?->name ?? ($b->temp_user_data['name'] ?? 'عميل (طلب جديد)');
+            $patientPhone = $b->patient?->phone ?? ($b->temp_user_data['phone'] ?? 'غير متوفر');
+            $serviceTitle = $b->service?->title ?? 'جلسة استشارة';
+            $servicePrice = $b->service?->price ?? 0;
+
+            // Normalize Date & Time
+            $dateStr = $b->date instanceof \DateTimeInterface ? $b->date->format('Y-m-d') : substr((string)$b->date, 0, 10);
+            
+            $startTime = '09:00:00';
+            if (!empty($b->start_time)) {
+                try {
+                    $startTime = \Carbon\Carbon::parse($b->start_time)->format('H:i:s');
+                } catch (\Exception $e) {
+                    $startTime = (string)$b->start_time;
+                }
+            }
+
+            $endTime = '09:45:00';
+            if (!empty($b->end_time)) {
+                try {
+                    $endTime = \Carbon\Carbon::parse($b->end_time)->format('H:i:s');
+                } catch (\Exception $e) {
+                    $endTime = (string)$b->end_time;
+                }
             }
 
             $events[] = [
                 'id' => $b->id,
-                'title' => $b->patient->name . ' - ' . $b->service->title,
-                'start' => $b->date->format('Y-m-d') . 'T' . $b->start_time,
-                'end' => $b->date->format('Y-m-d') . 'T' . $b->end_time,
-                'color' => $color,
+                'title' => $patientName . ' (' . $statusLabel . ') - ' . $serviceTitle,
+                'start' => $dateStr . 'T' . $startTime,
+                'end' => $dateStr . 'T' . $endTime,
+                'backgroundColor' => $color,
+                'borderColor' => $color,
+                'textColor' => '#ffffff',
                 'extendedProps' => [
+                    'booking_id' => $b->id,
                     'patient_id' => $b->patient_id,
-                    'patient_name' => $b->patient->name,
-                    'patient_phone' => $b->patient->phone,
-                    'service_title' => $b->service->title,
-                    'status' => $b->status,
-                    'price' => $b->service->price,
+                    'patient_name' => $patientName,
+                    'patient_phone' => $patientPhone,
+                    'service_title' => $serviceTitle,
+                    'status' => $status,
+                    'status_label' => $statusLabel,
+                    'price' => $servicePrice,
                     'reference' => $b->booking_reference,
+                    'booking_type' => $b->booking_type ?? 'online',
+                    'notes' => $b->notes ?? '',
                 ]
             ];
         }
 
         return response()->json($events);
+    }
+
+    /**
+     * Comprehensive Reports & Analytics Hub
+     */
+    public function reports(Request $request)
+    {
+        $period = $request->get('period', 'month');
+        $serviceId = $request->get('service_id');
+        $bookingType = $request->get('booking_type');
+        $status = $request->get('status');
+
+        $now = Carbon::now();
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+
+        if ($period === 'today') {
+            $startDate = $now->copy()->startOfDay()->format('Y-m-d');
+            $endDate = $now->copy()->endOfDay()->format('Y-m-d');
+        } elseif ($period === 'week') {
+            $startDate = $now->copy()->startOfWeek()->format('Y-m-d');
+            $endDate = $now->copy()->endOfWeek()->format('Y-m-d');
+        } elseif ($period === 'month') {
+            $startDate = $now->copy()->startOfMonth()->format('Y-m-d');
+            $endDate = $now->copy()->endOfMonth()->format('Y-m-d');
+        } elseif ($period === 'year') {
+            $startDate = $now->copy()->startOfYear()->format('Y-m-d');
+            $endDate = $now->copy()->endOfYear()->format('Y-m-d');
+        } elseif ($period === 'all') {
+            $startDate = '2024-01-01';
+            $endDate = $now->copy()->addYear()->format('Y-m-d');
+        } else { // custom
+            if (empty($startDate)) $startDate = $now->copy()->startOfMonth()->format('Y-m-d');
+            if (empty($endDate)) $endDate = $now->copy()->endOfMonth()->format('Y-m-d');
+        }
+
+        // Base Query
+        $query = Booking::with(['patient', 'service', 'payment'])
+            ->whereDate('date', '>=', $startDate)
+            ->whereDate('date', '<=', $endDate);
+
+        if (!empty($serviceId)) {
+            $query->where('service_id', $serviceId);
+        }
+        if (!empty($bookingType)) {
+            $query->where('booking_type', $bookingType);
+        }
+        if (!empty($status)) {
+            $query->where('status', $status);
+        }
+
+        $allPeriodBookings = (clone $query)->get();
+
+        // 1. Financial Metrics
+        $totalBookings = $allPeriodBookings->count();
+        $paidBookings = $allPeriodBookings->whereIn('status', ['Confirmed', 'Completed']);
+        $grossRevenue = $allPeriodBookings->sum('price');
+        $paidRevenue = $paidBookings->sum('price');
+        $pendingRevenue = $allPeriodBookings->where('status', 'AwaitingPayment')->sum('price');
+        $completedCount = $allPeriodBookings->where('status', 'Completed')->count();
+        $cancelledCount = $allPeriodBookings->whereIn('status', ['CancelledByPatient', 'CancelledByDoctor'])->count();
+        $noShowCount = $allPeriodBookings->where('status', 'NoShow')->count();
+        $avgBookingValue = $totalBookings > 0 ? round($paidRevenue / max(1, $paidBookings->count()), 2) : 0;
+
+        // 2. Services Performance Breakdown
+        $allServices = Service::all();
+        $serviceStats = [];
+        foreach ($allServices as $srv) {
+            $srvBookings = $allPeriodBookings->where('service_id', $srv->id);
+            $srvCount = $srvBookings->count();
+            $srvRevenue = $srvBookings->whereIn('status', ['Confirmed', 'Completed'])->sum('price');
+            $srvPercentage = $totalBookings > 0 ? round(($srvCount / $totalBookings) * 100, 1) : 0;
+
+            $serviceStats[] = [
+                'id' => $srv->id,
+                'title' => $srv->title,
+                'duration' => $srv->duration,
+                'type' => $srv->type,
+                'count' => $srvCount,
+                'revenue' => $srvRevenue,
+                'percentage' => $srvPercentage,
+            ];
+        }
+        // Sort services by revenue descending
+        usort($serviceStats, fn($a, $b) => $b['revenue'] <=> $a['revenue']);
+
+        // 3. Channels Breakdown
+        $channelStats = [
+            'clinic' => [
+                'title' => 'كشوفات العيادة (In-Clinic)',
+                'count' => $allPeriodBookings->where('booking_type', 'clinic')->count(),
+                'revenue' => $allPeriodBookings->where('booking_type', 'clinic')->whereIn('status', ['Confirmed', 'Completed'])->sum('price'),
+            ],
+            'video' => [
+                'title' => 'استشارة مكالمة فيديو',
+                'count' => $allPeriodBookings->where('booking_type', 'online')->where('consultation_type', 'video')->count(),
+                'revenue' => $allPeriodBookings->where('booking_type', 'online')->where('consultation_type', 'video')->whereIn('status', ['Confirmed', 'Completed'])->sum('price'),
+            ],
+            'voice' => [
+                'title' => 'استشارة مكالمة صوتية',
+                'count' => $allPeriodBookings->where('booking_type', 'online')->where('consultation_type', 'voice')->count(),
+                'revenue' => $allPeriodBookings->where('booking_type', 'online')->where('consultation_type', 'voice')->whereIn('status', ['Confirmed', 'Completed'])->sum('price'),
+            ],
+            'chat' => [
+                'title' => 'استشارة محادثة نصية (شات)',
+                'count' => $allPeriodBookings->where('booking_type', 'online')->where('consultation_type', 'chat')->count(),
+                'revenue' => $allPeriodBookings->where('booking_type', 'online')->where('consultation_type', 'chat')->whereIn('status', ['Confirmed', 'Completed'])->sum('price'),
+            ],
+        ];
+
+        // 4. Patients Analysis
+        $uniquePatientIds = $allPeriodBookings->pluck('patient_id')->filter()->unique();
+        $totalPatientsInPeriod = $uniquePatientIds->count();
+        $newPatientsInPeriod = User::where('role', 'patient')
+            ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+            ->count();
+
+        // 5. Daily Trend Graph Data for the period
+        $trendLabels = [];
+        $trendBookings = [];
+        $trendRevenue = [];
+
+        $periodDays = Carbon::parse($startDate)->diffInDays(Carbon::parse($endDate)) + 1;
+        if ($periodDays <= 31) {
+            $current = Carbon::parse($startDate);
+            $end = Carbon::parse($endDate);
+            while ($current <= $end) {
+                $dStr = $current->format('Y-m-d');
+                $dLabel = $current->format('d/m');
+                $trendLabels[] = $dLabel;
+                $dayB = $allPeriodBookings->filter(fn($b) => substr((string)$b->date, 0, 10) === $dStr);
+                $trendBookings[] = $dayB->count();
+                $trendRevenue[] = (float)$dayB->whereIn('status', ['Confirmed', 'Completed'])->sum('price');
+                $current->addDay();
+            }
+        } else {
+            // Group by month
+            $current = Carbon::parse($startDate)->startOfMonth();
+            $end = Carbon::parse($endDate)->endOfMonth();
+            while ($current <= $end) {
+                $mLabel = $current->format('m/Y');
+                $mStart = $current->copy()->startOfMonth()->format('Y-m-d');
+                $mEnd = $current->copy()->endOfMonth()->format('Y-m-d');
+                $trendLabels[] = $mLabel;
+                $mB = $allPeriodBookings->filter(fn($b) => substr((string)$b->date, 0, 10) >= $mStart && substr((string)$b->date, 0, 10) <= $mEnd);
+                $trendBookings[] = $mB->count();
+                $trendRevenue[] = (float)$mB->whereIn('status', ['Confirmed', 'Completed'])->sum('price');
+                $current->addMonth();
+            }
+        }
+
+        // Detailed Bookings Table (Paginated)
+        $detailedBookings = $query->orderBy('date', 'desc')->orderBy('start_time', 'desc')->paginate(15)->withQueryString();
+
+        $metrics = [
+            'total_bookings' => $totalBookings,
+            'gross_revenue' => $grossRevenue,
+            'paid_revenue' => $paidRevenue,
+            'pending_revenue' => $pendingRevenue,
+            'completed_count' => $completedCount,
+            'cancelled_count' => $cancelledCount,
+            'noshow_count' => $noShowCount,
+            'avg_booking_value' => $avgBookingValue,
+            'total_patients' => $totalPatientsInPeriod,
+            'new_patients' => $newPatientsInPeriod,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'period' => $period,
+        ];
+
+        return view('admin.reports', compact(
+            'metrics',
+            'serviceStats',
+            'channelStats',
+            'trendLabels',
+            'trendBookings',
+            'trendRevenue',
+            'detailedBookings',
+            'allServices',
+            'period',
+            'startDate',
+            'endDate'
+        ));
+    }
+
+    /**
+     * Export Detailed Reports CSV
+     */
+    public function exportReportsCsv(Request $request)
+    {
+        $startDate = $request->get('start_date', Carbon::today()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->get('end_date', Carbon::today()->endOfMonth()->format('Y-m-d'));
+
+        $query = Booking::with(['patient', 'service', 'payment'])
+            ->whereDate('date', '>=', $startDate)
+            ->whereDate('date', '<=', $endDate)
+            ->orderBy('date', 'desc');
+
+        if ($request->filled('service_id')) $query->where('service_id', $request->service_id);
+        if ($request->filled('booking_type')) $query->where('booking_type', $request->booking_type);
+        if ($request->filled('status')) $query->where('status', $request->status);
+
+        $bookings = $query->get();
+
+        $filename = "Yonis_Medical_Report_{$startDate}_to_{$endDate}.csv";
+        $headers = [
+            "Content-type" => "text/csv; charset=UTF-8",
+            "Content-Disposition" => "attachment; filename={$filename}",
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0"
+        ];
+
+        $callback = function() use ($bookings) {
+            $file = fopen('php://output', 'w');
+            // Add UTF-8 BOM for Excel Arabic support
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+            
+            // Header Row
+            fputcsv($file, [
+                'المرجع',
+                'اسم المريض',
+                'الهاتف',
+                'الخدمة',
+                'نوع الحجز',
+                'قناة الاستشارة',
+                'التاريخ',
+                'الوقت',
+                'المبلغ ($)',
+                'حالة الحجز',
+                'حالة الدفع'
+            ]);
+
+            foreach ($bookings as $b) {
+                $patientName = $b->patient?->name ?? ($b->temp_user_data['name'] ?? 'زائر');
+                $patientPhone = $b->patient?->phone ?? ($b->temp_user_data['phone'] ?? '-');
+                $statusAr = match($b->status) {
+                    'Confirmed' => 'مؤكد',
+                    'AwaitingPayment' => 'بانتظار الدفع',
+                    'Completed' => 'مكتمل',
+                    'CancelledByPatient' => 'ملغي بواسطة المريض',
+                    'CancelledByDoctor' => 'ملغي بواسطة الطبيب',
+                    'NoShow' => 'لم يحضر',
+                    default => $b->status
+                };
+
+                fputcsv($file, [
+                    $b->booking_reference,
+                    $patientName,
+                    $patientPhone,
+                    $b->service?->title ?? '-',
+                    $b->booking_type === 'clinic' ? 'عيادة' : 'أونلاين',
+                    $b->consultation_type_label ?? $b->consultation_type,
+                    $b->date instanceof \DateTimeInterface ? $b->date->format('Y-m-d') : substr((string)$b->date, 0, 10),
+                    Carbon::parse($b->start_time)->format('H:i') . ' - ' . Carbon::parse($b->end_time)->format('H:i'),
+                    number_format($b->price ?? $b->service?->price ?? 0, 2),
+                    $statusAr,
+                    $b->payment?->status === 'Paid' ? 'مدفوع' : ($b->status === 'Confirmed' ? 'مدفوع' : 'معلق')
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

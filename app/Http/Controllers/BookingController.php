@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Stripe\Stripe;
@@ -45,18 +46,92 @@ class BookingController extends Controller
     }
 
     /**
-     * Store a new booking and generate Stripe PaymentIntent.
+     * Patient Web Dashboard
+     */
+    public function patientDashboard(Request $request)
+    {
+        $user = $request->user() ?: Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+        
+        $bookings = Booking::with(['service', 'payment'])
+            ->where('patient_id', $user->id)
+            ->orderBy('date', 'desc')
+            ->orderBy('start_time', 'desc')
+            ->get();
+
+        $upcomingBookings = $bookings->filter(function ($b) {
+            return in_array($b->status, ['Confirmed', 'AwaitingPayment', 'Rescheduled']) &&
+                   (Carbon::parse($b->date)->isFuture() || Carbon::parse($b->date)->isToday());
+        });
+
+        $pastBookings = $bookings->where('status', 'Completed');
+        $cancelledBookings = $bookings->filter(function ($b) {
+            return str_contains($b->status, 'Cancelled') || $b->status === 'NoShow';
+        });
+
+        $services = Service::where('is_active', true)->get();
+
+        return view('patient.dashboard', compact('user', 'bookings', 'upcomingBookings', 'pastBookings', 'cancelledBookings', 'services'));
+    }
+
+    /**
+     * Cancel a booking by the patient (with IDOR protection)
+     */
+    public function cancelBooking(Request $request, $id)
+    {
+        $user = $request->user() ?: Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+        
+        // Strict IDOR Check: patient can only cancel their own booking
+        $booking = Booking::where('id', $id)
+            ->where('patient_id', $user->id)
+            ->firstOrFail();
+
+        if ($booking->status === 'Completed' || str_contains($booking->status, 'Cancelled')) {
+            return redirect()->back()->with('error', 'لا يمكن إلغاء هذا الموعد.');
+        }
+
+        $booking->status = 'CancelledByPatient';
+        $booking->save();
+
+        Log::info("Booking ID {$booking->id} successfully cancelled by patient ID {$user->id}");
+
+        return redirect()->back()->with('success', 'تم إلغاء الموعد بنجاح.');
+    }
+
+    /**
+     * Booking Success View
+     */
+    public function bookingSuccess(Request $request)
+    {
+        $bookingRef = $request->query('ref');
+        $booking = null;
+        
+        if ($bookingRef) {
+            $booking = Booking::with(['service', 'patient', 'payment'])
+                ->where('booking_reference', $bookingRef)
+                ->first();
+        }
+
+        return view('booking.success', compact('booking', 'bookingRef'));
+    }
+
+    /**
+     * Store a new booking (Legacy / Web fallback).
      */
     public function store(Request $request)
     {
-        // 1. Validation rules
+        // Validation rules
         $rules = [
             'service_id' => 'required|exists:services,id',
             'date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|string',
         ];
 
-        // If user is guest, we require registration fields
         if (!Auth::check()) {
             $rules['name'] = 'required|string|max:255';
             $rules['email'] = 'required|string|email|max:255';
@@ -66,11 +141,9 @@ class BookingController extends Controller
 
         $request->validate($rules);
 
-        // 2. Fetch service details
         $service = Service::findOrFail($request->service_id);
         $duration = $service->duration;
 
-        // Calculate start and end times
         $timeString = str_replace(['ص', 'م'], ['AM', 'PM'], $request->start_time);
         $startTime = Carbon::parse(trim($timeString));
         $endTime = $startTime->copy()->addMinutes($duration);
@@ -79,47 +152,39 @@ class BookingController extends Controller
         $endTimeStr = $endTime->format('H:i:s');
         $dateStr = Carbon::parse($request->date)->format('Y-m-d');
 
-        // Start DB Transaction to prevent race conditions (Double Booking)
-        return DB::transaction(function () use ($request, $service, $dateStr, $startTimeStr, $endTimeStr, $duration) {
-            
-            $patientId = null;
+        return DB::transaction(function () use ($request, $service, $dateStr, $startTimeStr, $endTimeStr) {
+            $patientId = Auth::check() ? Auth::id() : null;
             $tempUserData = null;
 
-            if (Auth::check()) {
-                $patientId = Auth::id();
-            } else {
+            if (!$patientId) {
                 $tempUserData = [
-                    'name' => $request->name,
-                    'phone' => $request->phone,
+                    'name' => strip_tags($request->name),
+                    'phone' => strip_tags($request->phone),
                     'email' => $request->email ?? null,
                     'password' => $request->password,
                 ];
             }
 
-            // 3. Double Booking prevention check (Lock table for writing)
+            // Double Booking prevention check
             $overlapExists = Booking::where('date', $dateStr)
                 ->whereIn('status', ['AwaitingPayment', 'Confirmed', 'Completed'])
                 ->where(function ($query) use ($startTimeStr, $endTimeStr) {
-                    $query->where(function ($q) use ($startTimeStr, $endTimeStr) {
-                        $q->where('start_time', '<', $endTimeStr)
+                    $query->where('start_time', '<', $endTimeStr)
                           ->where('end_time', '>', $startTimeStr);
-                    });
                 })
                 ->lockForUpdate()
                 ->exists();
 
             if ($overlapExists) {
                 return response()->json([
-                    'message' => 'عذراً، هذا الموعد تم حجزه للتو من قِبل مستخدم آخر. يرجى اختيار موعد آخر.',
+                    'message' => 'عذراً، هذا الموعد تم حجزه للتو. يرجى اختيار موعد آخر.',
                 ], 422);
             }
 
-            // 4. Generate unique booking reference
             do {
                 $bookingRef = 'BK-' . strtoupper(Str::random(8));
             } while (Booking::where('booking_reference', $bookingRef)->exists());
 
-            // 5. Create Booking record
             $booking = Booking::create([
                 'booking_reference' => $bookingRef,
                 'patient_id' => $patientId,
@@ -127,53 +192,15 @@ class BookingController extends Controller
                 'date' => $dateStr,
                 'start_time' => $startTimeStr,
                 'end_time' => $endTimeStr,
-                'title' => $request->title ?? $service->name,
+                'title' => $request->title ?? $service->title,
                 'notes' => $request->notes ?? null,
                 'temp_user_data' => $tempUserData,
                 'status' => 'AwaitingPayment',
             ]);
 
-            // 6. Create Stripe PaymentIntent
-            $clientSecret = null;
-            $paymentIntentId = null;
-
-            try {
-                $stripeSecret = config('services.stripe.secret');
-                if (!empty($stripeSecret) && !str_contains($stripeSecret, 'placeholder')) {
-                    Stripe::setApiKey($stripeSecret);
-                    $intent = PaymentIntent::create([
-                        'amount' => (int) ($service->price * 100), // amount in cents
-                        'currency' => 'usd',
-                        'metadata' => [
-                            'booking_reference' => $bookingRef,
-                        ],
-                    ]);
-                    $clientSecret = $intent->client_secret;
-                    $paymentIntentId = $intent->id;
-                } else {
-                    // For local development when keys are not yet configured
-                    $clientSecret = 'mock_secret_' . Str::random(20);
-                    $paymentIntentId = 'mock_pi_' . Str::random(20);
-                }
-            } catch (\Exception $e) {
-                return response()->json([
-                    'message' => 'فشل الاتصال ببوابة الدفع Stripe: ' . $e->getMessage(),
-                ], 500);
-            }
-
-            // 7. Create Payment record
-            Payment::create([
-                'booking_id' => $booking->id,
-                'payment_intent_id' => $paymentIntentId,
-                'amount' => $service->price,
-                'currency' => 'usd',
-                'status' => 'Pending',
-            ]);
-
             return response()->json([
                 'success' => true,
                 'booking_reference' => $bookingRef,
-                'client_secret' => $clientSecret,
                 'price' => $service->price,
             ]);
         });

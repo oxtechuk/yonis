@@ -15,7 +15,7 @@
     <!-- Main Left Column: Doctor Profile & Images -->
     <div class="col-lg-8">
         
-        <!-- 📸 SECTION 1: Site Images & Media Uploads -->
+        <!-- SECTION 1: Site Images & Media Uploads -->
         <div class="card border-0 shadow-sm p-4 mb-4 rounded-4">
             <h5 class="fw-bold mb-4 text-primary d-flex align-items-center gap-2">
                 <i class="bi bi-image-fill fs-4"></i> إدارة صور الموقع والهوية البصرية
@@ -109,7 +109,7 @@
 
                 <hr class="my-4">
 
-                <!-- 👤 SECTION 2: Bilingual Doctor Profile Data -->
+        <!-- SECTION 2: Bilingual Doctor Profile Data -->
                 <h5 class="fw-bold mb-4 text-primary d-flex align-items-center gap-2">
                     <i class="bi bi-translate fs-4"></i> البيانات التعريفية والتخصصات (بالعربي والإنجليزي)
                 </h5>
@@ -203,47 +203,60 @@
     <!-- Right Column: Video Reels & Testimonials Management -->
     <div class="col-lg-4">
 
-        <!-- 🎥 SECTION 3: Video Reels Management -->
+        <!-- Video Reels Management -->
         <div class="card border-0 shadow-sm p-4 mb-4 rounded-4">
-            <h5 class="fw-bold mb-3 text-primary d-flex align-items-center gap-2">
-                <i class="bi bi-film fs-4"></i> الفيديوهات التوعوية (Reels)
+            <h5 class="fw-bold mb-4 text-primary d-flex align-items-center gap-2">
+                <i class="bi bi-camera-reels-fill fs-4"></i> إدارة مقاطع الفيديو التوعوية (Reels)
             </h5>
 
-            <!-- Add Reel Form -->
-            <form action="{{ route('admin.portfolio.reel.store') }}" method="POST" enctype="multipart/form-data" class="mb-4 p-3 bg-light rounded-4 border">
+            <!-- Add New Reel Form -->
+            <form action="{{ route('admin.portfolio.reel.store') }}" method="POST" enctype="multipart/form-data" class="mb-4 p-3 border rounded-3 bg-light">
                 @csrf
-                <div class="mb-2">
-                    <label class="form-label small fw-bold">عنوان الفيديو (بالعربي)</label>
-                    <input type="text" name="title" class="form-control form-control-sm" placeholder="مثال: كيف تتغلب على القلق النفسي؟" required>
+                <h6 class="fw-bold mb-3 text-secondary">إضافة مقطع فيديو جديد</h6>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">عنوان المقطع (Video Title) *</label>
+                        <input type="text" name="title" class="form-control" placeholder="مثال: كيف تتغلب على نوبة الهلع في 3 دقائق؟" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">المنصة (Platform) *</label>
+                        <select name="platform" class="form-select" required>
+                            <option value="youtube">YouTube Shorts</option>
+                            <option value="tiktok">TikTok</option>
+                            <option value="instagram">Instagram Reel</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">رابط الفيديو (Video URL) *</label>
+                        <input type="url" name="video_url" class="form-control" placeholder="https://youtube.com/shorts/... أو https://tiktok.com/@..." required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">صورة الغلاف (Thumbnail Image)</label>
+                        <input type="file" name="thumbnail" class="form-control" accept="image/*">
+                    </div>
+                    <div class="col-12 text-end">
+                        <button type="submit" class="btn btn-primary px-4 rounded-pill fw-bold">
+                            <i class="bi bi-plus-lg me-1"></i> حفظ ونشر المقطع
+                        </button>
+                    </div>
                 </div>
-                <div class="mb-2">
-                    <label class="form-label small fw-bold">Video Title (English)</label>
-                    <input type="text" name="title_en" class="form-control form-control-sm" placeholder="e.g. Overcoming Anxiety">
-                </div>
-                <div class="mb-2">
-                    <label class="form-label small fw-bold">رابط الفيديو (YouTube / MP4)</label>
-                    <input type="text" name="video_url" class="form-control form-control-sm" placeholder="https://www.youtube.com/watch?v=...">
-                </div>
-                <div class="mb-2">
-                    <label class="form-label small fw-bold">أو رفع ملف فيديو مباشر</label>
-                    <input type="file" name="video_file" class="form-control form-control-sm" accept="video/*">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label small fw-bold">صورة الغلاف (Thumbnail)</label>
-                    <input type="file" name="thumbnail_file" class="form-control form-control-sm" accept="image/*">
-                </div>
-                <button type="submit" class="btn btn-sm btn-primary w-100 rounded-pill fw-bold"><i class="bi bi-plus-lg me-1"></i> إضافة الفيديو</button>
             </form>
 
-            <!-- Reels List -->
+            <!-- Existing Reels List -->
             <div class="d-flex flex-column gap-2">
                 @forelse($reels as $reel)
                     <div class="d-flex align-items-center justify-content-between p-2 border rounded-3 bg-white">
                         <div class="d-flex align-items-center gap-2">
-                            <img src="{{ $reel->thumbnail_url }}" alt="Reel" class="rounded-2" style="width: 45px; height: 45px; object-fit: cover;">
+                            @if($reel->thumbnail_url)
+                                <img src="{{ $reel->thumbnail_url }}" alt="Reel" class="rounded-2" style="width: 45px; height: 45px; object-fit: cover;">
+                            @else
+                                <div class="rounded-2 bg-light d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                                    <i class="bi bi-play-circle fs-4 text-primary"></i>
+                                </div>
+                            @endif
                             <div>
                                 <div class="fw-bold small text-dark line-clamp-1">{{ $reel->title }}</div>
-                                <div class="text-muted small" style="font-size:0.7rem;">{{ $reel->title_en ?? 'بدون عنوان إنجليزي' }}</div>
+                                <div class="text-muted small" style="font-size:0.7rem;">{{ ucfirst($reel->platform ?? 'video') }}</div>
                             </div>
                         </div>
                         <form action="{{ route('admin.portfolio.reel.delete', $reel->id) }}" method="POST" onsubmit="return confirm('هل أنت متأكد من حذف هذا الفيديو؟')">
@@ -258,7 +271,7 @@
             </div>
         </div>
 
-        <!-- 💬 SECTION 4: Testimonials / Client Reviews Management -->
+        <!-- SECTION 4: Testimonials / Client Reviews Management -->
         <div class="card border-0 shadow-sm p-4 mb-4 rounded-4">
             <h5 class="fw-bold mb-3 text-primary d-flex align-items-center gap-2">
                 <i class="bi bi-chat-quote-fill fs-4"></i> آراء العملاء والمراجعين
@@ -313,7 +326,9 @@
                             </form>
                         </div>
                         <div class="text-warning small mb-1">
-                            @for($i = 0; $i < $t->rating; $i++) ★ @endfor
+                            @for($i = 0; $i < $t->rating; $i++)
+                                <i class="bi bi-star-fill text-warning"></i>
+                            @endfor
                         </div>
                         <p class="text-secondary small mb-0 lh-sm">{{ $t->content_ar }}</p>
                     </div>

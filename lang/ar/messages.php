@@ -25,6 +25,7 @@ return [
     'banner_btn' => 'اضغط هنا للحجز الفوري',
 
     // Modal Popup Switch
+    'immediate_session' => 'جلسة فورية',
     'popup_title' => 'جلسة فورية',
     'popup_subtitle' => 'قم بتحديد بيانات وموعد الجلسة المطلوبة',
     'clinic_booking' => 'حجز في العيادة',

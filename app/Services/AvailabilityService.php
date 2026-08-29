@@ -44,13 +44,9 @@ class AvailabilityService
         // 0 = Sunday, 1 = Monday, etc.
         $dayOfWeek = $date->dayOfWeek;
         $generalAvailability = Availability::where('day_of_week', $dayOfWeek)->first();
-        if (!$generalAvailability) {
-            return [];
-        }
-
-        // Parse work hours
-        $workStart = Carbon::parse($generalAvailability->start_time);
-        $workEnd = Carbon::parse($generalAvailability->end_time);
+        
+        $workStart = $generalAvailability ? Carbon::parse($generalAvailability->start_time) : Carbon::parse('09:00');
+        $workEnd = $generalAvailability ? Carbon::parse($generalAvailability->end_time) : Carbon::parse('23:00');
 
         // 4. Get partial blocked times for this date
         $partialBlocks = BlockedTime::where('date', $dateStr)

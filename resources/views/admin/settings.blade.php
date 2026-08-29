@@ -58,32 +58,68 @@
                             <input type="text" name="doctor_name" class="form-control form-control-lg rounded-3" placeholder="يونس المرشد" value="{{ $settings['doctor_name'] }}">
                         </div>
 
-                        <!-- Logo Section -->
-                        <div class="col-12">
-                            <div class="p-3 bg-light rounded-4 border">
-                                <label class="form-label fw-bold text-dark mb-1">شعار المنصة (Logo)</label>
-                                <p class="text-secondary small mb-3">يمكنك رفع صورة الشعار من جهازك أو وضع رابط مباشر للصورة.</p>
+                        <!-- Header Logo Section -->
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-4 border h-100">
+                                <label class="form-label fw-bold text-dark mb-1">شعار الهيدر (Header Logo)</label>
+                                <p class="text-secondary small mb-3">الشعار الظاهر في شريط التنقل العلوي وصفحات الدخول.</p>
                                 
                                 <div class="row align-items-center g-3">
                                     <div class="col-auto">
                                         @if(!empty($settings['site_logo']))
-                                            <div class="border rounded-3 p-2 bg-white text-center shadow-sm" style="width: 90px; height: 90px; display: flex; align-items: center; justify-content: center;">
-                                                <img src="{{ $settings['site_logo'] }}" alt="Logo" style="max-width: 100%; max-height: 100%;">
+                                            <div class="border rounded-3 p-2 bg-white text-center shadow-sm" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                                                <img src="{{ $settings['site_logo'] }}" alt="Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;">
                                             </div>
                                         @else
-                                            <div class="border rounded-3 p-2 bg-white text-center text-muted" style="width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+                                            <div class="border rounded-3 p-2 bg-white text-center text-muted" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
                                                 Ψ
                                             </div>
                                         @endif
                                     </div>
                                     <div class="col">
                                         <div class="mb-2">
-                                            <label class="form-label small fw-bold">رفع ملف صورة جديد:</label>
-                                            <input type="file" name="logo_file" class="form-control rounded-3" accept="image/*">
+                                            <label class="form-label small fw-bold">رفع ملف جديد:</label>
+                                            <input type="file" name="logo_file" class="form-control form-control-sm rounded-3" accept="image/*">
                                         </div>
                                         <div>
-                                            <label class="form-label small fw-bold">أو أدخل رابط الشعار (URL):</label>
-                                            <input type="text" name="site_logo" class="form-control rounded-3" placeholder="https://example.com/logo.png" value="{{ $settings['site_logo'] }}">
+                                            <label class="form-label small fw-bold">أو رابط مباشر (URL):</label>
+                                            <input type="text" name="site_logo" class="form-control form-control-sm rounded-3" placeholder="https://example.com/logo.png" value="{{ $settings['site_logo'] }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer Logo Section -->
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-4 border h-100">
+                                <label class="form-label fw-bold text-dark mb-1">شعار الفوتر (Footer Logo)</label>
+                                <p class="text-secondary small mb-3">الشعار الظاهر بأسفل الموقع (إذا ترك فارغاً سيتم استخدام شعار الهيدر).</p>
+                                
+                                <div class="row align-items-center g-3">
+                                    <div class="col-auto">
+                                        @if(!empty($settings['footer_logo']))
+                                            <div class="border rounded-3 p-2 bg-white text-center shadow-sm" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                                                <img src="{{ $settings['footer_logo'] }}" alt="Footer Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                            </div>
+                                        @elseif(!empty($settings['site_logo']))
+                                            <div class="border rounded-3 p-2 bg-white text-center shadow-sm" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;" title="افتراضي من الهيدر">
+                                                <img src="{{ $settings['site_logo'] }}" alt="Default Logo" style="max-width: 100%; max-height: 100%; object-fit: contain; opacity: 0.75;">
+                                            </div>
+                                        @else
+                                            <div class="border rounded-3 p-2 bg-white text-center text-muted" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+                                                Ψ
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div class="col">
+                                        <div class="mb-2">
+                                            <label class="form-label small fw-bold">رفع ملف جديد:</label>
+                                            <input type="file" name="footer_logo_file" class="form-control form-control-sm rounded-3" accept="image/*">
+                                        </div>
+                                        <div>
+                                            <label class="form-label small fw-bold">أو رابط مباشر (URL):</label>
+                                            <input type="text" name="footer_logo" class="form-control form-control-sm rounded-3" placeholder="https://example.com/footer-logo.png" value="{{ $settings['footer_logo'] }}">
                                         </div>
                                     </div>
                                 </div>

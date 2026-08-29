@@ -165,20 +165,44 @@ class ApiController extends Controller
      */
     public function getSlots(Request $request)
     {
-        $request->validate([
-            'service_id' => 'required|exists:services,id',
-            'date' => 'required|date|after_or_equal:today',
-        ]);
+        $serviceId = $request->input('service_id');
+        $service = null;
+        if ($serviceId) {
+            $service = Service::find($serviceId);
+        }
+        if (!$service) {
+            $service = Service::where('is_active', true)->first();
+        }
+
+        if (!$service) {
+            return response()->json([
+                'success' => true,
+                'slots' => []
+            ]);
+        }
+
+        $dateStr = $request->input('date', date('Y-m-d'));
+        if (strtotime($dateStr) < strtotime(date('Y-m-d'))) {
+            $dateStr = date('Y-m-d');
+        }
 
         $slots = $this->availabilityService->getAvailableSlots(
-            $request->service_id,
-            $request->date
+            $service->id,
+            $dateStr
         );
 
         return response()->json([
             'success' => true,
             'slots' => $slots
         ]);
+    }
+
+    /**
+     * Alias for getSlots
+     */
+    public function getAvailableSlots(Request $request)
+    {
+        return $this->getSlots($request);
     }
 
     /**
@@ -190,11 +214,13 @@ class ApiController extends Controller
             'success' => true,
             'config' => [
                 'api_enabled' => Setting::get('api_enabled', '1') === '1',
+                'stripe_enabled' => Setting::get('stripe_enabled', '0') === '1',
                 'clinic_booking_enabled' => Setting::get('clinic_booking_enabled', '1') === '1',
                 'online_booking_enabled' => Setting::get('online_booking_enabled', '1') === '1',
                 'chat_enabled' => Setting::get('chat_enabled', '1') === '1',
                 'voice_enabled' => Setting::get('voice_enabled', '1') === '1',
                 'video_enabled' => Setting::get('video_enabled', '1') === '1',
+                'default_payment_url' => Setting::get('default_payment_url', 'https://younisalmurshed.gumroad.com/l/srjlvw?wanted=true'),
                 'max_reschedule_allowed' => (int) Setting::get('max_reschedule_allowed', '2'),
                 'min_reschedule_notice_hours' => (int) Setting::get('min_reschedule_notice_hours', '24'),
             ]
@@ -202,7 +228,55 @@ class ApiController extends Controller
     }
 
     /**
-     * Initialize booking checkout (Step 1: Save temporary data & Generate Stripe Intent)
+     * Check if client user is registered or new before checkout
+     */
+    public function checkUser(Request $request)
+    {
+        $phone = $request->input('phone');
+        $email = $request->input('email');
+
+        if (empty($phone) && empty($email)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'يرجى تزويد رقم الهاتف أو البريد الإلكتروني للتحقق من حالة الحساب.'
+            ], 422);
+        }
+
+        $user = User::query()
+            ->when(!empty($phone), fn($q) => $q->where('phone', $phone))
+            ->when(!empty($email), fn($q) => $q->orWhere('email', $email))
+            ->first();
+
+        if ($user) {
+            return response()->json([
+                'success' => true,
+                'is_registered' => true,
+                'requires_account' => false,
+                'requires_password' => false,
+                'account_prompt' => null,
+                'message' => 'العميل مسجل مسبقاً في النظام.',
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'phone' => $user->phone,
+                    'email' => $user->email,
+                ]
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'is_registered' => false,
+            'requires_account' => true,
+            'requires_password' => true,
+            'account_prompt' => 'يرجى إضافة حسابك وكلمة المرور لإتمام الحجز وإنشاء حسابك.',
+            'message' => 'عميل جديد - يتطلب إضافة بيانات الحساب وكلمة المرور.',
+            'user' => null
+        ]);
+    }
+
+    /**
+     * Initialize booking checkout (Step 1: Save temporary data, External Gumroad Link & Generate Stripe Intent)
      */
     public function initializeCheckout(Request $request)
     {
@@ -212,6 +286,21 @@ class ApiController extends Controller
                 'message' => 'خادم الـ API في حالة صيانة حالياً، يرجى المحاولة لاحقاً.'
             ], 503);
         }
+
+        // Determine if user is already registered (by token auth or by phone/email lookup)
+        $existingUser = $request->user();
+        if (!$existingUser) {
+            $checkPhone = $request->input('phone');
+            $checkEmail = $request->input('email');
+            if (!empty($checkPhone)) {
+                $existingUser = User::where('phone', $checkPhone)->first();
+            }
+            if (!$existingUser && !empty($checkEmail)) {
+                $existingUser = User::where('email', $checkEmail)->first();
+            }
+        }
+
+        $isRegistered = (bool) $existingUser;
 
         $rules = [
             'service_id' => 'required|exists:services,id',
@@ -227,8 +316,9 @@ class ApiController extends Controller
         if (!$request->user()) {
             $rules['name'] = 'required|string|max:255';
             $rules['phone'] = 'required|string|max:20';
-            $rules['password'] = 'required|string|min:6';
             $rules['email'] = 'nullable|email|max:255';
+            // If already registered, password is optional; if new user, password can be provided or set
+            $rules['password'] = $isRegistered ? 'nullable|string|min:6' : 'required|string|min:6';
         }
 
         $request->validate($rules);
@@ -265,7 +355,11 @@ class ApiController extends Controller
         $endTimeStr = $endTime->format('H:i:s');
         $dateStr = Carbon::parse($request->date)->format('Y-m-d');
 
-        return DB::transaction(function () use ($request, $service, $dateStr, $startTimeStr, $endTimeStr, $bookingType, $consultationType, $calculatedPrice) {
+        // External payment link (Gumroad fallback if service payment_url not configured)
+        $defaultPaymentUrl = 'https://younisalmurshed.gumroad.com/l/srjlvw?wanted=true';
+        $paymentUrl = !empty($service->payment_url) ? $service->payment_url : $defaultPaymentUrl;
+
+        return DB::transaction(function () use ($request, $service, $dateStr, $startTimeStr, $endTimeStr, $bookingType, $consultationType, $calculatedPrice, $existingUser, $isRegistered, $paymentUrl) {
             // Check double booking
             $overlapExists = Booking::where('date', $dateStr)
                 ->whereIn('status', ['AwaitingPayment', 'Confirmed', 'Completed'])
@@ -288,7 +382,7 @@ class ApiController extends Controller
                 $bookingRef = 'BK-' . strtoupper(Str::random(8));
             } while (Booking::where('booking_reference', $bookingRef)->exists());
 
-            $patientId = $request->user() ? $request->user()->id : null;
+            $patientId = $existingUser ? $existingUser->id : ($request->user() ? $request->user()->id : null);
             $tempUserData = null;
 
             if (!$patientId) {
@@ -296,7 +390,7 @@ class ApiController extends Controller
                     'name' => $request->name,
                     'phone' => $request->phone,
                     'email' => $request->email ?? null,
-                    'password' => $request->password,
+                    'password' => $request->password ?? '12345678',
                 ];
             }
 
@@ -317,32 +411,38 @@ class ApiController extends Controller
                 'status' => 'AwaitingPayment',
             ]);
 
-            // Create Stripe PaymentIntent
+            // Check if Stripe gateway is enabled in settings
+            $stripeEnabled = Setting::get('stripe_enabled', '0') === '1';
             $clientSecret = null;
             $paymentIntentId = null;
 
-            try {
-                $stripeSecret = config('services.stripe.secret');
-                if (!empty($stripeSecret) && !str_contains($stripeSecret, 'placeholder')) {
-                    Stripe::setApiKey($stripeSecret);
-                    $intent = PaymentIntent::create([
-                        'amount' => (int) ($calculatedPrice * 100), // amount in cents/halalas
-                        'currency' => 'usd',
-                        'metadata' => [
-                            'booking_reference' => $bookingRef,
-                        ],
-                    ]);
-                    $clientSecret = $intent->client_secret;
-                    $paymentIntentId = $intent->id;
-                } else {
-                    $clientSecret = 'mock_secret_' . Str::random(20);
-                    $paymentIntentId = 'mock_pi_' . Str::random(20);
+            if ($stripeEnabled) {
+                try {
+                    $stripeSecret = config('services.stripe.secret');
+                    if (!empty($stripeSecret) && !str_contains($stripeSecret, 'placeholder')) {
+                        Stripe::setApiKey($stripeSecret);
+                        $intent = PaymentIntent::create([
+                            'amount' => (int) ($calculatedPrice * 100),
+                            'currency' => 'usd',
+                            'metadata' => [
+                                'booking_reference' => $bookingRef,
+                            ],
+                        ]);
+                        $clientSecret = $intent->client_secret;
+                        $paymentIntentId = $intent->id;
+                    } else {
+                        $clientSecret = 'mock_secret_' . Str::random(20);
+                        $paymentIntentId = 'mock_pi_' . Str::random(20);
+                    }
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'فشل الاتصال ببوابة الدفع: ' . $e->getMessage()
+                    ], 500);
                 }
-            } catch (\Exception $e) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'فشل الاتصال ببوابة الدفع Stripe: ' . $e->getMessage()
-                ], 500);
+            } else {
+                // Stripe disabled: using external Gumroad / direct link flow
+                $paymentIntentId = 'gumroad_ext_' . Str::random(12);
             }
 
             // Record payment log
@@ -357,9 +457,15 @@ class ApiController extends Controller
             return response()->json([
                 'success' => true,
                 'booking_reference' => $bookingRef,
+                'stripe_enabled' => $stripeEnabled,
                 'client_secret' => $clientSecret,
                 'amount' => $calculatedPrice,
-                'booking' => $booking
+                'payment_url' => $paymentUrl,
+                'is_registered' => $isRegistered,
+                'requires_account' => !$isRegistered,
+                'requires_password' => !$isRegistered,
+                'account_prompt' => $isRegistered ? null : 'يرجى إضافة كلمة المرور لإنشاء حسابك ومتابعة الحجز',
+                'booking' => $booking->fresh(['service'])
             ], 201);
         });
     }
@@ -372,6 +478,7 @@ class ApiController extends Controller
         $request->validate([
             'booking_reference' => 'required|string',
             'payment_intent_id' => 'nullable|string',
+            'password' => 'nullable|string|min:6',
         ]);
 
         $booking = Booking::where('booking_reference', $request->booking_reference)->firstOrFail();
@@ -385,14 +492,24 @@ class ApiController extends Controller
         }
 
         // Process account creation & update booking to Confirmed
-        $patient = $this->checkoutService->confirmBookingPayment($booking, $payment);
+        $result = $this->checkoutService->confirmBookingPayment($booking, $payment, $request->password);
+        $patient = $result['patient'];
+        $isNewUser = $result['is_new_user'];
 
         // Generate Auth token for the user so client app is automatically logged in
         $token = $patient->createToken('mobile-token')->plainTextToken;
 
+        $servicePaymentUrl = !empty($booking->service->payment_url) ? $booking->service->payment_url : Setting::get('default_payment_url', 'https://younisalmurshed.gumroad.com/l/srjlvw?wanted=true');
+
         return response()->json([
             'success' => true,
-            'message' => 'تم تأكيد الحجز وإنشاء الحساب بنجاح!',
+            'message' => $isNewUser ? 'تم تأكيد الحجز وإنشاء الحساب بنجاح!' : 'تم تأكيد الحجز بنجاح!',
+            'is_registered' => true,
+            'is_new_user' => $isNewUser,
+            'requires_account' => null,
+            'password_prompt' => null,
+            'payment_status' => 'Paid',
+            'payment_url' => $servicePaymentUrl,
             'token' => $token,
             'user' => [
                 'id' => $patient->id,
@@ -401,7 +518,7 @@ class ApiController extends Controller
                 'email' => $patient->email,
                 'role' => $patient->role,
             ],
-            'booking' => $booking->fresh(['service', 'patient'])
+            'booking' => $booking->fresh(['service', 'patient', 'payment'])
         ]);
     }
 

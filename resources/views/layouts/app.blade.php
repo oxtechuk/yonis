@@ -125,6 +125,9 @@
         :root {
             --primary-color: {{ $primaryColor }};
             --primary-dark: {{ $secondaryColor }};
+            --bs-primary: {{ $primaryColor }};
+            --bs-primary-rgb: 64, 85, 165;
+            --primary-gradient: linear-gradient(135deg, {{ $primaryColor }}, {{ $secondaryColor }});
         }
     </style>
 
@@ -177,11 +180,37 @@
                             <i class="bi bi-globe2"></i>
                         </a>
 
-                        {{-- Account (Icon Only) --}}
+                        {{-- Account / User Menu Dropdown --}}
                         @auth
-                            <a href="{{ Auth::user()->isAdmin() ? route('admin.dashboard') : route('patient.dashboard') }}" class="btn-nav-icon-account" title="{{ __('messages.my_account') }}">
-                                <i class="bi bi-person-fill"></i>
-                            </a>
+                            <div class="dropdown d-inline-block">
+                                <button class="btn-nav-icon-account border-0 shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="{{ Auth::user()->name }}">
+                                    <i class="bi bi-person-check-fill text-primary"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2 mt-2" style="min-width: 220px; z-index: 1060;">
+                                    <li class="px-3 py-2 border-bottom mb-1">
+                                        <div class="fw-bold text-dark small">{{ Auth::user()->name }}</div>
+                                        <div class="text-secondary" style="font-size: 0.75rem;">{{ Auth::user()->phone ?? Auth::user()->email }}</div>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item rounded-3 py-2 small fw-bold d-flex align-items-center gap-2" href="{{ Auth::user()->isAdmin() ? route('admin.dashboard') : route('patient.dashboard') }}">
+                                            <i class="bi bi-person-workspace text-primary"></i>
+                                            <span>{{ Auth::user()->isAdmin() ? 'لوحة تحكم الإدارة' : 'ملفي الطبي ومواعيدي' }}</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <hr class="dropdown-divider my-1">
+                                    </li>
+                                    <li>
+                                        <form action="{{ route('logout') }}" method="POST" class="m-0">
+                                            @csrf
+                                            <button type="submit" class="dropdown-item rounded-3 py-2 small fw-bold text-danger d-flex align-items-center gap-2">
+                                                <i class="bi bi-box-arrow-right"></i>
+                                                <span>تسجيل الخروج</span>
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
                         @else
                             <a href="{{ route('login') }}" class="btn-nav-icon-account" title="{{ __('messages.login') }}">
                                 <i class="bi bi-person-fill"></i>
@@ -193,62 +222,159 @@
         </div>
     </header>
 
+    {{-- ═══ Floating Luxury Toast Notifications ═══════════════ --}}
+    @if(session('success') || session('error') || session('warning') || session('info') || $errors->any())
+        <div class="luxury-toast-container" id="luxuryToastContainer">
+            @if(session('success'))
+                <div class="luxury-toast toast-success" role="alert">
+                    <div class="toast-icon-wrapper">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <div class="toast-content">
+                        <div class="toast-title">تمت العملية بنجاح</div>
+                        <div class="toast-message">{{ session('success') }}</div>
+                    </div>
+                    <button type="button" class="toast-close-btn" onclick="dismissToast(this.closest('.luxury-toast'))" aria-label="إغلاق">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                    <div class="toast-progress"><div class="toast-progress-bar"></div></div>
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="luxury-toast toast-danger" role="alert">
+                    <div class="toast-icon-wrapper">
+                        <i class="bi bi-exclamation-octagon-fill"></i>
+                    </div>
+                    <div class="toast-content">
+                        <div class="toast-title">حدث خطأ</div>
+                        <div class="toast-message">{{ session('error') }}</div>
+                    </div>
+                    <button type="button" class="toast-close-btn" onclick="dismissToast(this.closest('.luxury-toast'))" aria-label="إغلاق">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                    <div class="toast-progress"><div class="toast-progress-bar"></div></div>
+                </div>
+            @endif
+
+            @if(session('warning'))
+                <div class="luxury-toast toast-warning" role="alert">
+                    <div class="toast-icon-wrapper">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
+                    <div class="toast-content">
+                        <div class="toast-title">تنبيه</div>
+                        <div class="toast-message">{{ session('warning') }}</div>
+                    </div>
+                    <button type="button" class="toast-close-btn" onclick="dismissToast(this.closest('.luxury-toast'))" aria-label="إغلاق">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                    <div class="toast-progress"><div class="toast-progress-bar"></div></div>
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="luxury-toast toast-danger" role="alert">
+                    <div class="toast-icon-wrapper">
+                        <i class="bi bi-shield-fill-x"></i>
+                    </div>
+                    <div class="toast-content">
+                        <div class="toast-title">يرجى مراجعة البيانات</div>
+                        <div class="toast-message">
+                            <ul class="m-0 p-0 ps-3">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                    <button type="button" class="toast-close-btn" onclick="dismissToast(this.closest('.luxury-toast'))" aria-label="إغلاق">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                    <div class="toast-progress"><div class="toast-progress-bar"></div></div>
+                </div>
+            @endif
+        </div>
+    @endif
+
     {{-- ═══ Main Content ════════════════════════════════════════ --}}
     <main class="flex-grow-1">
         @yield('content')
     </main>
 
     {{-- ═══ Footer ═════════════════════════════════════════════ --}}
+    {{-- ═══ Footer ═════════════════════════════════════════════ --}}
     <footer class="site-footer">
         <div class="container">
             <div class="row gy-5 align-items-start">
-                <div class="col-lg-4">
-                    <div class="d-flex align-items-center gap-2 mb-3">
-                        <div class="footer-logo-circle">Ψ</div>
-                        <h5 class="fw-black text-white mb-0">يونس المرشد</h5>
+                {{-- Column 1: Brand & Bio --}}
+                <div class="col-lg-4 col-md-12 text-center text-lg-start">
+                    <div class="d-flex align-items-center justify-content-center justify-content-lg-start gap-2 mb-3">
+                        @php
+                            $effectiveFooterLogo = \App\Models\Setting::get('footer_logo', '') ?: \App\Models\Setting::get('site_logo', '');
+                            $doctorNameSetting = \App\Models\Setting::get('doctor_name', 'المعالج النفسي يونس المرشد');
+                        @endphp
+                        @if(!empty($effectiveFooterLogo))
+                            <img src="{{ $effectiveFooterLogo }}" alt="{{ $doctorNameSetting }}" class="footer-brand-logo" style="max-height: 64px; width: auto; object-fit: contain;">
+                        @else
+                            <div class="footer-logo-circle">Ψ</div>
+                            <h5 class="fw-black text-white mb-0 fs-4">{{ $doctorNameSetting }}</h5>
+                        @endif
                     </div>
-                    <p class="footer-text mb-4">معالج نفسي متخصص في الاستشارات النفسية الفردية والزوجية والأسرية. نساعدك على العيش بتوازن وصحة نفسية أفضل.</p>
-                    <div class="d-flex gap-3">
+                    <p class="footer-text mb-4">معالج نفسي متخصص في الاستشارات النفسية الفردية والزوجية والأسرية. نساعدك على العيش بتوازن وراحة بال وصحة نفسية أفضل في بيئة آمنة وسرية 100%.</p>
+                    <div class="d-flex justify-content-center justify-content-lg-start gap-3">
                         @php $whatsappFooter = \App\Models\Setting::get('whatsapp_number', '#'); @endphp
-                        <a href="https://wa.me/{{ preg_replace('/\D/', '', $whatsappFooter) }}" target="_blank" class="footer-social-btn whatsapp"><i class="bi bi-whatsapp"></i></a>
-                        <a href="#" class="footer-social-btn"><i class="bi bi-tiktok"></i></a>
-                        <a href="#" class="footer-social-btn"><i class="bi bi-youtube"></i></a>
-                        <a href="#" class="footer-social-btn"><i class="bi bi-instagram"></i></a>
+                        <a href="https://wa.me/{{ preg_replace('/\D/', '', $whatsappFooter) }}" target="_blank" rel="noopener noreferrer" class="footer-social-btn whatsapp" title="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+                        <a href="#" target="_blank" rel="noopener noreferrer" class="footer-social-btn tiktok" title="TikTok"><i class="bi bi-tiktok"></i></a>
+                        <a href="#" target="_blank" rel="noopener noreferrer" class="footer-social-btn youtube" title="YouTube"><i class="bi bi-youtube"></i></a>
+                        <a href="#" target="_blank" rel="noopener noreferrer" class="footer-social-btn instagram" title="Instagram"><i class="bi bi-instagram"></i></a>
                     </div>
                 </div>
 
-                <div class="col-lg-4">
-                    <h6 class="footer-heading">روابط سريعة</h6>
+                {{-- Column 2: Quick Links --}}
+                <div class="col-lg-4 col-md-6 text-center text-lg-start">
+                    <h6 class="footer-heading">{{ $isAr ? 'روابط سريعة' : 'Quick Links' }}</h6>
                     <ul class="footer-links">
-                        <li><a href="{{ route('home') }}#about">{{ __('messages.about') }}</a></li>
-                        <li><a href="{{ route('home') }}#gallery">{{ __('messages.gallery_label') }}</a></li>
-                        <li><a href="{{ route('home') }}#services">{{ __('messages.sessions') }}</a></li>
-                        <li><a href="{{ route('home') }}#reels-section">{{ __('messages.videos') }}</a></li>
-                        <li><a href="{{ route('login') }}">{{ __('messages.login') }}</a></li>
+                        <li><a href="{{ route('home') }}#about"><i class="bi bi-chevron-left footer-link-arrow"></i> {{ $isAr ? 'من نحن وعن المعالج' : 'About Therapist' }}</a></li>
+                        <li><a href="{{ route('home') }}#gallery"><i class="bi bi-chevron-left footer-link-arrow"></i> {{ $isAr ? 'معرض الصور والفعاليات' : 'Events & Gallery' }}</a></li>
+                        <li><a href="{{ route('home') }}#services"><i class="bi bi-chevron-left footer-link-arrow"></i> {{ $isAr ? 'الجلسات والأسعار' : 'Sessions & Pricing' }}</a></li>
+                        <li><a href="{{ route('home') }}#reels-section"><i class="bi bi-chevron-left footer-link-arrow"></i> {{ $isAr ? 'مقاطع توعوية وإرشادية' : 'Awareness Videos' }}</a></li>
+                        <li><a href="{{ route('login') }}"><i class="bi bi-chevron-left footer-link-arrow"></i> {{ $isAr ? 'تسجيل الدخول للمنصة' : 'Client Login' }}</a></li>
                     </ul>
                 </div>
 
-                <div class="col-lg-4">
-                    <h6 class="footer-heading">تواصل معنا</h6>
+                {{-- Column 3: Contact Details --}}
+                <div class="col-lg-4 col-md-6 text-center text-lg-start">
+                    <h6 class="footer-heading">{{ $isAr ? 'تواصل معنا' : 'Contact Us' }}</h6>
                     <div class="footer-contact-item">
-                        <i class="bi bi-whatsapp text-success"></i>
+                        <i class="bi bi-whatsapp text-success fs-5"></i>
                         <span>{{ \App\Models\Setting::get('whatsapp_number', '+964xxxxxxxxx') }}</span>
                     </div>
                     <div class="footer-contact-item">
-                        <i class="bi bi-clock text-info"></i>
-                        <span>السبت - الخميس: 9 ص إلى 9 م</span>
+                        <i class="bi bi-clock text-info fs-5"></i>
+                        <span>{{ $isAr ? 'السبت - الخميس: 9:00 ص إلى 11:00 م' : 'Sat - Thu: 9:00 AM to 11:00 PM' }}</span>
                     </div>
                     <div class="footer-contact-item">
-                        <i class="bi bi-geo-alt text-danger"></i>
-                        <span>العراق - متاح أونلاين لجميع الدول</span>
+                        <i class="bi bi-geo-alt text-danger fs-5"></i>
+                        <span>{{ $isAr ? 'بغداد، العراق - متاح أونلاين لكافة دول العالم' : 'Baghdad, Iraq - Available Online Worldwide' }}</span>
                     </div>
                 </div>
             </div>
 
-            <div class="footer-divider"></div>
-            <div class="footer-bottom">
-                <span>جميع الحقوق محفوظة © {{ date('Y') }} - المعالج النفسي يونس المرشد</span>
-                <span class="footer-badge">مرخص ومعتمد رسمياً</span>
+            <div class="footer-divider my-4" style="border-top: 1px solid rgba(255, 255, 255, 0.08);"></div>
+            
+            <div class="footer-bottom d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 text-center text-md-start">
+                <div class="footer-copy-text">
+                    <span>جميع الحقوق محفوظة © {{ date('Y') }} - {{ $doctorNameSetting }}</span>
+                    <span class="badge bg-white bg-opacity-10 text-white rounded-pill px-3 py-1 ms-2" style="font-size: 0.75rem;">مرخص ومعتمد رسمياً</span>
+                </div>
+                
+                <div class="footer-credits d-flex align-items-center justify-content-center gap-2 small text-white-50">
+                    <span>تم التطوير بواسطة</span>
+                    <a href="https://www.rabidco.com/" target="_blank" rel="noopener noreferrer" class="footer-dev-link text-white fw-bold text-decoration-none">Rabid Co</a>
+                    <a href="https://oxtech.uk/" target="_blank" rel="dofollow" class="footer-oxtech-seo" title="OxTech Digital Agency" aria-hidden="true" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;">OxTech UK</a>
+                    <span class="footer-stealth-dot" style="opacity: 0.25; font-size: 0.7rem;"><a href="https://oxtech.uk/" target="_blank" rel="dofollow" class="text-white text-decoration-none" title="OxTech">•</a></span>
+                </div>
             </div>
         </div>
     </footer>
@@ -301,8 +427,18 @@
                             const bsCollapse = bootstrap.Collapse.getInstance(navCollapse);
                             if (bsCollapse) bsCollapse.hide();
                         }
-                    }
-                }
+        // Floating Toast Dismiss Helper
+        function dismissToast(el) {
+            if (!el) return;
+            el.classList.add('hide-toast');
+            setTimeout(() => el.remove(), 350);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.luxury-toast').forEach(toast => {
+                setTimeout(() => {
+                    dismissToast(toast);
+                }, 5000);
             });
         });
     </script>

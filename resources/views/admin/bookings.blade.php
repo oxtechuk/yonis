@@ -136,32 +136,81 @@
                                 @endif
                             </td>
                             <td class="pe-4 text-end">
-                                <div class="btn-group gap-1">
-                                    @if(in_array($booking->status, ['Confirmed', 'AwaitingPayment']))
-                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-2.5" data-bs-toggle="modal" data-bs-target="#rescheduleModal{{ $booking->id }}">
-                                            <i class="bi bi-calendar-event me-1"></i> تغيير الموعد
-                                        </button>
-                                    @endif
+                                <div class="dropdown d-inline-block">
+                                    <button class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-gear-fill text-primary small"></i>
+                                        <span>الإجراءات</span>
+                                        <i class="bi bi-chevron-down text-muted" style="font-size: 0.7rem;"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2" style="min-width: 200px; z-index: 1050;">
+                                        @if($booking->status === 'AwaitingPayment')
+                                            <li>
+                                                <form action="{{ route('admin.bookings.status', $booking->id) }}" method="POST" class="m-0">
+                                                    @csrf
+                                                    <input type="hidden" name="status" value="Confirmed">
+                                                    <button type="submit" class="dropdown-item rounded-3 py-2 small fw-bold text-success d-flex align-items-center gap-2">
+                                                        <i class="bi bi-check-circle-fill"></i>
+                                                        <span>تأكيد استلام الدفع</span>
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        @endif
 
-                                    @if($booking->status === 'Confirmed')
-                                        <form action="{{ route('admin.bookings.status', $booking->id) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            <input type="hidden" name="status" value="Completed">
-                                            <button type="submit" class="btn btn-sm btn-success rounded-pill px-2.5">اكتمال كشف</button>
-                                        </form>
+                                        @if(in_array($booking->status, ['Confirmed', 'AwaitingPayment']))
+                                            <li>
+                                                <button type="button" class="dropdown-item rounded-3 py-2 small fw-bold text-primary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#rescheduleModal{{ $booking->id }}">
+                                                    <i class="bi bi-calendar-event-fill"></i>
+                                                    <span>تغيير / إعادة الجدولة</span>
+                                                </button>
+                                            </li>
+                                        @endif
 
-                                        <form action="{{ route('admin.bookings.status', $booking->id) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            <input type="hidden" name="status" value="NoShow">
-                                            <button type="submit" class="btn btn-sm btn-dark rounded-pill px-2.5">غائب</button>
-                                        </form>
+                                        @if($booking->status === 'Confirmed')
+                                            <li>
+                                                <form action="{{ route('admin.bookings.status', $booking->id) }}" method="POST" class="m-0">
+                                                    @csrf
+                                                    <input type="hidden" name="status" value="Completed">
+                                                    <button type="submit" class="dropdown-item rounded-3 py-2 small fw-bold text-info d-flex align-items-center gap-2">
+                                                        <i class="bi bi-check2-all"></i>
+                                                        <span>اكتمال الجلسة</span>
+                                                    </button>
+                                                </form>
+                                            </li>
+                                            <li>
+                                                <form action="{{ route('admin.bookings.status', $booking->id) }}" method="POST" class="m-0">
+                                                    @csrf
+                                                    <input type="hidden" name="status" value="NoShow">
+                                                    <button type="submit" class="dropdown-item rounded-3 py-2 small fw-bold text-secondary d-flex align-items-center gap-2">
+                                                        <i class="bi bi-person-x-fill"></i>
+                                                        <span>تسجيل غياب (لم يحضر)</span>
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        @endif
 
-                                        <form action="{{ route('admin.bookings.status', $booking->id) }}" method="POST" class="d-inline" onsubmit="return confirm('هل أنت متأكد من إلغاء الحجز وإرجاع الرسوم للمريض؟')">
-                                            @csrf
-                                            <input type="hidden" name="status" value="CancelledByDoctor">
-                                            <button type="submit" class="btn btn-sm btn-danger rounded-pill px-2.5">إلغاء وإرجاع</button>
-                                        </form>
-                                    @endif
+                                        @if($booking->patient)
+                                            <li>
+                                                <a class="dropdown-item rounded-3 py-2 small fw-bold text-dark d-flex align-items-center gap-2" href="{{ route('admin.patients.details', $booking->patient->id) }}">
+                                                    <i class="bi bi-person-lines-fill text-primary"></i>
+                                                    <span>السجل الطبي للمريض</span>
+                                                </a>
+                                            </li>
+                                        @endif
+
+                                        @if(!in_array($booking->status, ['CancelledByPatient', 'CancelledByDoctor', 'Completed']))
+                                            <li><hr class="dropdown-divider my-1"></li>
+                                            <li>
+                                                <form action="{{ route('admin.bookings.status', $booking->id) }}" method="POST" class="m-0" onsubmit="return confirm('هل أنت متأكد من إلغاء هذا الحجز؟')">
+                                                    @csrf
+                                                    <input type="hidden" name="status" value="CancelledByDoctor">
+                                                    <button type="submit" class="dropdown-item rounded-3 py-2 small fw-bold text-danger d-flex align-items-center gap-2">
+                                                        <i class="bi bi-x-circle-fill"></i>
+                                                        <span>إلغاء الحجز</span>
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        @endif
+                                    </ul>
                                 </div>
                             </td>
                         </tr>

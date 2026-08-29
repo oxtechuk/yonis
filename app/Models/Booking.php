@@ -39,11 +39,11 @@ class Booking extends Model
     public function getConsultationTypeLabelAttribute(): string
     {
         return match ($this->consultation_type) {
-            'chat' => 'محادثة نصية 💬',
-            'voice' => 'مكالمة صوتية 📞',
-            'video' => 'مكالمة فيديو 📹',
-            'clinic' => 'حجز بالعيادة 🏥',
-            default => 'حجز بالعيادة 🏥',
+            'chat' => 'محادثة نصية (شات)',
+            'voice' => 'مكالمة صوتية',
+            'video' => 'مكالمة فيديو',
+            'clinic' => 'حجز بالعيادة',
+            default => 'حجز بالعيادة',
         };
     }
 
@@ -53,9 +53,9 @@ class Booking extends Model
     public function getBookingTypeLabelAttribute(): string
     {
         return match ($this->booking_type) {
-            'online' => 'أونلاين 🌐',
-            'clinic' => 'في العيادة 🏥',
-            default => 'في العيادة 🏥',
+            'online' => 'أونلاين',
+            'clinic' => 'في العيادة',
+            default => 'في العيادة',
         };
     }
 

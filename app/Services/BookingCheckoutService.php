@@ -12,10 +12,17 @@ class BookingCheckoutService
 {
     /**
      * Confirm booking payment and create client account if not already created.
+     * Returns an array containing the patient User and a boolean indicating if a new account was created.
+     *
+     * @param Booking $booking
+     * @param Payment $payment
+     * @param string|null $overridePassword
+     * @return array{patient: User, is_new_user: bool}
      */
-    public function confirmBookingPayment(Booking $booking, Payment $payment): User
+    public function confirmBookingPayment(Booking $booking, Payment $payment, ?string $overridePassword = null): array
     {
         $patient = $booking->patient;
+        $isNewUser = false;
 
         // If booking does not have an associated patient yet, process temp_user_data
         if (!$patient && !empty($booking->temp_user_data)) {
@@ -23,7 +30,7 @@ class BookingCheckoutService
             $phone = $tempData['phone'] ?? null;
             $email = $tempData['email'] ?? null;
             $name = $tempData['name'] ?? 'عميل جديد';
-            $plainPassword = $tempData['password'] ?? '12345678';
+            $plainPassword = $overridePassword ?? ($tempData['password'] ?? '12345678');
 
             // Check if user already exists by phone or email
             $existingUser = null;
@@ -36,10 +43,11 @@ class BookingCheckoutService
 
             if ($existingUser) {
                 $patient = $existingUser;
+                $isNewUser = false;
                 Log::info("Existing user found (ID {$patient->id}) for booking {$booking->booking_reference}");
             } else {
                 // Generate email if not provided (using phone)
-                $userEmail = !empty($email) ? $email : ('patient_' . preg_replace('/[^0-9]/', '', $phone) . '@yonis-app.com');
+                $userEmail = !empty($email) ? $email : ('patient_' . preg_replace('/[^0-9]/', '', (string)$phone) . '@yonis-app.com');
 
                 // Create new client user account
                 $patient = User::create([
@@ -50,12 +58,15 @@ class BookingCheckoutService
                     'role' => 'patient',
                 ]);
 
+                $isNewUser = true;
                 Log::info("Created new patient user account (ID {$patient->id}) for booking {$booking->booking_reference}");
             }
 
             // Assign patient to booking and clear temporary data
             $booking->patient_id = $patient->id;
             $booking->temp_user_data = null;
+        } elseif ($patient) {
+            $isNewUser = false;
         }
 
         // Update status
@@ -65,6 +76,9 @@ class BookingCheckoutService
         $payment->status = 'Paid';
         $payment->save();
 
-        return $patient;
+        return [
+            'patient' => $patient,
+            'is_new_user' => $isNewUser,
+        ];
     }
 }

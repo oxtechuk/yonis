@@ -16,6 +16,7 @@ class Service extends Model
         'chat_price',
         'voice_price',
         'video_price',
+        'payment_url',
         'duration',
         'is_active',
     ];
