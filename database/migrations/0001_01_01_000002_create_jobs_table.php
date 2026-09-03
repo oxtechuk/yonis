@@ -42,8 +42,8 @@ return new class extends Migration
             $table->longText('payload');
             $table->longText('exception');
             $table->timestamp('failed_at')->useCurrent();
-
-            $table->index(['connection', 'queue', 'failed_at']);
+            // Note: composite index removed for MySQL compatibility
+            // (connection + queue + failed_at would exceed 1000-byte key limit)
         });
     }
 

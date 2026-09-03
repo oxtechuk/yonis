@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -11,11 +12,14 @@ return new class extends Migration
         // 1. Indexes on bookings table
         Schema::table('bookings', function (Blueprint $table) {
             $table->index(['date', 'status'], 'idx_bookings_date_status');
-            $table->index(['user_id', 'status'], 'idx_bookings_user_status');
-            $table->index(['booking_type', 'consultation_type'], 'idx_bookings_types');
+            $table->index(['patient_id', 'status'], 'idx_bookings_user_status'); // patient_id is the FK column name
             $table->index('service_id', 'idx_bookings_service_id');
             $table->index('booking_reference', 'idx_bookings_reference');
         });
+
+        // Composite string index uses prefix lengths to stay within MySQL's 1000-byte limit
+        // booking_type & consultation_type are short enum-like values (max ~20 chars each)
+        DB::statement('CREATE INDEX idx_bookings_types ON bookings (booking_type(50), consultation_type(50))');
 
         // 2. Indexes on payments table
         Schema::table('payments', function (Blueprint $table) {

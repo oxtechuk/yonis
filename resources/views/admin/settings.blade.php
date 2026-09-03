@@ -126,6 +126,44 @@
                             </div>
                         </div>
 
+                        <!-- Booking Banner Image Section -->
+                        <div class="col-12">
+                            <div class="p-3 bg-light rounded-4 border">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <div>
+                                        <label class="form-label fw-bold text-dark mb-0">
+                                            <i class="bi bi-image text-primary me-1"></i> صورة بانر الحجز السريع (Booking CTA Banner Image)
+                                        </label>
+                                        <p class="text-secondary small mb-0">الصورة الظاهرة في قسم دعوة الحجز (Booking Banner) أسفل الصفحة الرئيسية.</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="row align-items-center g-3 mt-1">
+                                    <div class="col-auto">
+                                        @if(!empty($settings['booking_banner_image']))
+                                            <div class="border rounded-3 p-1 bg-white text-center shadow-sm" style="width: 140px; height: 90px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                                <img src="{{ $settings['booking_banner_image'] }}" alt="Booking Banner" style="max-width: 100%; max-height: 100%; object-fit: cover; border-radius: 6px;">
+                                            </div>
+                                        @else
+                                            <div class="border rounded-3 p-1 bg-white text-center shadow-sm" style="width: 140px; height: 90px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=700&q=80" alt="Default Banner" style="max-width: 100%; max-height: 100%; object-fit: cover; border-radius: 6px; opacity: 0.7;">
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div class="col">
+                                        <div class="mb-2">
+                                            <label class="form-label small fw-bold">رفع صورة جديدة:</label>
+                                            <input type="file" name="booking_banner_file" class="form-control form-control-sm rounded-3" accept="image/*">
+                                        </div>
+                                        <div>
+                                            <label class="form-label small fw-bold">أو رابط صورة مباشر (URL):</label>
+                                            <input type="text" name="booking_banner_image" class="form-control form-control-sm rounded-3" placeholder="https://example.com/banner-img.png" value="{{ $settings['booking_banner_image'] }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Colors Picker -->
                         <div class="col-md-6">
                             <div class="p-3 bg-light rounded-4 border">

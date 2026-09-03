@@ -106,8 +106,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('/portfolio', [AdminDashboardController::class, 'updatePortfolio'])->name('portfolio.update');
         Route::post('/portfolio/image/delete', [AdminDashboardController::class, 'deleteGalleryImage'])->name('portfolio.image.delete');
         Route::post('/portfolio/reel', [AdminDashboardController::class, 'storeReel'])->name('portfolio.reel.store');
+        Route::match(['post', 'put'], '/portfolio/reel/{id}', [AdminDashboardController::class, 'updateReel'])->name('portfolio.reel.update');
         Route::delete('/portfolio/reel/{id}', [AdminDashboardController::class, 'deleteReel'])->name('portfolio.reel.delete');
         Route::post('/portfolio/testimonial', [AdminDashboardController::class, 'storeTestimonial'])->name('portfolio.testimonial.store');
+        Route::match(['post', 'put'], '/portfolio/testimonial/{id}', [AdminDashboardController::class, 'updateTestimonial'])->name('portfolio.testimonial.update');
         Route::delete('/portfolio/testimonial/{id}', [AdminDashboardController::class, 'deleteTestimonial'])->name('portfolio.testimonial.delete');
     });
 

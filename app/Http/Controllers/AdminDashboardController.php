@@ -914,6 +914,30 @@ class AdminDashboardController extends Controller
     }
 
     /**
+     * Helper to extract YouTube Video ID from standard/shorts/embed/shortened URLs
+     */
+    private function extractYoutubeId(?string $url): ?string
+    {
+        if (!$url) return null;
+        if (preg_match('/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|shorts\/|watch\?v=|watch\?.+&v=))([\w-]{11})/i', $url, $matches)) {
+            return $matches[1];
+        }
+        return null;
+    }
+
+    /**
+     * Helper to detect platform from URL
+     */
+    private function detectPlatform(?string $url, ?string $fallback = 'youtube'): string
+    {
+        if (!$url) return $fallback ?: 'youtube';
+        if (preg_match('/youtube\.com|youtu\.be/i', $url)) return 'youtube';
+        if (preg_match('/tiktok\.com/i', $url)) return 'tiktok';
+        if (preg_match('/instagram\.com/i', $url)) return 'instagram';
+        return $fallback ?: 'direct';
+    }
+
+    /**
      * Store new Video Reel
      */
     public function storeReel(Request $request)
@@ -921,10 +945,14 @@ class AdminDashboardController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'title_en' => 'nullable|string|max:255',
+            'platform' => 'nullable|string',
             'video_url' => 'nullable|string',
-            'video_file' => 'nullable|file|mimes:mp4,mov,avi,webm|max:51200',
-            'thumbnail_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
+            'video_file' => 'nullable|file|mimes:mp4,mov,avi,webm,mkv|max:102400',
+            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'thumbnail_file' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'thumbnail_url' => 'nullable|string',
             'duration' => 'nullable|integer',
+            'sort_order' => 'nullable|integer',
         ]);
 
         $videoUrl = $request->video_url;
@@ -933,10 +961,27 @@ class AdminDashboardController extends Controller
             $videoUrl = asset('storage/' . $path);
         }
 
-        $thumbnailUrl = 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=500&q=80';
-        if ($request->hasFile('thumbnail_file')) {
-            $path = $request->file('thumbnail_file')->store('reels/thumbnails', 'public');
+        // Platform detection or selection
+        $platform = $request->platform;
+        if (empty($platform) || $platform === 'auto') {
+            $platform = $this->detectPlatform($videoUrl);
+        }
+
+        // Thumbnail resolution
+        $thumbnailUrl = null;
+        $thumbnailFile = $request->file('thumbnail') ?: $request->file('thumbnail_file');
+        if ($thumbnailFile) {
+            $path = $thumbnailFile->store('reels/thumbnails', 'public');
             $thumbnailUrl = asset('storage/' . $path);
+        } elseif ($request->filled('thumbnail_url')) {
+            $thumbnailUrl = $request->thumbnail_url;
+        } else {
+            $ytId = $this->extractYoutubeId($videoUrl);
+            if ($ytId) {
+                $thumbnailUrl = "https://img.youtube.com/vi/{$ytId}/hqdefault.jpg";
+            } else {
+                $thumbnailUrl = 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=500&q=80';
+            }
         }
 
         Reel::create([
@@ -945,11 +990,78 @@ class AdminDashboardController extends Controller
             'video_url' => $videoUrl ?: '#',
             'thumbnail_url' => $thumbnailUrl,
             'duration' => $request->duration ?: 60,
-            'platform' => 'Internal',
-            'is_active' => true,
+            'platform' => $platform,
+            'sort_order' => $request->sort_order ?: 0,
+            'is_active' => $request->has('is_active') ? (bool)$request->is_active : true,
         ]);
 
-        return redirect()->back()->with('success', 'تم إضافة الفيديوه التوعوي بنجاح.');
+        return redirect()->back()->with('success', 'تم إضافة الفيديو التوعوي بنجاح.');
+    }
+
+    /**
+     * Update Video Reel
+     */
+    public function updateReel(Request $request, $id)
+    {
+        $reel = Reel::findOrFail($id);
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'title_en' => 'nullable|string|max:255',
+            'platform' => 'nullable|string',
+            'video_url' => 'nullable|string',
+            'video_file' => 'nullable|file|mimes:mp4,mov,avi,webm,mkv|max:102400',
+            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'thumbnail_file' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'thumbnail_url' => 'nullable|string',
+            'duration' => 'nullable|integer',
+            'sort_order' => 'nullable|integer',
+        ]);
+
+        $videoUrl = $reel->video_url;
+        if ($request->hasFile('video_file')) {
+            if (str_contains($reel->video_url, '/storage/reels/')) {
+                $oldFile = 'reels/' . basename($reel->video_url);
+                Storage::disk('public')->delete($oldFile);
+            }
+            $path = $request->file('video_file')->store('reels', 'public');
+            $videoUrl = asset('storage/' . $path);
+        } elseif ($request->filled('video_url')) {
+            $videoUrl = $request->video_url;
+        }
+
+        $platform = $request->platform;
+        if (empty($platform) || $platform === 'auto') {
+            $platform = $this->detectPlatform($videoUrl, $reel->platform);
+        }
+
+        $thumbnailUrl = $reel->thumbnail_url;
+        $thumbnailFile = $request->file('thumbnail') ?: $request->file('thumbnail_file');
+        if ($thumbnailFile) {
+            if (str_contains($reel->thumbnail_url, '/storage/reels/thumbnails/')) {
+                $oldThumb = 'reels/thumbnails/' . basename($reel->thumbnail_url);
+                Storage::disk('public')->delete($oldThumb);
+            }
+            $path = $thumbnailFile->store('reels/thumbnails', 'public');
+            $thumbnailUrl = asset('storage/' . $path);
+        } elseif ($request->filled('thumbnail_url')) {
+            $thumbnailUrl = $request->thumbnail_url;
+        } elseif ($videoUrl !== $reel->video_url && ($ytId = $this->extractYoutubeId($videoUrl))) {
+            $thumbnailUrl = "https://img.youtube.com/vi/{$ytId}/hqdefault.jpg";
+        }
+
+        $reel->update([
+            'title' => $request->title,
+            'title_en' => $request->title_en ?: null,
+            'video_url' => $videoUrl,
+            'thumbnail_url' => $thumbnailUrl,
+            'platform' => $platform,
+            'duration' => $request->duration ?: $reel->duration,
+            'sort_order' => $request->has('sort_order') ? (int)$request->sort_order : $reel->sort_order,
+            'is_active' => $request->has('is_active') ? (bool)$request->is_active : $reel->is_active,
+        ]);
+
+        return redirect()->back()->with('success', 'تم تحديث الفيديو التوعوي بنجاح.');
     }
 
     /**
@@ -958,8 +1070,18 @@ class AdminDashboardController extends Controller
     public function deleteReel($id)
     {
         $reel = Reel::findOrFail($id);
+
+        if (str_contains($reel->video_url, '/storage/reels/')) {
+            $oldFile = 'reels/' . basename($reel->video_url);
+            Storage::disk('public')->delete($oldFile);
+        }
+        if (str_contains($reel->thumbnail_url, '/storage/reels/thumbnails/')) {
+            $oldThumb = 'reels/thumbnails/' . basename($reel->thumbnail_url);
+            Storage::disk('public')->delete($oldThumb);
+        }
+
         $reel->delete();
-        return redirect()->back()->with('success', 'تم حذف الفيديو بنجاح.');
+        return redirect()->back()->with('success', 'تم حذف مقطع الفيديو بنجاح.');
     }
 
     /**
@@ -996,11 +1118,54 @@ class AdminDashboardController extends Controller
     }
 
     /**
+     * Update Testimonial
+     */
+    public function updateTestimonial(Request $request, $id)
+    {
+        $testimonial = Testimonial::findOrFail($id);
+
+        $request->validate([
+            'client_name_ar' => 'required|string|max:255',
+            'client_name_en' => 'nullable|string|max:255',
+            'content_ar' => 'required|string',
+            'content_en' => 'nullable|string',
+            'rating' => 'required|integer|min:1|max:5',
+            'avatar_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+        ]);
+
+        $avatarUrl = $testimonial->client_avatar;
+        if ($request->hasFile('avatar_file')) {
+            if ($avatarUrl && str_contains($avatarUrl, '/storage/testimonials/')) {
+                Storage::disk('public')->delete('testimonials/' . basename($avatarUrl));
+            }
+            $path = $request->file('avatar_file')->store('testimonials', 'public');
+            $avatarUrl = asset('storage/' . $path);
+        }
+
+        $testimonial->update([
+            'client_name_ar' => $request->client_name_ar,
+            'client_name_en' => $request->client_name_en ?: null,
+            'content_ar' => $request->content_ar,
+            'content_en' => $request->content_en ?: null,
+            'rating' => $request->rating,
+            'client_avatar' => $avatarUrl,
+            'is_active' => $request->has('is_active') ? (bool)$request->is_active : $testimonial->is_active,
+        ]);
+
+        return redirect()->back()->with('success', 'تم تحديث رأي العميل بنجاح.');
+    }
+
+    /**
      * Delete Testimonial
      */
     public function deleteTestimonial($id)
     {
         $testimonial = Testimonial::findOrFail($id);
+
+        if ($testimonial->client_avatar && str_contains($testimonial->client_avatar, '/storage/testimonials/')) {
+            Storage::disk('public')->delete('testimonials/' . basename($testimonial->client_avatar));
+        }
+
         $testimonial->delete();
         return redirect()->back()->with('success', 'تم حذف رأي العميل بنجاح.');
     }
@@ -1025,6 +1190,7 @@ class AdminDashboardController extends Controller
             'meta_pixel_id' => Setting::get('meta_pixel_id', ''),
             'notify_new_booking' => Setting::get('notify_new_booking', '1'),
             'notify_cancellation' => Setting::get('notify_cancellation', '1'),
+            'booking_banner_image' => Setting::get('booking_banner_image', ''),
         ];
         return view('admin.settings', compact('settings'));
     }
@@ -1041,6 +1207,8 @@ class AdminDashboardController extends Controller
             'logo_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'footer_logo' => 'nullable|string',
             'footer_logo_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'booking_banner_image' => 'nullable|string',
+            'booking_banner_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120',
             'primary_color' => 'nullable|string|max:20',
             'secondary_color' => 'nullable|string|max:20',
             'google_site_verification' => 'nullable|string|max:255',
@@ -1066,6 +1234,14 @@ class AdminDashboardController extends Controller
             Setting::set('footer_logo', asset('storage/' . $path));
         } elseif ($request->has('footer_logo')) {
             Setting::set('footer_logo', $request->footer_logo);
+        }
+
+        // Handle booking banner image file upload
+        if ($request->hasFile('booking_banner_file')) {
+            $path = $request->file('booking_banner_file')->store('branding', 'public');
+            Setting::set('booking_banner_image', asset('storage/' . $path));
+        } elseif ($request->has('booking_banner_image')) {
+            Setting::set('booking_banner_image', $request->booking_banner_image);
         }
 
         // Handle OG image file upload

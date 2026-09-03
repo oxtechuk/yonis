@@ -4,19 +4,7 @@
 
 @section('content')
 <!-- Page Header -->
-<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-    <div>
-        <h4 class="fw-bold m-0 text-primary d-flex align-items-center gap-2">
-            <i class="bi bi-code-slash fs-4"></i> مركز التحكم في الـ API ومفاتيح التشغيل
-        </h4>
-        <p class="text-secondary small m-0">إدارة مفاتيح التشغيل (Feature Toggles)، وقنوات الاستشارة، وضوابط إعادة الجدولة لتطبيق الموبايل.</p>
-    </div>
-    <div>
-        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1.5 fw-bold">
-            <i class="bi bi-shield-check me-1"></i> وضع الحماية والـ API نشط
-        </span>
-    </div>
-</div>
+
 
 <!-- Stats Overview -->
 <div class="row g-3 mb-4">

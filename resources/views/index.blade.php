@@ -119,23 +119,73 @@
     border: none !important;
     box-shadow: none !important;
     border-radius: 0 !important;
-    max-height: 560px;
+    width: 100%;
+}
+.hero-photo-frame::before {
+    content: '';
+    position: absolute;
+    bottom: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 110%;
+    height: 90%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.22) 0%, rgba(95, 124, 212, 0.3) 50%, transparent 75%);
+    border-radius: 50%;
+    filter: blur(55px);
+    z-index: 1;
+    pointer-events: none;
 }
 .hero-photo-frame img {
-    max-width: 100%;
-    max-height: 520px;
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 650px;
+    max-height: 850px;
     height: auto;
     object-fit: contain;
-    filter: drop-shadow(0 20px 35px rgba(0, 0, 0, 0.25));
-    transition: transform 0.3s ease;
+    filter: drop-shadow(0 30px 60px rgba(15, 23, 42, 0.45));
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 75%, rgba(0,0,0,0) 99%);
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 75%, rgba(0,0,0,0) 99%);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    transform-origin: bottom center;
 }
-@media (max-width: 768px) {
+@media (min-width: 1400px) {
     .hero-photo-frame img {
-        max-height: 380px;
+        max-width: 720px;
+        max-height: 900px;
+        transform: scale(1.15);
+    }
+}
+@media (min-width: 1200px) and (max-width: 1399px) {
+    .hero-photo-frame img {
+        max-width: 640px;
+        max-height: 820px;
+        transform: scale(1.1);
+    }
+}
+@media (min-width: 992px) and (max-width: 1199px) {
+    .hero-photo-frame img {
+        max-width: 540px;
+        max-height: 720px;
+        transform: scale(1.05);
+    }
+}
+@media (max-width: 991px) {
+    .hero-photo-frame img {
+        max-width: 440px;
+        max-height: 540px;
+        -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 99%);
+        mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 99%);
+    }
+}
+@media (max-width: 576px) {
+    .hero-photo-frame img {
+        max-width: 340px;
+        max-height: 420px;
     }
 }
 .hero-photo-frame img:hover {
-    transform: scale(1.02);
+    transform: scale(1.18) !important;
 }
 .hero-photo-overlay {
     display: none !important;
@@ -291,10 +341,10 @@
     <div class="hero-orb hero-orb-1"></div>
     <div class="hero-orb hero-orb-2"></div>
 
-    <div class="container py-4 py-lg-5">
-        <div class="row align-items-center gy-4 gy-lg-5">
+    <div class="container pt-4 pt-lg-5 pb-0">
+        <div class="row align-items-end gy-4 gy-lg-0">
             {{-- Text Column --}}
-            <div class="col-lg-7 text-center text-lg-start">
+            <div class="col-lg-7 text-center text-lg-start py-4 py-lg-5">
                 <div class="hero-badge mb-3">
                     <span class="dot"></span>
                     <span>{{ __('messages.hero_badge') }}</span>
@@ -862,7 +912,13 @@
                     </button>
                 </div>
                 <div class="col-lg-5 text-center">
-                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=700&q=80" alt="Booking Banner" class="booking-banner-img">
+                    @php
+                        $bannerImage = \App\Models\Setting::get('booking_banner_image', '');
+                        if (empty($bannerImage)) {
+                            $bannerImage = 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=700&q=80';
+                        }
+                    @endphp
+                    <img src="{{ $bannerImage }}" alt="Booking Banner" class="booking-banner-img">
                 </div>
             </div>
         </div>
@@ -933,13 +989,58 @@ if (document.querySelector('.reels-swiper-row-2')) {
 
 // ═══ Reel Modal ═══
 function openReelModal(title, url, platform) {
-    document.getElementById('reelModalTitle').textContent = title;
+    document.getElementById('reelModalTitle').textContent = title || 'مقطع توعوي';
     const player = document.getElementById('reelModalPlayer');
-    if (platform === 'youtube' || url.includes('youtube') || url.includes('youtu.be')) {
-        const videoId = url.includes('youtu.be') ? url.split('/').pop() : new URL(url).searchParams.get('v');
-        player.innerHTML = `<iframe width="100%" height="450" src="https://www.youtube.com/embed/${videoId || 'dQw4w9WgXcQ'}?autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+    if (!url || url === '#' || url === '') {
+        player.innerHTML = `<div class="p-5 text-white"><i class="bi bi-exclamation-circle fs-1 text-warning mb-3"></i><p>لا يوجد رابط فيديو متاح لهذا المقطع.</p></div>`;
+        new bootstrap.Modal(document.getElementById('reelVideoModal')).show();
+        return;
+    }
+
+    // YouTube detection (Shorts / Standard / Shortened)
+    const ytRegex = /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|shorts\/|watch\?v=|watch\?.+&v=))([\w-]{11})/i;
+    const ytMatch = url.match(ytRegex);
+
+    if (platform === 'youtube' || ytMatch || url.includes('youtube') || url.includes('youtu.be')) {
+        const videoId = ytMatch ? ytMatch[1] : (url.includes('youtu.be') ? url.split('/').pop().split('?')[0] : 'dQw4w9WgXcQ');
+        player.innerHTML = `
+            <div class="ratio ratio-9x16 mx-auto my-2" style="max-width: 360px; max-height: 75vh;">
+                <iframe src="https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1" title="${title}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen style="border-radius: 12px; height: 100%; width: 100%;"></iframe>
+            </div>
+        `;
+    } else if (url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.mov') || url.includes('/storage/reels/')) {
+        player.innerHTML = `
+            <div class="p-3 text-center">
+                <video controls autoplay playsinline style="max-height: 75vh; max-width: 100%; border-radius: 12px; background: #000;">
+                    <source src="${url}" type="video/mp4">
+                    متصفحك لا يدعم تشغيل هذا الفيديو.
+                </video>
+            </div>
+        `;
+    } else if (platform === 'instagram' || url.includes('instagram.com')) {
+        player.innerHTML = `
+            <div class="p-5 text-white text-center">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 shadow" style="width: 80px; height: 80px; background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);">
+                    <i class="bi bi-instagram fs-1 text-white"></i>
+                </div>
+                <h5 class="fw-bold mb-3">${title}</h5>
+                <p class="text-white-50 small mb-4">انقر أدناه لمشاهدة المقطع مباشرة عبر Instagram</p>
+                <a href="${url}" target="_blank" rel="noopener noreferrer" class="btn btn-primary rounded-pill px-4 py-2 fw-bold">
+                    <i class="bi bi-box-arrow-up-right me-2"></i> مشاهدة في Instagram
+                </a>
+            </div>
+        `;
     } else {
-        player.innerHTML = `<div class="p-5 text-white"><i class="bi bi-tiktok" style="font-size:4rem;color:#ff0050;"></i><h5 class="mt-3">${title}</h5><a href="${url}" target="_blank" class="btn btn-danger btn-lg rounded-pill px-5 mt-3"><i class="bi bi-play-fill me-2"></i>مشاهدة على TikTok</a></div>`;
+        player.innerHTML = `
+            <div class="p-5 text-white text-center">
+                <i class="bi bi-tiktok mb-3 d-block" style="font-size:3.5rem;color:#ff0050;"></i>
+                <h5 class="fw-bold mb-2">${title}</h5>
+                <p class="text-white-50 small mb-4">انقر أدناه لمشاهدة المقطع على المنصة</p>
+                <a href="${url}" target="_blank" rel="noopener noreferrer" class="btn btn-danger btn-lg rounded-pill px-5">
+                    <i class="bi bi-play-fill me-2"></i> مشاهدة على TikTok
+                </a>
+            </div>
+        `;
     }
     new bootstrap.Modal(document.getElementById('reelVideoModal')).show();
     document.getElementById('reelVideoModal').addEventListener('hidden.bs.modal', () => { player.innerHTML = ''; }, { once: true });
