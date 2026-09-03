@@ -1176,21 +1176,31 @@ class AdminDashboardController extends Controller
     public function settings()
     {
         $settings = [
-            'site_title' => Setting::get('site_title', 'إدارة العيادة'),
-            'doctor_name' => Setting::get('doctor_name', 'يونس المرشد'),
-            'site_logo' => Setting::get('site_logo', ''),
-            'footer_logo' => Setting::get('footer_logo', ''),
-            'primary_color' => Setting::get('primary_color', '#3B52A4'),
-            'secondary_color' => Setting::get('secondary_color', '#1e3a8a'),
+            'site_title'               => Setting::get('site_title', 'إدارة العيادة'),
+            'doctor_name'              => Setting::get('doctor_name', 'يونس المرشد'),
+            'site_logo'                => Setting::get('site_logo', ''),
+            'footer_logo'              => Setting::get('footer_logo', ''),
+            'primary_color'            => Setting::get('primary_color', '#3B52A4'),
+            'secondary_color'          => Setting::get('secondary_color', '#1e3a8a'),
             'google_site_verification' => Setting::get('google_site_verification', ''),
-            'meta_description' => Setting::get('meta_description', 'احجز استشارتك النفسية الآن مع المعالج يونس المرشد. جلسات فردية وزوجية وأسرية بخبرة أكثر من 10 سنوات.'),
-            'meta_keywords' => Setting::get('meta_keywords', 'معالج نفسي, استشارة نفسية, علاج نفسي, يونس المرشد, حجز موعد نفسي, اكتئاب, قلق, علاج زوجي'),
-            'og_image' => Setting::get('og_image', ''),
-            'google_analytics_id' => Setting::get('google_analytics_id', ''),
-            'meta_pixel_id' => Setting::get('meta_pixel_id', ''),
-            'notify_new_booking' => Setting::get('notify_new_booking', '1'),
-            'notify_cancellation' => Setting::get('notify_cancellation', '1'),
-            'booking_banner_image' => Setting::get('booking_banner_image', ''),
+            'meta_description'         => Setting::get('meta_description', 'احجز استشارتك النفسية الآن مع المعالج يونس المرشد. جلسات فردية وزوجية وأسرية بخبرة أكثر من 10 سنوات.'),
+            'meta_keywords'            => Setting::get('meta_keywords', 'معالج نفسي, استشارة نفسية, علاج نفسي, يونس المرشد, حجز موعد نفسي, اكتئاب, قلق, علاج زوجي'),
+            'og_image'                 => Setting::get('og_image', ''),
+            'google_analytics_id'      => Setting::get('google_analytics_id', ''),
+            'meta_pixel_id'            => Setting::get('meta_pixel_id', ''),
+            'notify_new_booking'       => Setting::get('notify_new_booking', '1'),
+            'notify_cancellation'      => Setting::get('notify_cancellation', '1'),
+            'booking_banner_image'     => Setting::get('booking_banner_image', ''),
+            // ─── إعدادات الدفع ───────────────────────────────────────────────
+            'payment_zaincash_enabled' => Setting::get('payment_zaincash_enabled', '0'),
+            'payment_zaincash_qr'      => Setting::get('payment_zaincash_qr', ''),
+            'payment_zaincash_label'   => Setting::get('payment_zaincash_label', 'افتح تطبيق زين كاش وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال للدكتور.'),
+            'payment_superki_enabled'  => Setting::get('payment_superki_enabled', '0'),
+            'payment_superki_qr'       => Setting::get('payment_superki_qr', ''),
+            'payment_superki_label'    => Setting::get('payment_superki_label', 'افتح تطبيق SuperKi وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال للدكتور.'),
+            'payment_spaceremit_enabled' => Setting::get('payment_spaceremit_enabled', '0'),
+            'payment_spaceremit_key'   => Setting::get('payment_spaceremit_key', ''),
+            'payment_spaceremit_currency' => Setting::get('payment_spaceremit_currency', 'USD'),
         ];
         return view('admin.settings', compact('settings'));
     }
@@ -1201,23 +1211,30 @@ class AdminDashboardController extends Controller
     public function updateSettings(Request $request)
     {
         $request->validate([
-            'site_title' => 'nullable|string|max:255',
-            'doctor_name' => 'nullable|string|max:255',
-            'site_logo' => 'nullable|string',
-            'logo_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
-            'footer_logo' => 'nullable|string',
-            'footer_logo_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
-            'booking_banner_image' => 'nullable|string',
-            'booking_banner_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120',
-            'primary_color' => 'nullable|string|max:20',
-            'secondary_color' => 'nullable|string|max:20',
-            'google_site_verification' => 'nullable|string|max:255',
-            'meta_description' => 'nullable|string',
-            'meta_keywords' => 'nullable|string',
-            'og_image' => 'nullable|string',
-            'og_image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
-            'google_analytics_id' => 'nullable|string|max:50',
-            'meta_pixel_id' => 'nullable|string|max:50',
+            'site_title'                   => 'nullable|string|max:255',
+            'doctor_name'                  => 'nullable|string|max:255',
+            'site_logo'                    => 'nullable|string',
+            'logo_file'                    => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'footer_logo'                  => 'nullable|string',
+            'footer_logo_file'             => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'booking_banner_image'         => 'nullable|string',
+            'booking_banner_file'          => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120',
+            'primary_color'                => 'nullable|string|max:20',
+            'secondary_color'              => 'nullable|string|max:20',
+            'google_site_verification'     => 'nullable|string|max:255',
+            'meta_description'             => 'nullable|string',
+            'meta_keywords'                => 'nullable|string',
+            'og_image'                     => 'nullable|string',
+            'og_image_file'                => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'google_analytics_id'          => 'nullable|string|max:50',
+            'meta_pixel_id'                => 'nullable|string|max:50',
+            // Payment validation
+            'payment_zaincash_qr_file'     => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:3072',
+            'payment_superki_qr_file'      => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:3072',
+            'payment_zaincash_label'       => 'nullable|string|max:500',
+            'payment_superki_label'        => 'nullable|string|max:500',
+            'payment_spaceremit_key'       => 'nullable|string|max:255',
+            'payment_spaceremit_currency'  => 'nullable|string|max:10',
         ]);
 
         // Handle header logo file upload
@@ -1264,7 +1281,33 @@ class AdminDashboardController extends Controller
         Setting::set('notify_new_booking', $request->has('notify_new_booking') ? '1' : '0');
         Setting::set('notify_cancellation', $request->has('notify_cancellation') ? '1' : '0');
 
-        return redirect()->back()->with('success', 'تم حفظ جميع إعدادات المنصة، الهوية البصرية، والـ SEO بنجاح!');
+        // ─── إعدادات الدفع ─────────────────────────────────────────────────
+        // زين كاش
+        Setting::set('payment_zaincash_enabled', $request->has('payment_zaincash_enabled') ? '1' : '0');
+        Setting::set('payment_zaincash_label', $request->payment_zaincash_label ?? '');
+        if ($request->hasFile('payment_zaincash_qr_file')) {
+            $path = $request->file('payment_zaincash_qr_file')->store('payments', 'public');
+            Setting::set('payment_zaincash_qr', asset('storage/' . $path));
+        } elseif ($request->filled('payment_zaincash_qr')) {
+            Setting::set('payment_zaincash_qr', $request->payment_zaincash_qr);
+        }
+
+        // SuperKi
+        Setting::set('payment_superki_enabled', $request->has('payment_superki_enabled') ? '1' : '0');
+        Setting::set('payment_superki_label', $request->payment_superki_label ?? '');
+        if ($request->hasFile('payment_superki_qr_file')) {
+            $path = $request->file('payment_superki_qr_file')->store('payments', 'public');
+            Setting::set('payment_superki_qr', asset('storage/' . $path));
+        } elseif ($request->filled('payment_superki_qr')) {
+            Setting::set('payment_superki_qr', $request->payment_superki_qr);
+        }
+
+        // SpaceRemit
+        Setting::set('payment_spaceremit_enabled', $request->has('payment_spaceremit_enabled') ? '1' : '0');
+        Setting::set('payment_spaceremit_key', $request->payment_spaceremit_key ?? '');
+        Setting::set('payment_spaceremit_currency', $request->payment_spaceremit_currency ?? 'USD');
+
+        return redirect()->back()->with('success', 'تم حفظ جميع الإعدادات بنجاح!');
     }
 
     /**
@@ -1281,7 +1324,7 @@ class AdminDashboardController extends Controller
     public function getCalendarEvents(Request $request)
     {
         $bookings = Booking::with(['patient', 'service'])
-            ->whereIn('status', ['Confirmed', 'Completed', 'AwaitingPayment', 'Pending', 'CancelledByPatient', 'CancelledByDoctor', 'NoShow'])
+            ->whereIn('status', ['Confirmed', 'Completed', 'AwaitingPayment', 'Pending', 'PendingPaymentReview', 'CancelledByPatient', 'CancelledByDoctor', 'NoShow'])
             ->get();
 
         $events = [];
@@ -1293,6 +1336,9 @@ class AdminDashboardController extends Controller
             if ($status === 'Completed') {
                 $color = '#3b82f6'; // Completed = Blue
                 $statusLabel = 'مكتمل';
+            } elseif ($status === 'PendingPaymentReview') {
+                $color = '#f97316'; // Orange — awaiting doctor verification
+                $statusLabel = 'انتظار مراجعة الدفع';
             } elseif ($status === 'AwaitingPayment' || $status === 'Pending') {
                 $color = '#f59e0b'; // AwaitingPayment = Amber Yellow
                 $statusLabel = 'بانتظار الدفع';
@@ -1592,13 +1638,14 @@ class AdminDashboardController extends Controller
                 $patientName = $b->patient?->name ?? ($b->temp_user_data['name'] ?? 'زائر');
                 $patientPhone = $b->patient?->phone ?? ($b->temp_user_data['phone'] ?? '-');
                 $statusAr = match($b->status) {
-                    'Confirmed' => 'مؤكد',
-                    'AwaitingPayment' => 'بانتظار الدفع',
-                    'Completed' => 'مكتمل',
-                    'CancelledByPatient' => 'ملغي بواسطة المريض',
-                    'CancelledByDoctor' => 'ملغي بواسطة الطبيب',
-                    'NoShow' => 'لم يحضر',
-                    default => $b->status
+                    'Confirmed'             => 'مؤكد',
+                    'AwaitingPayment'       => 'بانتظار الدفع',
+                    'PendingPaymentReview'  => 'بانتظار مراجعة الدفع',
+                    'Completed'             => 'مكتمل',
+                    'CancelledByPatient'    => 'ملغي بواسطة المريض',
+                    'CancelledByDoctor'     => 'ملغي بواسطة الطبيب',
+                    'NoShow'                => 'لم يحضر',
+                    default                 => $b->status
                 };
 
                 fputcsv($file, [

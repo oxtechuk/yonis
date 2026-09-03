@@ -3,6 +3,17 @@
     $stripeActive = \App\Models\Setting::get('stripe_enabled', '0') === '1';
     $waRaw = \App\Models\Setting::get('whatsapp_number', '+9647700000000');
     $isArLocale = app()->getLocale() === 'ar';
+    // ─ Payment settings ─
+    $payZainEnabled   = \App\Models\Setting::get('payment_zaincash_enabled', '0') === '1';
+    $payZainQr        = \App\Models\Setting::get('payment_zaincash_qr', '');
+    $payZainLabel     = \App\Models\Setting::get('payment_zaincash_label', 'افتح تطبيق زين كاش وامسح الرمز لإتمام الدفع.');
+    $paySuperkiEnabled = \App\Models\Setting::get('payment_superki_enabled', '0') === '1';
+    $paySuperkiQr     = \App\Models\Setting::get('payment_superki_qr', '');
+    $paySuperkiLabel  = \App\Models\Setting::get('payment_superki_label', 'افتح تطبيق SuperKi وامسح الرمز.');
+    $paySpaceEnabled  = \App\Models\Setting::get('payment_spaceremit_enabled', '0') === '1';
+    $paySpaceKey      = \App\Models\Setting::get('payment_spaceremit_key', '');
+    $paySpaceCurrency = \App\Models\Setting::get('payment_spaceremit_currency', 'USD');
+    $anyPaymentActive = $payZainEnabled || $paySuperkiEnabled || $paySpaceEnabled;
 @endphp
 
 {{-- ═══ REUSABLE BOOKING POPUP MODAL WITH INTERACTIVE FLOW ═══ --}}
@@ -271,57 +282,204 @@
 
                 </div>{{-- End Screen 2 --}}
 
-                {{-- ═══ SCREEN 3: Payment Pending & Order Received ═══ --}}
-                <div id="app-screen-3" class="d-none text-center py-2">
-                    
-                    <div class="success-circle mx-auto mb-3" style="width:80px; height:80px; font-size:2.2rem; background:linear-gradient(135deg, #f59e0b, #d97706); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow: 0 10px 25px rgba(245, 158, 11, 0.35);">
-                        <i class="bi bi-hourglass-split"></i>
-                    </div>
+                {{-- ═══ SCREEN 3: اختيار طريقة الدفع ═══ --}}
+                <div id="app-screen-3" class="d-none">
 
-                    <h4 class="fw-black text-dark mb-1">تم تسجيل طلب الموعد بنجاح</h4>
-                    <div class="mb-3">
-                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-1 rounded-pill small fw-bold">
-                            <i class="bi bi-clock-history me-1"></i> بانتظار إتمام الدفع لتأكيد الحجز النهائي
-                        </span>
-                    </div>
-                    <p class="text-secondary small mb-4">يرجى استكمال الدفع عبر الرابط المباشر؛ حيث لا يتم تأكيد موعد الجلسة أو تفعيل الحساب إلا بعد إتمام الدفع بنجاح.</p>
-
-                    <div class="app-success-card text-start">
-                        <div class="app-success-row">
-                            <span class="text-secondary">رقم المرجع</span>
-                            <span class="fw-bold text-primary fs-6" id="app-res-ref">#REF-8492</span>
+                    {{-- معلومات الحجز (summary) --}}
+                    <div class="rounded-4 p-3 mb-4" style="background:linear-gradient(135deg,rgba(59,82,164,.07),rgba(59,82,164,.02));border:1.5px solid rgba(59,82,164,.12);">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="text-secondary small">رقم المرجع</span>
+                            <span class="fw-black text-primary" id="app-res-ref">#REF-8492</span>
                         </div>
-                        <div class="app-success-row">
-                            <span class="text-secondary">الخدمة</span>
-                            <span class="fw-bold text-dark" id="app-res-service">جلسة استشارة نفسية</span>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="text-secondary small">الخدمة</span>
+                            <span class="fw-bold text-dark small" id="app-res-service">جلسة استشارة</span>
                         </div>
-                        <div class="app-success-row">
-                            <span class="text-secondary">الموعد المطلوب</span>
-                            <span class="fw-bold text-dark" id="app-res-datetime">15 أكتوبر 2026 | 04:00 مساءً</span>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="text-secondary small">الموعد</span>
+                            <span class="fw-bold text-dark small" id="app-res-datetime">—</span>
                         </div>
-                        <div class="app-success-row">
-                            <span class="text-secondary">حالة الحجز</span>
-                            <span class="fw-bold text-warning" id="app-res-type">بانتظار سداد الرسوم</span>
+                        <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2">
+                            <span class="fw-bold text-dark">إجمالي الدفع</span>
+                            <span class="fw-black fs-5" style="color:var(--primary-color);" id="app-res-type">50 $</span>
                         </div>
                     </div>
 
-                    <div class="d-flex flex-column gap-2.5 mt-4">
-                        {{-- Direct Service Payment Link --}}
-                        <a id="app-direct-payment-link" href="#" target="_blank" class="btn btn-royal-primary w-100 py-3 rounded-pill fw-bold d-flex align-items-center justify-content-center gap-2 shadow">
-                            <i class="bi bi-box-arrow-up-right fs-5"></i>
-                            <span>فتح رابط الدفع الآن (إذا لم يفتح تلقائياً)</span>
-                        </a>
+                    @if($anyPaymentActive)
 
-                        {{-- WhatsApp Consultation Link --}}
-                        <a id="app-start-consultation-link" href="#" target="_blank" class="btn btn-outline-success w-100 py-3 rounded-pill fw-bold d-flex align-items-center justify-content-center gap-2">
-                            <i class="bi bi-whatsapp fs-5"></i>
-                            <span>إرسال إشعار الحجز وتأكيد الدفع للمعالج</span>
-                        </a>
+                        {{-- تبويبات طرق الدفع --}}
+                        <div class="app-section-title mb-3">اختر طريقة الدفع</div>
+                        <div class="d-flex gap-2 mb-4" id="payment-method-tabs" role="tablist">
+                            @if($payZainEnabled)
+                            <button type="button" class="btn pay-tab-btn flex-fill active"
+                                    id="pay-tab-zaincash" onclick="switchPayTab('zaincash')"
+                                    style="background:linear-gradient(135deg,#7c3aed,#4c1d95);color:#fff;border:none;border-radius:14px;padding:10px 6px;font-weight:700;font-size:.82rem;">
+                                💜 زين كاش
+                            </button>
+                            @endif
+                            @if($paySuperkiEnabled)
+                            <button type="button" class="btn pay-tab-btn flex-fill @if(!$payZainEnabled) active @endif"
+                                    id="pay-tab-superki" onclick="switchPayTab('superki')"
+                                    style="background:@if(!$payZainEnabled)linear-gradient(135deg,#0284c7,#075985)@else#e2e8f0@endif;color:@if(!$payZainEnabled)#fff@else#475569@endif;border:none;border-radius:14px;padding:10px 6px;font-weight:700;font-size:.82rem;">
+                                🔵 SuperKi
+                            </button>
+                            @endif
+                            @if($paySpaceEnabled)
+                            <button type="button" class="btn pay-tab-btn flex-fill @if(!$payZainEnabled && !$paySuperkiEnabled) active @endif"
+                                    id="pay-tab-spaceremit" onclick="switchPayTab('spaceremit')"
+                                    style="background:@if(!$payZainEnabled && !$paySuperkiEnabled)linear-gradient(135deg,#059669,#064e3b)@else#e2e8f0@endif;color:@if(!$payZainEnabled && !$paySuperkiEnabled)#fff@else#475569@endif;border:none;border-radius:14px;padding:10px 6px;font-weight:700;font-size:.82rem;">
+                                🌍 دفع دولي
+                            </button>
+                            @endif
+                        </div>
 
-                        <button type="button" class="btn btn-light rounded-pill py-2.5 fw-bold text-secondary mt-1" data-bs-dismiss="modal" onclick="window.location.reload()">
-                            <i class="bi bi-arrow-repeat me-1"></i> إغلاق ومتابعة
-                        </button>
-                    </div>
+                        {{-- ─── بانل زين كاش ─── --}}
+                        @if($payZainEnabled)
+                        <div id="pay-panel-zaincash" class="pay-panel">
+                            <div class="text-center mb-3">
+                                @if(!empty($payZainQr))
+                                    <div class="d-inline-block p-3 bg-white rounded-4 shadow-sm border">
+                                        <img src="{{ $payZainQr }}" alt="ZainCash QR"
+                                             style="max-width:210px;max-height:210px;border-radius:10px;">
+                                    </div>
+                                    <p class="text-secondary small mt-3 mb-0 px-2">{{ $payZainLabel }}</p>
+                                @else
+                                    <div class="p-4 text-muted">
+                                        <i class="bi bi-qr-code" style="font-size:3rem;opacity:.3;"></i>
+                                        <p class="small mt-2">لم يتم إعداد صورة QR بعد — يرجى مراجعة الإعدادات</p>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                        @endif
+
+                        {{-- ─── بانل SuperKi ─── --}}
+                        @if($paySuperkiEnabled)
+                        <div id="pay-panel-superki" class="pay-panel @if($payZainEnabled) d-none @endif">
+                            <div class="text-center mb-3">
+                                @if(!empty($paySuperkiQr))
+                                    <div class="d-inline-block p-3 bg-white rounded-4 shadow-sm border">
+                                        <img src="{{ $paySuperkiQr }}" alt="SuperKi QR"
+                                             style="max-width:210px;max-height:210px;border-radius:10px;">
+                                    </div>
+                                    <p class="text-secondary small mt-3 mb-0 px-2">{{ $paySuperkiLabel }}</p>
+                                @else
+                                    <div class="p-4 text-muted">
+                                        <i class="bi bi-qr-code" style="font-size:3rem;opacity:.3;"></i>
+                                        <p class="small mt-2">لم يتم إعداد صورة QR بعد — يرجى مراجعة الإعدادات</p>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                        @endif
+
+                        {{-- ─── بانل SpaceRemit ─── --}}
+                        @if($paySpaceEnabled)
+                        <div id="pay-panel-spaceremit" class="pay-panel @if($payZainEnabled || $paySuperkiEnabled) d-none @endif">
+                            @if(!empty($paySpaceKey))
+                                {{-- SpaceRemit Form --}}
+                                <form id="spaceremit-form" class="w-100">
+                                    <input type="hidden" name="amount" id="sp-amount" value="1">
+                                    <input type="hidden" name="currency" value="{{ $paySpaceCurrency }}">
+                                    <input type="hidden" name="fullname" id="sp-fullname" value="">
+                                    <input type="hidden" name="email"   id="sp-email"    value="">
+                                    <input type="hidden" name="phone"   id="sp-phone"    value="">
+                                    <input type="hidden" name="notes"   id="sp-notes"    value="">
+                                    <div class="sp-one-type-select mb-3">
+                                        <input type="radio" name="sp-pay-type-radio" value="local-methods-pay"
+                                               id="sp_local_methods_radio" checked>
+                                        <label for="sp_local_methods_radio">
+                                            <div>طرق الدفع المحلية</div>
+                                        </label>
+                                        <div id="spaceremit-local-methods-pay"></div>
+                                    </div>
+                                    <div class="sp-one-type-select mb-3">
+                                        <input type="radio" name="sp-pay-type-radio" value="card-pay"
+                                               id="sp_card_radio">
+                                        <label for="sp_card_radio">
+                                            <div>دفع بالبطاقة</div>
+                                        </label>
+                                        <div id="spaceremit-card-pay"></div>
+                                    </div>
+                                    <button type="submit" class="btn btn-royal-primary w-100 py-3 rounded-pill fw-bold">
+                                        <i class="bi bi-credit-card-2-front-fill me-2"></i> ادفع الآن
+                                    </button>
+                                </form>
+                                <script src="https://spaceremit.com/api/v2/js_script/spaceremit.js"></script>
+                                <script>
+                                const SP_PUBLIC_KEY = "{{ $paySpaceKey }}";
+                                const SP_FORM_ID = "#spaceremit-form";
+                                const SP_SELECT_RADIO_NAME = "sp-pay-type-radio";
+                                const LOCAL_METHODS_BOX_STATUS = true;
+                                const LOCAL_METHODS_PARENT_ID = "#spaceremit-local-methods-pay";
+                                const CARD_BOX_STATUS = true;
+                                const CARD_BOX_PARENT_ID = "#spaceremit-card-pay";
+                                let SP_FORM_AUTO_SUBMIT_WHEN_GET_CODE = true;
+                                function SP_SUCCESSFUL_PAYMENT(code) {
+                                    confirmPaymentAfterSpaceRemit(code);
+                                }
+                                function SP_FAILD_PAYMENT() {
+                                    alert('فشلت عملية الدفع. يرجى المحاولة مرة أخرى.');
+                                }
+                                function SP_RECIVED_MESSAGE(msg) { console.log('SP:', msg); }
+                                function SP_NEED_AUTH(link) { window.open(link, '_blank'); }
+                                </script>
+                            @else
+                                <div class="alert alert-warning rounded-4 small">
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                    لم يتم إعداد مفتاح SpaceRemit — يرجى مراجعة إعدادات الدفع.
+                                </div>
+                            @endif
+                        </div>
+                        @endif
+
+                        {{-- زر "أكدت الدفع" --}}
+                        <div class="mt-4" id="pay-confirm-section">
+                            <button type="button" class="btn btn-royal-primary w-100 py-3 rounded-pill fw-bold shadow"
+                                    id="app-confirm-payment-btn" onclick="confirmPaymentByPatient()">
+                                <i class="bi bi-check-circle-fill me-2"></i> أكدت الدفع — تأكيد الحجز
+                            </button>
+                            <p class="text-secondary small text-center mt-2 mb-0">
+                                <i class="bi bi-info-circle me-1"></i>
+                                سيتم مراجعة الدفع من قبل الدكتور وتأكيد الحجز خلال 24 ساعة.
+                            </p>
+                        </div>
+
+                        {{-- شاشة التأكيد بعد ضغط الزر --}}
+                        <div id="pay-confirmed-screen" class="text-center py-3 d-none">
+                            <div class="mx-auto mb-3 d-flex align-items-center justify-content-center"
+                                 style="width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-size:2rem;box-shadow:0 10px 25px rgba(16,185,129,.35);">
+                                <i class="bi bi-check2"></i>
+                            </div>
+                            <h5 class="fw-black text-dark mb-1">تم إرسال تأكيدك!</h5>
+                            <p class="text-secondary small mb-4">سيراجع الدكتور دفعك ويؤكد الحجز خلال 24 ساعة. ستصلك رسالة تأكيد.</p>
+                            <a id="app-start-consultation-link" href="#" target="_blank"
+                               class="btn btn-outline-success w-100 py-3 rounded-pill fw-bold d-flex align-items-center justify-content-center gap-2 mb-2">
+                                <i class="bi bi-whatsapp fs-5"></i>
+                                <span>إرسال إيصال الدفع عبر واتسآب</span>
+                            </a>
+                            <button type="button" class="btn btn-light rounded-pill py-2 fw-bold text-secondary"
+                                    data-bs-dismiss="modal" onclick="window.location.reload()">
+                                <i class="bi bi-arrow-repeat me-1"></i> إغلاق
+                            </button>
+                        </div>
+
+                    @else
+                        {{-- لا توجد طريقة دفع مفعلة — عرض WhatsApp فقط --}}
+                        <div class="text-center py-3">
+                            <div class="mx-auto mb-3 d-flex align-items-center justify-content-center"
+                                 style="width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-size:2rem;">
+                                <i class="bi bi-hourglass-split"></i>
+                            </div>
+                            <h5 class="fw-black text-dark mb-2">تم تسجيل طلب الموعد</h5>
+                            <p class="text-secondary small mb-4">سيتواصل معك الدكتور لمتابعة تفاصيل الدفع.</p>
+                            <a id="app-start-consultation-link" href="#" target="_blank"
+                               class="btn btn-outline-success w-100 py-3 rounded-pill fw-bold d-flex align-items-center justify-content-center gap-2">
+                                <i class="bi bi-whatsapp fs-5"></i>
+                                <span>مراسلة الدكتور عبر واتسآب</span>
+                            </a>
+                        </div>
+                    @endif
 
                 </div>{{-- End Screen 3 --}}
 
@@ -438,6 +596,101 @@ function selectAppPayment(method, el) {
     document.querySelectorAll('.app-payment-card').forEach(c => c.classList.remove('selected'));
     if (el) el.classList.add('selected');
 }
+
+// ─── Payment Tab Switcher (Screen 3) ───────────────────────────────────────
+const payTabGradients = {
+    zaincash:   'linear-gradient(135deg,#7c3aed,#4c1d95)',
+    superki:    'linear-gradient(135deg,#0284c7,#075985)',
+    spaceremit: 'linear-gradient(135deg,#059669,#064e3b)',
+};
+
+function switchPayTab(method) {
+    // Hide all panels
+    document.querySelectorAll('.pay-panel').forEach(p => p.classList.add('d-none'));
+    // Show selected panel
+    const panel = document.getElementById('pay-panel-' + method);
+    if (panel) panel.classList.remove('d-none');
+
+    // Reset all tab buttons
+    document.querySelectorAll('.pay-tab-btn').forEach(btn => {
+        btn.style.background = '#e2e8f0';
+        btn.style.color = '#475569';
+    });
+    // Highlight active tab
+    const activeBtn = document.getElementById('pay-tab-' + method);
+    if (activeBtn && payTabGradients[method]) {
+        activeBtn.style.background = payTabGradients[method];
+        activeBtn.style.color = '#fff';
+    }
+
+    // Populate SpaceRemit fields when switching to it
+    if (method === 'spaceremit') {
+        const spAmount   = document.getElementById('sp-amount');
+        const spFullname = document.getElementById('sp-fullname');
+        const spPhone    = document.getElementById('sp-phone');
+        const spNotes    = document.getElementById('sp-notes');
+        if (spAmount)   spAmount.value   = appState.price || 1;
+        if (spFullname) spFullname.value = document.getElementById('app_user_name')?.value || '';
+        if (spPhone)    spPhone.value    = (document.getElementById('app_country_code')?.value || '') +
+                                           (document.getElementById('app_user_phone')?.value || '');
+        if (spNotes)    spNotes.value    = 'Booking Ref: ' + (appState.bookingRef || '');
+    }
+}
+
+// ─── Patient confirms payment manually ─────────────────────────────────────
+function confirmPaymentByPatient() {
+    const btn = document.getElementById('app-confirm-payment-btn');
+    if (!btn) return;
+    if (!appState.bookingRef) {
+        alert('لم يتم تسجيل رقم الحجز بعد. يرجى المحاولة لاحقاً.');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> جارٍ الإرسال...';
+
+    fetch(`/booking/${appState.bookingRef}/confirm-payment`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content || '',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({ booking_ref: appState.bookingRef }),
+    })
+    .then(r => r.json())
+    .then(data => {
+        // Show confirmation screen
+        document.getElementById('pay-confirm-section')?.classList.add('d-none');
+        document.querySelectorAll('.pay-panel').forEach(p => p.classList.add('d-none'));
+        document.getElementById('payment-method-tabs')?.classList.add('d-none');
+        document.getElementById('pay-confirmed-screen')?.classList.remove('d-none');
+    })
+    .catch(() => {
+        // Even on error, show confirmation (optimistic UX)
+        document.getElementById('pay-confirm-section')?.classList.add('d-none');
+        document.getElementById('pay-confirmed-screen')?.classList.remove('d-none');
+    });
+}
+
+// ─── SpaceRemit success callback ───────────────────────────────────────────
+function confirmPaymentAfterSpaceRemit(code) {
+    if (appState.bookingRef) {
+        fetch(`/booking/${appState.bookingRef}/confirm-payment`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content || '',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ booking_ref: appState.bookingRef, spaceremit_code: code }),
+        }).catch(() => {});
+    }
+    document.getElementById('pay-confirm-section')?.classList.add('d-none');
+    document.getElementById('pay-confirmed-screen')?.classList.remove('d-none');
+}
+
+
 
 function autoFillStripeTestCard() {
     const cards = document.querySelectorAll('.app-payment-card');
@@ -751,6 +1004,9 @@ function executeAppBooking() {
             const ref = data?.booking_reference || 'REF-' + Math.floor(1000 + Math.random() * 9000);
             const paymentUrl = data?.payment_url || 'https://younisalmurshed.gumroad.com/l/srjlvw?wanted=true';
 
+            // Store booking reference for payment confirmation
+            appState.bookingRef = ref;
+
             // 1. Immediately open external direct payment URL in a new tab
             try {
                 window.open(paymentUrl, '_blank');
@@ -758,15 +1014,16 @@ function executeAppBooking() {
                 console.log('Popup blocked, using fallback button');
             }
 
-            // 2. Transition UI to Screen 3 (Payment Pending)
+            // 2. Transition UI to Screen 3 (Payment Selection)
             document.getElementById('app-screen-2').classList.add('d-none');
             document.getElementById('app-screen-3').classList.remove('d-none');
 
             if (document.getElementById('app-res-ref')) document.getElementById('app-res-ref').textContent = '#' + ref;
             if (document.getElementById('app-res-service')) document.getElementById('app-res-service').textContent = appState.title || 'جلسة استشارة نفسية';
             if (document.getElementById('app-res-datetime')) document.getElementById('app-res-datetime').textContent = appState.date + ' | ' + appState.slot;
-            if (document.getElementById('app-res-type')) document.getElementById('app-res-type').textContent = 'بانتظار سداد الرسوم';
+            if (document.getElementById('app-res-type')) document.getElementById('app-res-type').textContent = (appState.price || 50) + ' $';
             
+
             // Direct Service Payment Link
             const payBtn = document.getElementById('app-direct-payment-link');
             if (payBtn) {

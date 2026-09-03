@@ -205,4 +205,32 @@ class BookingController extends Controller
             ]);
         });
     }
+    /**
+     * Patient confirms payment — marks booking as PendingPaymentReview.
+     * The doctor then verifies and confirms from the admin panel.
+     */
+    public function confirmPayment(Request $request, string $bookingRef)
+    {
+        $booking = Booking::where('booking_reference', $bookingRef)
+            ->whereIn('status', ['AwaitingPayment', 'Pending'])
+            ->first();
+
+        if (!$booking) {
+            return response()->json([
+                'success' => false,
+                'message' => 'الحجز غير موجود أو تم تأكيده مسبقاً.',
+            ], 404);
+        }
+
+        $booking->status = 'PendingPaymentReview';
+        $booking->save();
+
+        Log::info("Booking {$bookingRef} marked as PendingPaymentReview by patient.");
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم إرسال تأكيد الدفع بنجاح. سيقوم الدكتور بمراجعة دفعك وتأكيد الحجز.',
+            'booking_reference' => $bookingRef,
+        ]);
+    }
 }

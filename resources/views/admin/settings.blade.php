@@ -37,6 +37,11 @@
                         <i class="bi bi-bell-fill me-1 text-warning"></i> الإشعارات (Notifications)
                     </button>
                 </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-bold px-4 rounded-3" id="payment-tab" data-bs-toggle="tab" data-bs-target="#payment-panel" type="button" role="tab">
+                        <i class="bi bi-credit-card-2-front-fill me-1 text-danger"></i> إعدادات الدفع
+                    </button>
+                </li>
             </ul>
 
             <!-- Tab Content -->
@@ -273,7 +278,228 @@
                     </div>
                 </div>
 
-            </div>
+
+                {{-- 5. Payment Settings Panel --}}
+                <div class="tab-pane fade" id="payment-panel" role="tabpanel" aria-labelledby="payment-tab">
+                    <div class="row g-4">
+
+                        {{-- ─── زين كاش ─────────────────────────────────────── --}}
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                                <div class="card-header border-0 py-3 px-4 d-flex justify-content-between align-items-center"
+                                     style="background: linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%);">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="rounded-3 d-flex align-items-center justify-content-center text-white"
+                                             style="width:44px;height:44px;background:rgba(255,255,255,0.15);font-size:1.4rem;">
+                                            💜
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold text-white m-0">زين كاش (ZainCash)</h6>
+                                            <span class="text-white opacity-75 small">دفع محلي عبر QR Code</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-check form-switch m-0">
+                                        <input class="form-check-input fs-4" type="checkbox" role="switch"
+                                               name="payment_zaincash_enabled" id="zaincashSwitch"
+                                               @if($settings['payment_zaincash_enabled'] === '1') checked @endif
+                                               style="cursor:pointer;">
+                                        <label class="form-check-label text-white fw-bold small" for="zaincashSwitch">تفعيل</label>
+                                    </div>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div class="row g-4 align-items-start">
+                                        {{-- QR Upload --}}
+                                        <div class="col-md-5">
+                                            <label class="form-label fw-bold text-dark mb-2">
+                                                <i class="bi bi-qr-code me-1 text-purple"></i> صورة رمز QR
+                                            </label>
+                                            <div class="border-2 border-dashed rounded-4 p-3 text-center bg-light position-relative"
+                                                 id="zaincash-qr-preview-box"
+                                                 style="min-height:180px;border-color:#c4b5fd !important;border-style:dashed;">
+                                                @if(!empty($settings['payment_zaincash_qr']))
+                                                    <img id="zaincash-qr-img" src="{{ $settings['payment_zaincash_qr'] }}"
+                                                         alt="ZainCash QR"
+                                                         class="img-fluid rounded-3 shadow-sm"
+                                                         style="max-height:150px;object-fit:contain;">
+                                                @else
+                                                    <div id="zaincash-qr-img" class="text-muted py-4">
+                                                        <i class="bi bi-qr-code" style="font-size:3rem;opacity:.3;"></i>
+                                                        <p class="small mt-2 mb-0">لم يتم رفع صورة QR بعد</p>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            <div class="mt-3">
+                                                <label class="form-label small fw-bold">رفع صورة QR جديدة:</label>
+                                                <input type="file" name="payment_zaincash_qr_file" class="form-control form-control-sm rounded-3"
+                                                       accept="image/*"
+                                                       onchange="previewQR(this, 'zaincash-qr-img')">
+                                            </div>
+                                            <div class="mt-2">
+                                                <label class="form-label small fw-bold">أو رابط مباشر (URL):</label>
+                                                <input type="text" name="payment_zaincash_qr" class="form-control form-control-sm rounded-3"
+                                                       placeholder="https://..." value="{{ $settings['payment_zaincash_qr'] }}">
+                                            </div>
+                                        </div>
+                                        {{-- Label / Instructions --}}
+                                        <div class="col-md-7">
+                                            <label class="form-label fw-bold text-dark mb-2">
+                                                <i class="bi bi-chat-left-text me-1"></i> تعليمات الدفع للمريض
+                                            </label>
+                                            <textarea name="payment_zaincash_label" class="form-control rounded-3" rows="5"
+                                                      placeholder="مثال: افتح تطبيق زين كاش، اسحب الرمز، وأرسل الإيصال...">{{ $settings['payment_zaincash_label'] }}</textarea>
+                                            <p class="text-muted small mt-2">
+                                                <i class="bi bi-info-circle me-1"></i>
+                                                هذا النص سيظهر للمريض أسفل صورة QR أثناء الحجز.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- ─── SuperKi ─────────────────────────────────────── --}}
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                                <div class="card-header border-0 py-3 px-4 d-flex justify-content-between align-items-center"
+                                     style="background: linear-gradient(135deg, #0284c7 0%, #075985 100%);">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="rounded-3 d-flex align-items-center justify-content-center text-white"
+                                             style="width:44px;height:44px;background:rgba(255,255,255,0.15);font-size:1.4rem;">
+                                            🔵
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold text-white m-0">SuperKi</h6>
+                                            <span class="text-white opacity-75 small">دفع محلي عبر QR Code</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-check form-switch m-0">
+                                        <input class="form-check-input fs-4" type="checkbox" role="switch"
+                                               name="payment_superki_enabled" id="superkiSwitch"
+                                               @if($settings['payment_superki_enabled'] === '1') checked @endif
+                                               style="cursor:pointer;">
+                                        <label class="form-check-label text-white fw-bold small" for="superkiSwitch">تفعيل</label>
+                                    </div>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div class="row g-4 align-items-start">
+                                        {{-- QR Upload --}}
+                                        <div class="col-md-5">
+                                            <label class="form-label fw-bold text-dark mb-2">
+                                                <i class="bi bi-qr-code me-1 text-info"></i> صورة رمز QR
+                                            </label>
+                                            <div class="border-2 border-dashed rounded-4 p-3 text-center bg-light"
+                                                 style="min-height:180px;border-color:#7dd3fc !important;border-style:dashed;">
+                                                @if(!empty($settings['payment_superki_qr']))
+                                                    <img id="superki-qr-img" src="{{ $settings['payment_superki_qr'] }}"
+                                                         alt="SuperKi QR"
+                                                         class="img-fluid rounded-3 shadow-sm"
+                                                         style="max-height:150px;object-fit:contain;">
+                                                @else
+                                                    <div id="superki-qr-img" class="text-muted py-4">
+                                                        <i class="bi bi-qr-code" style="font-size:3rem;opacity:.3;"></i>
+                                                        <p class="small mt-2 mb-0">لم يتم رفع صورة QR بعد</p>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            <div class="mt-3">
+                                                <label class="form-label small fw-bold">رفع صورة QR جديدة:</label>
+                                                <input type="file" name="payment_superki_qr_file" class="form-control form-control-sm rounded-3"
+                                                       accept="image/*"
+                                                       onchange="previewQR(this, 'superki-qr-img')">
+                                            </div>
+                                            <div class="mt-2">
+                                                <label class="form-label small fw-bold">أو رابط مباشر (URL):</label>
+                                                <input type="text" name="payment_superki_qr" class="form-control form-control-sm rounded-3"
+                                                       placeholder="https://..." value="{{ $settings['payment_superki_qr'] }}">
+                                            </div>
+                                        </div>
+                                        {{-- Label / Instructions --}}
+                                        <div class="col-md-7">
+                                            <label class="form-label fw-bold text-dark mb-2">
+                                                <i class="bi bi-chat-left-text me-1"></i> تعليمات الدفع للمريض
+                                            </label>
+                                            <textarea name="payment_superki_label" class="form-control rounded-3" rows="5"
+                                                      placeholder="مثال: افتح تطبيق SuperKi، اسحب الرمز، وأرسل الإيصال...">{{ $settings['payment_superki_label'] }}</textarea>
+                                            <p class="text-muted small mt-2">
+                                                <i class="bi bi-info-circle me-1"></i>
+                                                هذا النص سيظهر للمريض أسفل صورة QR أثناء الحجز.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- ─── SpaceRemit (دولي) ─────────────────────────────── --}}
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                                <div class="card-header border-0 py-3 px-4 d-flex justify-content-between align-items-center"
+                                     style="background: linear-gradient(135deg, #059669 0%, #064e3b 100%);">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="rounded-3 d-flex align-items-center justify-content-center text-white"
+                                             style="width:44px;height:44px;background:rgba(255,255,255,0.15);font-size:1.4rem;">
+                                            🌍
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold text-white m-0">SpaceRemit — الدفع الدولي</h6>
+                                            <span class="text-white opacity-75 small">بطاقة بنكية + محافظ إلكترونية عالمية</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-check form-switch m-0">
+                                        <input class="form-check-input fs-4" type="checkbox" role="switch"
+                                               name="payment_spaceremit_enabled" id="spaceremitSwitch"
+                                               @if($settings['payment_spaceremit_enabled'] === '1') checked @endif
+                                               style="cursor:pointer;">
+                                        <label class="form-check-label text-white fw-bold small" for="spaceremitSwitch">تفعيل</label>
+                                    </div>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div class="row g-4">
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold text-dark">
+                                                <i class="bi bi-key-fill me-1 text-success"></i>
+                                                المفتاح العام (Public Key)
+                                            </label>
+                                            <p class="text-muted small">احصل على مفتاحك من لوحة تحكم SpaceRemit.</p>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light border-end-0">
+                                                    <i class="bi bi-shield-lock text-success"></i>
+                                                </span>
+                                                <input type="text" name="payment_spaceremit_key"
+                                                       class="form-control rounded-end-3 font-monospace"
+                                                       placeholder="pk_live_XXXXXXXXXXXXXXXX"
+                                                       value="{{ $settings['payment_spaceremit_key'] }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label fw-bold text-dark">
+                                                <i class="bi bi-currency-dollar me-1 text-success"></i> العملة
+                                            </label>
+                                            <select name="payment_spaceremit_currency" class="form-select rounded-3">
+                                                <option value="USD" @selected($settings['payment_spaceremit_currency'] === 'USD')>USD — دولار أمريكي</option>
+                                                <option value="EUR" @selected($settings['payment_spaceremit_currency'] === 'EUR')>EUR — يورو</option>
+                                                <option value="IQD" @selected($settings['payment_spaceremit_currency'] === 'IQD')>IQD — دينار عراقي</option>
+                                                <option value="SAR" @selected($settings['payment_spaceremit_currency'] === 'SAR')>SAR — ريال سعودي</option>
+                                                <option value="AED" @selected($settings['payment_spaceremit_currency'] === 'AED')>AED — درهم إماراتي</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="alert alert-info border-0 rounded-3 d-flex align-items-start gap-2 py-2 mb-0">
+                                                <i class="bi bi-info-circle-fill mt-1"></i>
+                                                <div class="small">
+                                                    <strong>كيفية العمل:</strong> عند تفعيل SpaceRemit، سيظهر للمريض نموذج دفع بالبطاقة البنكية والمحافظ الإلكترونية مباشرةً داخل صفحة الحجز. يتم تحميل مكتبة SpaceRemit فقط عند الحاجة.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>{{-- end row --}}
+                </div>{{-- end payment-panel --}}
+
+            </div>{{-- end tab-content --}}
 
             <!-- Submit Button -->
             <div class="mt-4 pt-3 border-top">
@@ -285,4 +511,32 @@
         </form>
     </div>
 </div>
+
+@push('scripts')
+<script>
+function previewQR(input, imgId) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const target = document.getElementById(imgId);
+            if (target) {
+                // If it was a placeholder div, replace with img
+                if (target.tagName === 'DIV') {
+                    const img = document.createElement('img');
+                    img.id = imgId;
+                    img.src = e.target.result;
+                    img.className = 'img-fluid rounded-3 shadow-sm';
+                    img.style.maxHeight = '150px';
+                    img.style.objectFit = 'contain';
+                    target.replaceWith(img);
+                } else {
+                    target.src = e.target.result;
+                }
+            }
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+@endpush
 @endsection

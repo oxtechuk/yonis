@@ -34,6 +34,8 @@ Route::get('/api/slots', [ApiController::class, 'getSlots']);
 Route::post('/api/bookings/checkout', [BookingController::class, 'createCheckoutSession']);
 Route::post('/api/bookings/stripe/webhook', [BookingController::class, 'stripeWebhook']);
 Route::get('/booking/success', [BookingController::class, 'bookingSuccess'])->name('booking.success');
+// Patient payment confirmation (public — works for guests too)
+Route::post('/booking/{bookingRef}/confirm-payment', [BookingController::class, 'confirmPayment'])->name('booking.confirm-payment');
 
 // Authentication Routes (Web Session Protected with Rate Limiting)
 Route::middleware('guest')->group(function () {
