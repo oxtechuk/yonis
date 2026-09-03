@@ -30,6 +30,12 @@ Route::middleware('throttle:15,1')->group(function () {
     Route::match(['get', 'post'], '/checkout/check-user', [ApiController::class, 'checkUser']);
     Route::post('/checkout/initialize', [ApiController::class, 'initializeCheckout']);
     Route::post('/checkout/confirm', [ApiController::class, 'confirmCheckout']);
+
+    // Patient confirms local payment (ZainCash / SuperKi) — public, no token needed
+    Route::post('/booking/{bookingRef}/confirm-payment', [\App\Http\Controllers\BookingController::class, 'confirmPayment']);
+
+    // SpaceRemit Webhook notification endpoint (IPN callback)
+    Route::post('/payment/spaceremit/webhook', [\App\Http\Controllers\BookingController::class, 'spaceremitWebhook']);
 });
 
 // 3. Protected Routes (Bearer Token Auth via Sanctum with Rate Limiting)

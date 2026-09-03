@@ -22,6 +22,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->validateCsrfTokens(except: [
             'stripe/webhook',
+            'api/bookings/stripe/webhook',
+            'api/payment/spaceremit/webhook',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

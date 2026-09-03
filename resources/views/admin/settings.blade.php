@@ -430,66 +430,84 @@
                             </div>
                         </div>
 
-                        {{-- ─── SpaceRemit (دولي) ─────────────────────────────── --}}
+                        {{-- ─── فيزا وماستر كارد (Visa & MasterCard) ─────────────────────────────── --}}
                         <div class="col-12">
                             <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
                                 <div class="card-header border-0 py-3 px-4 d-flex justify-content-between align-items-center"
-                                     style="background: linear-gradient(135deg, #059669 0%, #064e3b 100%);">
+                                     style="background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%);">
                                     <div class="d-flex align-items-center gap-3">
-                                        <div class="rounded-3 d-flex align-items-center justify-content-center text-white"
-                                             style="width:44px;height:44px;background:rgba(255,255,255,0.15);font-size:1.4rem;">
-                                            🌍
+                                        <div class="rounded-3 d-flex align-items-center justify-content-center text-white bg-white p-1"
+                                             style="width:52px;height:40px;border-radius:10px;">
+                                            <span class="fw-black text-primary" style="font-size:0.75rem; letter-spacing: -0.5px;">VISA</span>
+                                            <span class="fw-black text-danger ms-1" style="font-size:0.75rem;">MC</span>
                                         </div>
                                         <div>
-                                            <h6 class="fw-bold text-white m-0">SpaceRemit — الدفع الدولي</h6>
-                                            <span class="text-white opacity-75 small">بطاقة بنكية + محافظ إلكترونية عالمية</span>
+                                            <h6 class="fw-bold text-white m-0">فيزا وماستر كارد (Visa & MasterCard)</h6>
+                                            <span class="text-white opacity-75 small">بوابة دفع البطاقات الائتمانية والخصم المباشر</span>
                                         </div>
                                     </div>
                                     <div class="form-check form-switch m-0">
                                         <input class="form-check-input fs-4" type="checkbox" role="switch"
-                                               name="payment_spaceremit_enabled" id="spaceremitSwitch"
-                                               @if($settings['payment_spaceremit_enabled'] === '1') checked @endif
+                                               name="payment_card_enabled" id="cardSwitch"
+                                               @if(($settings['payment_card_enabled'] ?? '1') === '1') checked @endif
                                                style="cursor:pointer;">
-                                        <label class="form-check-label text-white fw-bold small" for="spaceremitSwitch">تفعيل</label>
+                                        <label class="form-check-label text-white fw-bold small" for="cardSwitch">تفعيل</label>
                                     </div>
                                 </div>
                                 <div class="card-body p-4">
                                     <div class="row g-4">
                                         <div class="col-md-6">
                                             <label class="form-label fw-bold text-dark">
-                                                <i class="bi bi-key-fill me-1 text-success"></i>
-                                                المفتاح العام (Public Key)
+                                                <i class="bi bi-key-fill me-1 text-primary"></i>
+                                                المفتاح العام (Stripe / Gateway Public Key)
                                             </label>
-                                            <p class="text-muted small">احصل على مفتاحك من لوحة تحكم SpaceRemit.</p>
+                                            <p class="text-muted small">المفتاح المتاح لربط بوابة الدفع (مثل Stripe Publishable Key pk_live...).</p>
                                             <div class="input-group">
                                                 <span class="input-group-text bg-light border-end-0">
-                                                    <i class="bi bi-shield-lock text-success"></i>
+                                                    <i class="bi bi-shield-lock text-primary"></i>
                                                 </span>
-                                                <input type="text" name="payment_spaceremit_key"
+                                                <input type="text" name="payment_card_key"
                                                        class="form-control rounded-end-3 font-monospace"
                                                        placeholder="pk_live_XXXXXXXXXXXXXXXX"
-                                                       value="{{ $settings['payment_spaceremit_key'] }}">
+                                                       value="{{ $settings['payment_card_key'] ?? '' }}">
                                             </div>
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-6">
                                             <label class="form-label fw-bold text-dark">
-                                                <i class="bi bi-currency-dollar me-1 text-success"></i> العملة
+                                                <i class="bi bi-link-45deg me-1 text-primary"></i>
+                                                رابط الدفع المباشر للبطاقات (اختياري)
                                             </label>
-                                            <select name="payment_spaceremit_currency" class="form-select rounded-3">
-                                                <option value="USD" @selected($settings['payment_spaceremit_currency'] === 'USD')>USD — دولار أمريكي</option>
-                                                <option value="EUR" @selected($settings['payment_spaceremit_currency'] === 'EUR')>EUR — يورو</option>
-                                                <option value="IQD" @selected($settings['payment_spaceremit_currency'] === 'IQD')>IQD — دينار عراقي</option>
-                                                <option value="SAR" @selected($settings['payment_spaceremit_currency'] === 'SAR')>SAR — ريال سعودي</option>
-                                                <option value="AED" @selected($settings['payment_spaceremit_currency'] === 'AED')>AED — درهم إماراتي</option>
+                                            <p class="text-muted small">إذا كان لديك رابط دفع مباشر عبر Gumroad أو Stripe Payment Link أو بوابة أخرى.</p>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light border-end-0">
+                                                    <i class="bi bi-globe text-primary"></i>
+                                                </span>
+                                                <input type="url" name="payment_card_link"
+                                                       class="form-control rounded-end-3"
+                                                       placeholder="https://buy.stripe.com/..."
+                                                       value="{{ $settings['payment_card_link'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold text-dark">
+                                                <i class="bi bi-currency-dollar me-1 text-primary"></i> العملة الأساسية للدفع
+                                            </label>
+                                            <select name="payment_card_currency" class="form-select rounded-3">
+                                                <option value="USD" @selected(($settings['payment_card_currency'] ?? 'USD') === 'USD')>USD — دولار أمريكي</option>
+                                                <option value="IQD" @selected(($settings['payment_card_currency'] ?? 'USD') === 'IQD')>IQD — دينار عراقي</option>
+                                                <option value="EUR" @selected(($settings['payment_card_currency'] ?? 'USD') === 'EUR')>EUR — يورو</option>
+                                                <option value="SAR" @selected(($settings['payment_card_currency'] ?? 'USD') === 'SAR')>SAR — ريال سعودي</option>
+                                                <option value="AED" @selected(($settings['payment_card_currency'] ?? 'USD') === 'AED')>AED — درهم إماراتي</option>
                                             </select>
                                         </div>
-                                        <div class="col-12">
-                                            <div class="alert alert-info border-0 rounded-3 d-flex align-items-start gap-2 py-2 mb-0">
-                                                <i class="bi bi-info-circle-fill mt-1"></i>
-                                                <div class="small">
-                                                    <strong>كيفية العمل:</strong> عند تفعيل SpaceRemit، سيظهر للمريض نموذج دفع بالبطاقة البنكية والمحافظ الإلكترونية مباشرةً داخل صفحة الحجز. يتم تحميل مكتبة SpaceRemit فقط عند الحاجة.
-                                                </div>
-                                            </div>
+                                        <div class="col-md-8">
+                                            <label class="form-label fw-bold text-dark">
+                                                <i class="bi bi-chat-left-text me-1 text-primary"></i>
+                                                تعليمات وتوضيحات الدفع للمريض
+                                            </label>
+                                            <input type="text" name="payment_card_instructions" class="form-control rounded-3"
+                                                   placeholder="تظهر للمريض عند اختيار فيزا / ماستر كارد"
+                                                   value="{{ $settings['payment_card_instructions'] ?? 'يمكنك الدفع مباشرة باستخدام أي بطاقة فيزا أو ماستر كارد صادرة محلياً أو دولياً بأمان وسرية تامة.' }}">
                                         </div>
                                     </div>
                                 </div>

@@ -233,4 +233,54 @@ class BookingController extends Controller
             'booking_reference' => $bookingRef,
         ]);
     }
+
+    /**
+     * Handle incoming SpaceRemit Webhook notification.
+     */
+    public function spaceremitWebhook(Request $request)
+    {
+        Log::info('SpaceRemit Webhook Payload:', $request->all());
+
+        $bookingRef = $request->input('booking_ref') 
+            ?? $request->input('notes') 
+            ?? $request->input('order_id')
+            ?? $request->input('custom_fields.booking_ref');
+
+        if ($bookingRef && preg_match('/BK-[A-Z0-9]{8}/i', $bookingRef, $matches)) {
+            $bookingRef = strtoupper($matches[0]);
+        }
+
+        $booking = null;
+        if ($bookingRef) {
+            $booking = Booking::where('booking_reference', $bookingRef)->first();
+        }
+
+        $code = $request->input('code') ?? $request->input('transaction_id');
+        if (!$booking && $code) {
+            $payment = Payment::where('payment_intent_id', $code)->first();
+            $booking = $payment?->booking;
+        }
+
+        $status = strtolower((string)($request->input('status', $request->input('payment_status', ''))));
+        $isSuccessful = in_array($status, ['success', 'successful', 'paid', 'completed', '1'], true);
+
+        if ($booking) {
+            if ($isSuccessful) {
+                $booking->status = 'Confirmed';
+                $booking->save();
+
+                if ($booking->payment) {
+                    $booking->payment->update(['status' => 'Paid']);
+                }
+
+                Log::info("SpaceRemit Webhook: Booking {$booking->booking_reference} marked as Confirmed and Paid.");
+            } else {
+                Log::warning("SpaceRemit Webhook: Payment status was {$status} for booking {$booking->booking_reference}.");
+            }
+
+            return response()->json(['success' => true, 'message' => 'Webhook processed successfully'], 200);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Webhook received and logged'], 200);
+    }
 }

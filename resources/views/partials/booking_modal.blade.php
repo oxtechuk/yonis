@@ -10,10 +10,12 @@
     $paySuperkiEnabled = \App\Models\Setting::get('payment_superki_enabled', '0') === '1';
     $paySuperkiQr     = \App\Models\Setting::get('payment_superki_qr', '');
     $paySuperkiLabel  = \App\Models\Setting::get('payment_superki_label', 'افتح تطبيق SuperKi وامسح الرمز.');
-    $paySpaceEnabled  = \App\Models\Setting::get('payment_spaceremit_enabled', '0') === '1';
-    $paySpaceKey      = \App\Models\Setting::get('payment_spaceremit_key', '');
-    $paySpaceCurrency = \App\Models\Setting::get('payment_spaceremit_currency', 'USD');
-    $anyPaymentActive = $payZainEnabled || $paySuperkiEnabled || $paySpaceEnabled;
+    $payCardEnabled   = \App\Models\Setting::get('payment_card_enabled', '1') === '1';
+    $payCardKey       = \App\Models\Setting::get('payment_card_key', '');
+    $payCardLink      = \App\Models\Setting::get('payment_card_link', '');
+    $payCardCurrency  = \App\Models\Setting::get('payment_card_currency', 'USD');
+    $payCardInstructions = \App\Models\Setting::get('payment_card_instructions', 'يمكنك الدفع مباشرة باستخدام أي بطاقة فيزا أو ماستر كارد صادرة محلياً أو دولياً بأمان وسرية تامة.');
+    $anyPaymentActive = $payZainEnabled || $paySuperkiEnabled || $payCardEnabled;
 @endphp
 
 {{-- ═══ REUSABLE BOOKING POPUP MODAL WITH INTERACTIVE FLOW ═══ --}}
@@ -324,11 +326,11 @@
                                 🔵 SuperKi
                             </button>
                             @endif
-                            @if($paySpaceEnabled)
+                            @if($payCardEnabled)
                             <button type="button" class="btn pay-tab-btn flex-fill @if(!$payZainEnabled && !$paySuperkiEnabled) active @endif"
-                                    id="pay-tab-spaceremit" onclick="switchPayTab('spaceremit')"
-                                    style="background:@if(!$payZainEnabled && !$paySuperkiEnabled)linear-gradient(135deg,#059669,#064e3b)@else#e2e8f0@endif;color:@if(!$payZainEnabled && !$paySuperkiEnabled)#fff@else#475569@endif;border:none;border-radius:14px;padding:10px 6px;font-weight:700;font-size:.82rem;">
-                                🌍 دفع دولي
+                                    id="pay-tab-card" onclick="switchPayTab('card')"
+                                    style="background:@if(!$payZainEnabled && !$paySuperkiEnabled)linear-gradient(135deg,#1e3a8a,#2563eb)@else#e2e8f0@endif;color:@if(!$payZainEnabled && !$paySuperkiEnabled)#fff@else#475569@endif;border:none;border-radius:14px;padding:10px 6px;font-weight:700;font-size:.82rem;">
+                                💳 فيزا وماستر كارد
                             </button>
                             @endif
                         </div>
@@ -373,62 +375,57 @@
                         </div>
                         @endif
 
-                        {{-- ─── بانل SpaceRemit ─── --}}
-                        @if($paySpaceEnabled)
-                        <div id="pay-panel-spaceremit" class="pay-panel @if($payZainEnabled || $paySuperkiEnabled) d-none @endif">
-                            @if(!empty($paySpaceKey))
-                                {{-- SpaceRemit Form --}}
-                                <form id="spaceremit-form" class="w-100">
-                                    <input type="hidden" name="amount" id="sp-amount" value="1">
-                                    <input type="hidden" name="currency" value="{{ $paySpaceCurrency }}">
-                                    <input type="hidden" name="fullname" id="sp-fullname" value="">
-                                    <input type="hidden" name="email"   id="sp-email"    value="">
-                                    <input type="hidden" name="phone"   id="sp-phone"    value="">
-                                    <input type="hidden" name="notes"   id="sp-notes"    value="">
-                                    <div class="sp-one-type-select mb-3">
-                                        <input type="radio" name="sp-pay-type-radio" value="local-methods-pay"
-                                               id="sp_local_methods_radio" checked>
-                                        <label for="sp_local_methods_radio">
-                                            <div>طرق الدفع المحلية</div>
-                                        </label>
-                                        <div id="spaceremit-local-methods-pay"></div>
+                        {{-- ─── بانل فيزا وماستر كارد (Visa & MasterCard) ─── --}}
+                        @if($payCardEnabled)
+                        <div id="pay-panel-card" class="pay-panel @if($payZainEnabled || $paySuperkiEnabled) d-none @endif">
+                            <div class="card border-0 rounded-4 p-3 bg-light shadow-none mb-3">
+                                <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                                    <div class="fw-bold text-dark small">
+                                        <i class="bi bi-shield-check text-success me-1"></i> بوابة الدفع بالبطاقة الائتمانية
                                     </div>
-                                    <div class="sp-one-type-select mb-3">
-                                        <input type="radio" name="sp-pay-type-radio" value="card-pay"
-                                               id="sp_card_radio">
-                                        <label for="sp_card_radio">
-                                            <div>دفع بالبطاقة</div>
-                                        </label>
-                                        <div id="spaceremit-card-pay"></div>
+                                    <div class="d-flex align-items-center gap-1">
+                                        {{-- Visa SVG Logo --}}
+                                        <span class="badge bg-white px-2 py-1 shadow-sm border text-primary fw-black" style="font-size: 0.8rem; letter-spacing: 0.5px;">VISA</span>
+                                        {{-- MasterCard SVG Logo --}}
+                                        <span class="badge bg-white px-2 py-1 shadow-sm border text-danger fw-black" style="font-size: 0.8rem;">MasterCard</span>
                                     </div>
-                                    <button type="submit" class="btn btn-royal-primary w-100 py-3 rounded-pill fw-bold">
-                                        <i class="bi bi-credit-card-2-front-fill me-2"></i> ادفع الآن
-                                    </button>
-                                </form>
-                                <script src="https://spaceremit.com/api/v2/js_script/spaceremit.js"></script>
-                                <script>
-                                const SP_PUBLIC_KEY = "{{ $paySpaceKey }}";
-                                const SP_FORM_ID = "#spaceremit-form";
-                                const SP_SELECT_RADIO_NAME = "sp-pay-type-radio";
-                                const LOCAL_METHODS_BOX_STATUS = true;
-                                const LOCAL_METHODS_PARENT_ID = "#spaceremit-local-methods-pay";
-                                const CARD_BOX_STATUS = true;
-                                const CARD_BOX_PARENT_ID = "#spaceremit-card-pay";
-                                let SP_FORM_AUTO_SUBMIT_WHEN_GET_CODE = true;
-                                function SP_SUCCESSFUL_PAYMENT(code) {
-                                    confirmPaymentAfterSpaceRemit(code);
-                                }
-                                function SP_FAILD_PAYMENT() {
-                                    alert('فشلت عملية الدفع. يرجى المحاولة مرة أخرى.');
-                                }
-                                function SP_RECIVED_MESSAGE(msg) { console.log('SP:', msg); }
-                                function SP_NEED_AUTH(link) { window.open(link, '_blank'); }
-                                </script>
-                            @else
-                                <div class="alert alert-warning rounded-4 small">
-                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                                    لم يتم إعداد مفتاح SpaceRemit — يرجى مراجعة إعدادات الدفع.
                                 </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-secondary mb-1">رقم البطاقة (Card Number)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white border-end-0 text-secondary"><i class="bi bi-credit-card-2-front"></i></span>
+                                        <input type="text" id="card_number_input" class="form-control bg-white border-start-0 font-monospace" placeholder="4242 •••• •••• 4242" maxlength="19" oninput="formatCardNumber(this)">
+                                    </div>
+                                </div>
+
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6">
+                                        <label class="form-label small fw-bold text-secondary mb-1">تاريخ الانتهاء</label>
+                                        <input type="text" id="card_expiry_input" class="form-control bg-white font-monospace text-center" placeholder="MM / YY" maxlength="5" oninput="formatCardExpiry(this)">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small fw-bold text-secondary mb-1">رمز الأمان (CVC)</label>
+                                        <input type="password" id="card_cvc_input" class="form-control bg-white font-monospace text-center" placeholder="•••" maxlength="4">
+                                    </div>
+                                </div>
+
+                                <div class="mb-2">
+                                    <label class="form-label small fw-bold text-secondary mb-1">اسم حامل البطاقة</label>
+                                    <input type="text" id="card_name_input" class="form-control bg-white" placeholder="الاسم كما هو مطبوع على البطاقة">
+                                </div>
+
+                                <p class="text-secondary small mt-2 mb-0" style="font-size:0.75rem;">
+                                    <i class="bi bi-lock-fill text-muted me-1"></i> {{ $payCardInstructions }}
+                                </p>
+                            </div>
+
+                            @if(!empty($payCardLink))
+                            <div class="mb-3">
+                                <a href="{{ $payCardLink }}" target="_blank" class="btn btn-outline-primary w-100 py-2.5 rounded-pill fw-bold small d-flex align-items-center justify-content-center gap-2">
+                                    <i class="bi bi-box-arrow-up-right"></i> أو الدفع عبر رابط الدفع الإلكتروني المباشر
+                                </a>
+                            </div>
                             @endif
                         </div>
                         @endif
@@ -601,7 +598,7 @@ function selectAppPayment(method, el) {
 const payTabGradients = {
     zaincash:   'linear-gradient(135deg,#7c3aed,#4c1d95)',
     superki:    'linear-gradient(135deg,#0284c7,#075985)',
-    spaceremit: 'linear-gradient(135deg,#059669,#064e3b)',
+    card:       'linear-gradient(135deg,#1e3a8a,#2563eb)',
 };
 
 function switchPayTab(method) {
@@ -622,18 +619,20 @@ function switchPayTab(method) {
         activeBtn.style.background = payTabGradients[method];
         activeBtn.style.color = '#fff';
     }
+}
 
-    // Populate SpaceRemit fields when switching to it
-    if (method === 'spaceremit') {
-        const spAmount   = document.getElementById('sp-amount');
-        const spFullname = document.getElementById('sp-fullname');
-        const spPhone    = document.getElementById('sp-phone');
-        const spNotes    = document.getElementById('sp-notes');
-        if (spAmount)   spAmount.value   = appState.price || 1;
-        if (spFullname) spFullname.value = document.getElementById('app_user_name')?.value || '';
-        if (spPhone)    spPhone.value    = (document.getElementById('app_country_code')?.value || '') +
-                                           (document.getElementById('app_user_phone')?.value || '');
-        if (spNotes)    spNotes.value    = 'Booking Ref: ' + (appState.bookingRef || '');
+function formatCardNumber(input) {
+    let v = input.value.replace(/\D/g, '').slice(0, 16);
+    let formatted = v.match(/.{1,4}/g)?.join(' ') || v;
+    input.value = formatted;
+}
+
+function formatCardExpiry(input) {
+    let v = input.value.replace(/\D/g, '').slice(0, 4);
+    if (v.length >= 3) {
+        input.value = v.slice(0, 2) + '/' + v.slice(2);
+    } else {
+        input.value = v;
     }
 }
 
