@@ -241,18 +241,20 @@ class BookingController extends Controller
     {
         Log::info('SpaceRemit Webhook Payload:', $request->all());
 
-        $bookingRef = $request->input('booking_ref') 
+        $rawRef = $request->input('booking_ref') 
             ?? $request->input('notes') 
             ?? $request->input('order_id')
             ?? $request->input('custom_fields.booking_ref');
 
-        if ($bookingRef && preg_match('/BK-[A-Z0-9]{8}/i', $bookingRef, $matches)) {
-            $bookingRef = strtoupper($matches[0]);
-        }
-
         $booking = null;
-        if ($bookingRef) {
-            $booking = Booking::where('booking_reference', $bookingRef)->first();
+        if ($rawRef) {
+            // 1. Try direct exact match
+            $booking = Booking::where('booking_reference', trim($rawRef))->first();
+
+            // 2. If not found directly, extract BK-... pattern from string (e.g. "Booking Ref: BK-ABC12345")
+            if (!$booking && preg_match('/BK-[A-Za-z0-9_-]+/i', $rawRef, $matches)) {
+                $booking = Booking::where('booking_reference', strtoupper($matches[0]))->first();
+            }
         }
 
         $code = $request->input('code') ?? $request->input('transaction_id');
