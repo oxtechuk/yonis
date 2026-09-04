@@ -175,7 +175,19 @@ class AdminDashboardController extends Controller
             ->orderBy('date', 'desc')
             ->orderBy('start_time', 'desc');
 
-        if ($request->filled('status')) {
+        // Status Group or specific Status Filter
+        if ($request->filled('status_group')) {
+            $group = $request->status_group;
+            if ($group === 'pending_payment') {
+                $query->whereIn('status', ['AwaitingPayment', 'PendingPaymentReview', 'Pending']);
+            } elseif ($group === 'upcoming') {
+                $query->where('status', 'Confirmed');
+            } elseif ($group === 'completed') {
+                $query->where('status', 'Completed');
+            } elseif ($group === 'cancelled') {
+                $query->whereIn('status', ['CancelledByPatient', 'CancelledByDoctor', 'Cancelled']);
+            }
+        } elseif ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
@@ -201,11 +213,19 @@ class AdminDashboardController extends Controller
             });
         }
 
+        $statusCounts = [
+            'all'             => Booking::count(),
+            'pending_payment' => Booking::whereIn('status', ['AwaitingPayment', 'PendingPaymentReview', 'Pending'])->count(),
+            'upcoming'        => Booking::where('status', 'Confirmed')->count(),
+            'completed'       => Booking::where('status', 'Completed')->count(),
+            'cancelled'       => Booking::whereIn('status', ['CancelledByPatient', 'CancelledByDoctor', 'Cancelled'])->count(),
+        ];
+
         $bookings = $query->paginate(15)->withQueryString();
         $allPatients = User::where('role', 'patient')->orderBy('name', 'asc')->get();
         $allServices = Service::where('is_active', true)->get();
 
-        return view('admin.bookings', compact('bookings', 'allPatients', 'allServices'));
+        return view('admin.bookings', compact('bookings', 'allPatients', 'allServices', 'statusCounts'));
     }
 
     /**
@@ -433,6 +453,11 @@ class AdminDashboardController extends Controller
 
         $booking->update(['status' => $newStatus]);
         
+        // Notify Patient if appointment is confirmed by doctor
+        if ($newStatus === 'Confirmed' && $oldStatus !== 'Confirmed') {
+            \App\Services\NotificationMailService::notifyPatientBookingConfirmed($booking);
+        }
+
         // Log Notification action
         if ($newStatus === 'CancelledByDoctor' && Setting::get('notify_cancellation') === '1') {
             Log::info("Email Notification: Booking {$booking->booking_reference} cancelled by Doctor. Email sent to {$booking->patient->email}");
@@ -566,31 +591,45 @@ class AdminDashboardController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'type' => 'nullable|in:clinic,online,both',
-            'price' => 'required|numeric|min:0',
+            'type' => 'required|in:clinic,online',
+            'duration' => 'required|integer|min:5',
             'clinic_price' => 'nullable|numeric|min:0',
             'chat_price' => 'nullable|numeric|min:0',
             'voice_price' => 'nullable|numeric|min:0',
             'video_price' => 'nullable|numeric|min:0',
-            'payment_url' => 'nullable|url|max:500',
-            'duration' => 'required|integer|min:5',
+            'price' => 'nullable|numeric|min:0',
         ]);
+
+        $type = $request->type;
+        if ($type === 'clinic') {
+            $clinicPrice = $request->clinic_price ?? ($request->price ?? 0);
+            $price = $clinicPrice;
+            $chatPrice = null;
+            $voicePrice = null;
+            $videoPrice = null;
+        } else {
+            $clinicPrice = null;
+            $chatPrice = $request->chat_price ?? 0;
+            $voicePrice = $request->voice_price ?? 0;
+            $videoPrice = $request->video_price ?? 0;
+            $price = $videoPrice ?: ($chatPrice ?: ($voicePrice ?: 0));
+        }
 
         Service::create([
             'title' => $request->title,
             'description' => $request->description,
-            'type' => $request->type ?? 'both',
-            'price' => $request->price,
-            'clinic_price' => $request->clinic_price ?? $request->price,
-            'chat_price' => $request->chat_price ?? $request->price,
-            'voice_price' => $request->voice_price ?? $request->price,
-            'video_price' => $request->video_price ?? $request->price,
-            'payment_url' => $request->payment_url,
+            'type' => $type,
+            'price' => $price,
+            'clinic_price' => $clinicPrice,
+            'chat_price' => $chatPrice,
+            'voice_price' => $voicePrice,
+            'video_price' => $videoPrice,
+            'payment_url' => null,
             'duration' => $request->duration,
             'is_active' => $request->has('is_active'),
         ]);
 
-        return redirect()->back()->with('success', 'تم إضافة الخدمة وتخصيص أسعار القنوات ورابط الدفع بنجاح.');
+        return redirect()->back()->with('success', 'تم إضافة الخدمة وتحديد أسعارها بنجاح.');
     }
 
     /**
@@ -601,32 +640,47 @@ class AdminDashboardController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'type' => 'nullable|in:clinic,online,both',
-            'price' => 'required|numeric|min:0',
+            'type' => 'required|in:clinic,online',
+            'duration' => 'required|integer|min:5',
             'clinic_price' => 'nullable|numeric|min:0',
             'chat_price' => 'nullable|numeric|min:0',
             'voice_price' => 'nullable|numeric|min:0',
             'video_price' => 'nullable|numeric|min:0',
-            'payment_url' => 'nullable|url|max:500',
-            'duration' => 'required|integer|min:5',
+            'price' => 'nullable|numeric|min:0',
         ]);
 
         $service = Service::findOrFail($id);
+
+        $type = $request->type;
+        if ($type === 'clinic') {
+            $clinicPrice = $request->clinic_price ?? ($request->price ?? 0);
+            $price = $clinicPrice;
+            $chatPrice = null;
+            $voicePrice = null;
+            $videoPrice = null;
+        } else {
+            $clinicPrice = null;
+            $chatPrice = $request->chat_price ?? 0;
+            $voicePrice = $request->voice_price ?? 0;
+            $videoPrice = $request->video_price ?? 0;
+            $price = $videoPrice ?: ($chatPrice ?: ($voicePrice ?: 0));
+        }
+
         $service->update([
             'title' => $request->title,
             'description' => $request->description,
-            'type' => $request->type ?? 'both',
-            'price' => $request->price,
-            'clinic_price' => $request->clinic_price ?? $request->price,
-            'chat_price' => $request->chat_price ?? $request->price,
-            'voice_price' => $request->voice_price ?? $request->price,
-            'video_price' => $request->video_price ?? $request->price,
-            'payment_url' => $request->payment_url,
+            'type' => $type,
+            'price' => $price,
+            'clinic_price' => $clinicPrice,
+            'chat_price' => $chatPrice,
+            'voice_price' => $voicePrice,
+            'video_price' => $videoPrice,
+            'payment_url' => null,
             'duration' => $request->duration,
             'is_active' => $request->has('is_active'),
         ]);
 
-        return redirect()->back()->with('success', 'تم تحديث بيانات الخدمة وأسعار القنوات ورابط الدفع بنجاح.');
+        return redirect()->back()->with('success', 'تم تحديث بيانات الخدمة وتحديد أسعارها بنجاح.');
     }
 
     /**
@@ -1188,9 +1242,11 @@ class AdminDashboardController extends Controller
             'og_image'                 => Setting::get('og_image', ''),
             'google_analytics_id'      => Setting::get('google_analytics_id', ''),
             'meta_pixel_id'            => Setting::get('meta_pixel_id', ''),
-            'notify_new_booking'       => Setting::get('notify_new_booking', '1'),
-            'notify_cancellation'      => Setting::get('notify_cancellation', '1'),
-            'booking_banner_image'     => Setting::get('booking_banner_image', ''),
+            'notify_new_booking'          => Setting::get('notify_new_booking', '1'),
+            'notify_cancellation'         => Setting::get('notify_cancellation', '1'),
+            'email_notifications_enabled' => Setting::get('email_notifications_enabled', '1'),
+            'notification_email'          => Setting::get('notification_email', env('ADMIN_NOTIFICATION_EMAIL', 'dr.yonis@example.com')),
+            'booking_banner_image'        => Setting::get('booking_banner_image', ''),
             // ─── إعدادات الدفع ───────────────────────────────────────────────
             'payment_zaincash_enabled' => Setting::get('payment_zaincash_enabled', '1'),
             'payment_zaincash_qr'      => Setting::get('payment_zaincash_qr', ''),
@@ -1320,7 +1376,37 @@ class AdminDashboardController extends Controller
         Setting::set('payment_spaceremit_key', $request->payment_spaceremit_key ?? '');
         Setting::set('payment_spaceremit_currency', $request->payment_spaceremit_currency ?? 'USD');
 
+        // إعدادات تنبيهات البريد الإلكتروني
+        Setting::set('email_notifications_enabled', $request->has('email_notifications_enabled') ? '1' : '0');
+        if ($request->filled('notification_email')) {
+            Setting::set('notification_email', $request->notification_email);
+        }
+
         return redirect()->back()->with('success', 'تم حفظ جميع الإعدادات بنجاح!');
+    }
+
+    /**
+     * Send test email to verify SMTP credentials from Admin settings
+     */
+    public function sendTestEmail(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        try {
+            \App\Services\NotificationMailService::sendTestEmail($request->email);
+            return response()->json([
+                'success' => true,
+                'message' => '✅ تم إرسال بريد الاختبار بنجاح إلى: ' . $request->email . '. يرجى تفقد صندوق الوارد أو البريد غير الهام (Spam).'
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('SMTP Test Email Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'فشل إرسال البريد: ' . $e->getMessage() . '. يرجى مراجعة إعدادات MAIL_PASSWORD و MAIL_USERNAME في ملف .env'
+            ], 500);
+        }
     }
 
     /**

@@ -57,6 +57,43 @@
     </div>
 </div>
 
+<!-- Status Filter Tabs / Quick Categories -->
+<div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+    <a href="{{ route('admin.bookings', array_merge(request()->except(['status_group', 'status', 'page']))) }}" 
+       class="btn btn-sm rounded-pill px-3 fw-bold {{ !request()->filled('status_group') && !request()->filled('status') ? 'btn-primary shadow-sm' : 'btn-light border text-secondary' }}">
+        <i class="bi bi-grid-fill me-1"></i> جميع الحجوزات
+        <span class="badge {{ !request()->filled('status_group') && !request()->filled('status') ? 'bg-white text-primary' : 'bg-secondary text-white' }} ms-1 rounded-pill">{{ $statusCounts['all'] ?? 0 }}</span>
+    </a>
+
+    <a href="{{ route('admin.bookings', array_merge(request()->except(['status_group', 'status', 'page']), ['status_group' => 'pending_payment'])) }}" 
+       class="btn btn-sm rounded-pill px-3 fw-bold {{ request('status_group') === 'pending_payment' ? 'btn-warning text-dark shadow-sm' : 'btn-light border text-dark' }}"
+       style="{{ request('status_group') === 'pending_payment' ? '' : 'background:#fffbeb;border-color:#fde68a !important;' }}">
+        <i class="bi bi-hourglass-split me-1 text-warning"></i> بانتظار تأكيد الدفع
+        <span class="badge {{ ($statusCounts['pending_payment'] ?? 0) > 0 ? 'bg-danger text-white' : 'bg-secondary text-white' }} ms-1 rounded-pill">
+            {{ $statusCounts['pending_payment'] ?? 0 }}
+        </span>
+    </a>
+
+    <a href="{{ route('admin.bookings', array_merge(request()->except(['status_group', 'status', 'page']), ['status_group' => 'upcoming'])) }}" 
+       class="btn btn-sm rounded-pill px-3 fw-bold {{ request('status_group') === 'upcoming' ? 'btn-success shadow-sm' : 'btn-light border text-dark' }}"
+       style="{{ request('status_group') === 'upcoming' ? '' : 'background:#f0fdf4;border-color:#bbf7d0 !important;' }}">
+        <i class="bi bi-calendar-check-fill me-1 text-success"></i> حجز قادم
+        <span class="badge {{ request('status_group') === 'upcoming' ? 'bg-white text-success' : 'bg-success text-white' }} ms-1 rounded-pill">{{ $statusCounts['upcoming'] ?? 0 }}</span>
+    </a>
+
+    <a href="{{ route('admin.bookings', array_merge(request()->except(['status_group', 'status', 'page']), ['status_group' => 'completed'])) }}" 
+       class="btn btn-sm rounded-pill px-3 fw-bold {{ request('status_group') === 'completed' ? 'btn-info text-white shadow-sm' : 'btn-light border text-secondary' }}">
+        <i class="bi bi-check2-all me-1"></i> مكتمل
+        <span class="badge {{ request('status_group') === 'completed' ? 'bg-white text-info' : 'bg-secondary text-white' }} ms-1 rounded-pill">{{ $statusCounts['completed'] ?? 0 }}</span>
+    </a>
+
+    <a href="{{ route('admin.bookings', array_merge(request()->except(['status_group', 'status', 'page']), ['status_group' => 'cancelled'])) }}" 
+       class="btn btn-sm rounded-pill px-3 fw-bold {{ request('status_group') === 'cancelled' ? 'btn-danger shadow-sm' : 'btn-light border text-secondary' }}">
+        <i class="bi bi-x-circle-fill me-1 text-danger"></i> ملغي
+        <span class="badge {{ request('status_group') === 'cancelled' ? 'bg-white text-danger' : 'bg-secondary text-white' }} ms-1 rounded-pill">{{ $statusCounts['cancelled'] ?? 0 }}</span>
+    </a>
+</div>
+
 <!-- Bookings List Table Card -->
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
     <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
@@ -112,19 +149,11 @@
                                 ${{ number_format($booking->price ?? $booking->service->price, 2) }}
                             </td>
                             <td>
-                                @if($booking->status === 'AwaitingPayment')
-                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-1.5 rounded-pill">بانتظار الدفع</span>
-                                @elseif($booking->status === 'Confirmed')
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1.5 rounded-pill">مؤكد</span>
-                                @elseif($booking->status === 'Completed')
-                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-1.5 rounded-pill">مكتمل</span>
-                                @elseif($booking->status === 'CancelledByPatient')
-                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-1.5 rounded-pill">ملغي بواسطة المريض</span>
-                                @elseif($booking->status === 'CancelledByDoctor')
-                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-1.5 rounded-pill">ملغي بواسطة الطبيب</span>
-                                @elseif($booking->status === 'NoShow')
-                                    <span class="badge bg-dark-subtle text-dark border border-dark-subtle px-3 py-1.5 rounded-pill">لم يحضر</span>
-                                @endif
+                                @php $badge = $booking->status_badge; @endphp
+                                <span class="badge {{ $badge['class'] }} px-3 py-1.5 rounded-pill d-inline-flex align-items-center gap-1.5" style="font-size: 0.78rem;">
+                                    <i class="bi {{ $badge['icon'] }}"></i>
+                                    <span>{{ $badge['label'] }}</span>
+                                </span>
                             </td>
                             <td>
                                 @if($booking->payment)
@@ -142,21 +171,21 @@
                                         <span>الإجراءات</span>
                                         <i class="bi bi-chevron-down text-muted" style="font-size: 0.7rem;"></i>
                                     </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2" style="min-width: 200px; z-index: 1050;">
-                                        @if($booking->status === 'AwaitingPayment')
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2" style="min-width: 220px; z-index: 1050;">
+                                        @if($booking->status_category === 'pending_payment')
                                             <li>
                                                 <form action="{{ route('admin.bookings.status', $booking->id) }}" method="POST" class="m-0">
                                                     @csrf
                                                     <input type="hidden" name="status" value="Confirmed">
                                                     <button type="submit" class="dropdown-item rounded-3 py-2 small fw-bold text-success d-flex align-items-center gap-2">
                                                         <i class="bi bi-check-circle-fill"></i>
-                                                        <span>تأكيد استلام الدفع</span>
+                                                        <span>تأكيد استلام الدفع وتثبيت الموعد</span>
                                                     </button>
                                                 </form>
                                             </li>
                                         @endif
 
-                                        @if(in_array($booking->status, ['Confirmed', 'AwaitingPayment']))
+                                        @if(in_array($booking->status_category, ['upcoming', 'pending_payment']))
                                             <li>
                                                 <button type="button" class="dropdown-item rounded-3 py-2 small fw-bold text-primary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#rescheduleModal{{ $booking->id }}">
                                                     <i class="bi bi-calendar-event-fill"></i>

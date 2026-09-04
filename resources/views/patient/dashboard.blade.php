@@ -107,15 +107,15 @@
                             </td>
                             <td>
                                 @if($b->status === 'Confirmed')
-                                    <span class="saas-badge saas-badge-green"><i class="bi bi-check-circle"></i> مؤكد</span>
-                                @elseif($b->status === 'AwaitingPayment')
-                                    <span class="saas-badge saas-badge-amber"><i class="bi bi-hourglass-split"></i> بانتظار الدفع</span>
+                                    <span class="saas-badge saas-badge-green"><i class="bi bi-calendar-check-fill"></i> حجز قادم مؤكد</span>
+                                @elseif(in_array($b->status, ['AwaitingPayment', 'PendingPaymentReview', 'Pending']))
+                                    <span class="saas-badge saas-badge-amber"><i class="bi bi-hourglass-split"></i> بانتظار تأكيد الدفع</span>
                                 @elseif($b->status === 'Completed')
                                     <span class="saas-badge" style="background: #F1F5F9; color: #475569;"><i class="bi bi-check2-all"></i> مكتمل</span>
                                 @elseif(str_contains($b->status, 'Cancelled'))
                                     <span class="saas-badge" style="background: #FFE4E6; color: var(--brand-rose);"><i class="bi bi-x-circle"></i> ملغي</span>
                                 @else
-                                    <span class="saas-badge">{{ $b->status }}</span>
+                                    <span class="saas-badge">{{ $b->status_label }}</span>
                                 @endif
                             </td>
                             <td>

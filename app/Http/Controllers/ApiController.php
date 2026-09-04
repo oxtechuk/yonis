@@ -311,8 +311,33 @@ class ApiController extends Controller
             ], 503);
         }
 
-        // Determine if user is already registered (by token auth or by phone/email lookup)
-        $existingUser = $request->user();
+        // Determine if user is already registered or logged in:
+        // 1. Direct Bearer token parsing (Guaranteed to work for Sanctum outside auth middleware)
+        $existingUser = null;
+        $bearerToken = $request->bearerToken();
+        if (!empty($bearerToken)) {
+            try {
+                if (class_exists(\Laravel\Sanctum\PersonalAccessToken::class)) {
+                    $tokenModel = \Laravel\Sanctum\PersonalAccessToken::findToken($bearerToken);
+                    if ($tokenModel && $tokenModel->tokenable) {
+                        $existingUser = $tokenModel->tokenable;
+                    }
+                }
+            } catch (\Throwable $e) {
+                // Fallback to other detection methods
+            }
+        }
+
+        // 2. Sanctum auth guard or default request user
+        if (!$existingUser) {
+            try {
+                $existingUser = auth('sanctum')->user() ?: $request->user();
+            } catch (\Throwable $e) {
+                // Fallback
+            }
+        }
+
+        // 3. Fallback: Lookup by phone or email if provided in request
         if (!$existingUser) {
             $checkPhone = $request->input('phone');
             $checkEmail = $request->input('email');
@@ -322,6 +347,12 @@ class ApiController extends Controller
             if (!$existingUser && !empty($checkEmail)) {
                 $existingUser = User::where('email', $checkEmail)->first();
             }
+        }
+
+        // 4. Fallback: Lookup by patient_id or user_id if provided in payload
+        if (!$existingUser && ($request->filled('patient_id') || $request->filled('user_id'))) {
+            $checkId = $request->input('patient_id') ?: $request->input('user_id');
+            $existingUser = User::find($checkId);
         }
 
         $isRegistered = (bool) $existingUser;
@@ -335,15 +366,29 @@ class ApiController extends Controller
             'start_time' => 'required|string',
             'title' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
+            'name' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'password' => 'nullable|string|min:6',
         ];
 
-        // If guest (not logged in), validate name, phone, password
-        if (!$request->user()) {
+        // If not recognized as registered user:
+        if (!$isRegistered) {
+            // If the client sent empty/null fields or an invalid/expired token, give a helpful 401 response
+            if ($bearerToken || ($request->has('name') && is_null($request->input('name')) && is_null($request->input('phone')))) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'لم يتم التعرف على حساب العميل المسجل. يرجى التأكد من تسجيل الدخول أولاً وإرسال رمز المصادقة (Bearer Token) الصالح في ترويسة الطلب Authorization: Bearer {token}',
+                    'errors' => [
+                        'auth' => ['رمز المصادقة (Bearer Token) مفقود أو غير صالح أو منتهي الصلاحية. قم بتسجيل الدخول أولاً عبر /api/login لتجديد التوكن.']
+                    ]
+                ], 401);
+            }
+
+            // Otherwise, require guest user info to create a new account
             $rules['name'] = 'required|string|max:255';
             $rules['phone'] = 'required|string|max:20';
-            $rules['email'] = 'nullable|email|max:255';
-            // If already registered, password is optional; if new user, password can be provided or set
-            $rules['password'] = $isRegistered ? 'nullable|string|min:6' : 'required|string|min:6';
+            $rules['password'] = 'required|string|min:6';
         }
 
         $request->validate($rules);
@@ -503,6 +548,10 @@ class ApiController extends Controller
             $waMsg = urlencode("مرحباً دكتور يونس، تم حجز موعد جديد برقم: {$bookingRef}\nالخدمة: {$service->title}\nالمبلغ: {$calculatedPrice}$\nطريقة الدفع: {$paymentMethod}\nيرجى مراجعة وتأكيد الحجز.");
             $waUrl = "https://wa.me/{$cleanWa}?text={$waMsg}";
 
+            // Fail-safe Email notifications to Doctor and Patient
+            \App\Services\NotificationMailService::notifyDoctorNewBooking($booking, 'حجز جديد عبر التطبيق');
+            \App\Services\NotificationMailService::notifyPatientBookingReceived($booking);
+
             return response()->json([
                 'success' => true,
                 'booking_reference' => $bookingRef,
@@ -518,7 +567,7 @@ class ApiController extends Controller
                 'requires_account' => !$isRegistered,
                 'requires_password' => !$isRegistered,
                 'account_prompt' => $isRegistered ? null : 'يرجى إضافة كلمة المرور لإنشاء حسابك ومتابعة الحجز',
-                'booking' => $booking->fresh(['service'])
+                'booking' => $booking->fresh(['service', 'patient'])
             ], 201);
         });
     }
@@ -553,6 +602,9 @@ class ApiController extends Controller
         $token = $patient->createToken('mobile-token')->plainTextToken;
 
         $servicePaymentUrl = !empty($booking->service->payment_url) ? $booking->service->payment_url : Setting::get('default_payment_url', 'https://younisalmurshed.gumroad.com/l/srjlvw?wanted=true');
+
+        // Notify patient that booking is confirmed
+        \App\Services\NotificationMailService::notifyPatientBookingConfirmed($booking);
 
         return response()->json([
             'success' => true,

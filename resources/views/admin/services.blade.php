@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'إدارة تصنيفات الخدمات والأسعار وقنوات الاستشارة')
+@section('title', 'إدارة وتصنيف الخدمات والأسعار')
 
 @section('styles')
 <style>
@@ -18,7 +18,7 @@
         border: none;
         background: transparent;
         border-radius: 25px;
-        padding: 6px 16px;
+        padding: 6px 18px;
         font-size: 0.85rem;
         font-weight: 700;
         transition: all 0.2s ease;
@@ -36,30 +36,66 @@
         box-shadow: 0 4px 12px rgba(64, 85, 165, 0.25);
     }
 
-    /* Gumroad Link Pill */
-    .btn-gumroad-link {
+    /* Distinct Type Badges */
+    .badge-service-type {
         display: inline-flex;
         align-items: center;
         gap: 5px;
-        padding: 4px 12px;
+        padding: 4px 10px;
         border-radius: 20px;
-        background: rgba(64, 85, 165, 0.08);
-        color: var(--primary-color);
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         font-weight: 700;
-        border: 1px solid rgba(64, 85, 165, 0.2);
         white-space: nowrap;
-        text-decoration: none;
-        transition: all 0.2s ease;
     }
-    .btn-gumroad-link:hover {
-        background: var(--primary-color);
-        color: #ffffff;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 10px rgba(64, 85, 165, 0.2);
+    .badge-service-type.clinic {
+        background: #fff1f2;
+        color: #be123c;
+        border: 1px solid #fecdd3;
+    }
+    .badge-service-type.online {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border: 1px solid #bfdbfe;
     }
 
-    /* Status Dot Pill */
+    /* Distinct Price Chips */
+    .price-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 11px;
+        border-radius: 8px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        white-space: nowrap;
+        border: 1px solid transparent;
+        transition: transform 0.15s ease;
+    }
+    .price-chip:hover {
+        transform: translateY(-1px);
+    }
+    .price-chip.clinic {
+        background: #fff1f2;
+        border-color: #fecdd3;
+        color: #be123c;
+    }
+    .price-chip.chat {
+        background: #fffbeb;
+        border-color: #fde68a;
+        color: #b45309;
+    }
+    .price-chip.voice {
+        background: #ecfdf5;
+        border-color: #a7f3d0;
+        color: #047857;
+    }
+    .price-chip.video {
+        background: #f5f3ff;
+        border-color: #ddd6fe;
+        color: #6d28d9;
+    }
+
+    /* Status Pill */
     .badge-status-pill {
         display: inline-flex;
         align-items: center;
@@ -123,7 +159,7 @@
 
 @section('content')
 <div class="row g-4">
-    <!-- Services List -->
+    <!-- Services List Table -->
     <div class="col-lg-8">
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
             <div class="card-header bg-white py-3 border-0">
@@ -132,14 +168,14 @@
                         <h5 class="fw-bold m-0 text-primary d-flex align-items-center gap-2">
                             <i class="bi bi-grid-fill fs-5"></i> إدارة وتصنيف الخدمات الطبية
                         </h5>
-                        <p class="text-secondary small m-0">تنظيم الخدمات بحسب التصنيف (أونلاين، عيادة، كلاهما) وتخصيص الأسعار وقنوات الحجز.</p>
+                        <p class="text-secondary small m-0">تنظيم الخدمات وتحديد أسعارها (كشف العيادة بسعر محدد، أو استشارة أونلاين بأسعار الشات والصوت والفيديو).</p>
                     </div>
                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1.5 fw-bold">
                         إجمالي {{ count($services) }} خدمات
                     </span>
                 </div>
 
-                {{-- Modern Segmented Filter Capsule --}}
+                {{-- Segmented Filter Capsule --}}
                 <div class="mt-3 pt-3 border-top">
                     <div class="category-segment-capsule">
                         <button type="button" class="service-filter-btn active" onclick="filterServicesTable('all', this)">
@@ -162,8 +198,7 @@
                             <tr>
                                 <th class="ps-4">اسم الخدمة والتصنيف</th>
                                 <th>المدة</th>
-                                <th>أسعار القنوات ($)</th>
-                                <th>رابط الدفع</th>
+                                <th>الأسعار والتسعير ($)</th>
                                 <th>الحالة</th>
                                 <th class="pe-4 text-end">الإجراءات</th>
                             </tr>
@@ -175,20 +210,16 @@
                                         <div class="d-flex align-items-center gap-2 mb-1">
                                             <span class="fw-bold text-dark fs-6">{{ $service->title }}</span>
                                             @if($service->type === 'clinic')
-                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5" style="font-size: 0.75rem;">
-                                                    <i class="bi bi-hospital me-1"></i> عيادة فقط
-                                                </span>
-                                            @elseif($service->type === 'online')
-                                                <span class="badge bg-info-subtle text-primary border border-info-subtle rounded-pill px-2 py-0.5" style="font-size: 0.75rem;">
-                                                    <i class="bi bi-laptop me-1"></i> أونلاين فقط
+                                                <span class="badge-service-type clinic">
+                                                    <i class="bi bi-hospital"></i> كشف في العيادة
                                                 </span>
                                             @else
-                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5" style="font-size: 0.75rem;">
-                                                    <i class="bi bi-arrow-left-right me-1"></i> أونلاين وعيادة
+                                                <span class="badge-service-type online">
+                                                    <i class="bi bi-laptop"></i> استشارة أونلاين
                                                 </span>
                                             @endif
                                         </div>
-                                        <div class="text-secondary small">{{ Str::limit($service->description, 65) }}</div>
+                                        <div class="text-secondary small">{{ Str::limit($service->description, 75) }}</div>
                                     </td>
                                     <td>
                                         <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1">
@@ -196,24 +227,26 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <div class="d-flex flex-column gap-1 small">
-                                            @if($service->type === 'clinic' || $service->type === 'both')
-                                                <div><span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-0.5"><i class="bi bi-hospital me-1"></i>العيادة:</span> <strong class="text-dark">${{ number_format($service->clinic_price ?? $service->price, 2) }}</strong></div>
-                                            @endif
-                                            @if($service->type === 'online' || $service->type === 'both')
-                                                <div><span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-0.5"><i class="bi bi-chat-dots me-1"></i>شات:</span> <strong class="text-dark">${{ number_format($service->chat_price ?? $service->price, 2) }}</strong></div>
-                                                <div><span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5"><i class="bi bi-telephone me-1"></i>صوت:</span> <strong class="text-dark">${{ number_format($service->voice_price ?? $service->price, 2) }}</strong></div>
-                                                <div><span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2 py-0.5"><i class="bi bi-camera-video me-1"></i>فيديو:</span> <strong class="text-dark">${{ number_format($service->video_price ?? $service->price, 2) }}</strong></div>
-                                            @endif
-                                        </div>
-                                    </td>
-                                    <td>
-                                        @if(!empty($service->payment_url))
-                                            <a href="{{ $service->payment_url }}" target="_blank" class="btn-gumroad-link" title="{{ $service->payment_url }}">
-                                                <i class="bi bi-box-arrow-up-right"></i> رابط Gumroad
-                                            </a>
+                                        @if($service->type === 'clinic')
+                                            {{-- كشف العيادة بسعر واحد فقط --}}
+                                            <div class="d-flex align-items-center">
+                                                <span class="price-chip clinic">
+                                                    <i class="bi bi-hospital"></i> كشف العيادة: <strong>${{ number_format($service->clinic_price ?? $service->price, 2) }}</strong>
+                                                </span>
+                                            </div>
                                         @else
-                                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5 py-1">رابط افتراضي</span>
+                                            {{-- استشارة أونلاين: 3 قنوات بأسعار منفصلة ومميزة --}}
+                                            <div class="d-flex flex-wrap gap-1.5 align-items-center">
+                                                <span class="price-chip chat" title="سعر استشارة الشات">
+                                                    <i class="bi bi-chat-dots"></i> شات: <strong>${{ number_format($service->chat_price ?? $service->price, 2) }}</strong>
+                                                </span>
+                                                <span class="price-chip voice" title="سعر استشارة الصوت">
+                                                    <i class="bi bi-telephone"></i> صوت: <strong>${{ number_format($service->voice_price ?? $service->price, 2) }}</strong>
+                                                </span>
+                                                <span class="price-chip video" title="سعر استشارة الفيديو">
+                                                    <i class="bi bi-camera-video"></i> فيديو: <strong>${{ number_format($service->video_price ?? $service->price, 2) }}</strong>
+                                                </span>
+                                            </div>
                                         @endif
                                     </td>
                                     <td>
@@ -242,19 +275,20 @@
                                     <div class="modal-dialog modal-lg modal-dialog-centered">
                                         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
                                             <div class="modal-header bg-light border-bottom">
-                                                <h5 class="modal-title fw-bold text-dark fs-6">تعديل الخدمة والتصنيف: {{ $service->title }}</h5>
+                                                <h5 class="modal-title fw-bold text-dark fs-6">
+                                                    <i class="bi bi-pencil-square text-primary me-1"></i> تعديل الخدمة: {{ $service->title }}
+                                                </h5>
                                                 <button type="button" class="btn-close ms-0" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
                                             <form action="{{ route('admin.services.update', $service->id) }}" method="POST">
                                                 @csrf
                                                 <div class="modal-body p-4">
-                                                    {{-- Service Category Selection --}}
+                                                    {{-- Service Category Selection (Only 2 types) --}}
                                                     <div class="mb-3">
-                                                        <label class="form-label small fw-bold text-primary"><i class="bi bi-tags-fill me-1"></i> تصنيف ونوع الحجز للخدمة</label>
+                                                        <label class="form-label small fw-bold text-primary"><i class="bi bi-tags-fill me-1"></i> تصنيف ونوع الخدمة</label>
                                                         <select name="type" class="form-select rounded-3 fw-bold" id="editServiceType{{ $service->id }}" onchange="toggleEditServiceFields({{ $service->id }})" required>
-                                                            <option value="both" @if($service->type === 'both') selected @endif>🔄 كلاهما متاح (أونلاين وعيادة)</option>
-                                                            <option value="online" @if($service->type === 'online') selected @endif>💻 استشارة أونلاين فقط</option>
-                                                            <option value="clinic" @if($service->type === 'clinic') selected @endif>🏥 كشف في مقر العيادة فقط (بغداد)</option>
+                                                            <option value="online" @if($service->type !== 'clinic') selected @endif>💻 استشارة أونلاين</option>
+                                                            <option value="clinic" @if($service->type === 'clinic') selected @endif>🏥 كشف في العيادة</option>
                                                         </select>
                                                     </div>
 
@@ -262,52 +296,51 @@
                                                         <label class="form-label small fw-bold">اسم الخدمة</label>
                                                         <input type="text" name="title" class="form-control rounded-3" value="{{ $service->title }}" required>
                                                     </div>
+                                                    
                                                     <div class="mb-3">
-                                                        <label class="form-label small fw-bold">شرح ووصف الخدمة</label>
+                                                        <label class="form-label small fw-bold">مدة الجلسة (بالدقائق)</label>
+                                                        <input type="number" name="duration" class="form-control rounded-3" value="{{ $service->duration }}" required min="5">
+                                                    </div>
+
+                                                    <div class="mb-3">
+                                                        <label class="form-label small fw-bold">شرح وتفاصيل الخدمة</label>
                                                         <textarea name="description" class="form-control rounded-3" rows="2">{{ $service->description }}</textarea>
                                                     </div>
-                                                    <div class="row g-3 mb-3">
-                                                        <div class="col-md-6">
-                                                            <label class="form-label small fw-bold">السعر الأساسي القياسي ($)</label>
-                                                            <input type="number" step="0.01" name="price" class="form-control rounded-3" value="{{ $service->price }}" required>
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <label class="form-label small fw-bold">مدة الجلسة (بالدقائق)</label>
-                                                            <input type="number" name="duration" class="form-control rounded-3" value="{{ $service->duration }}" required>
-                                                        </div>
+
+                                                    {{-- Clinic Price Box (Only 1 price) --}}
+                                                    <div class="p-3 rounded-4 border mb-3" id="editClinicPriceBox{{ $service->id }}" style="background: #fff1f2; border-color: #fecdd3 !important; display: {{ $service->type === 'clinic' ? 'block' : 'none' }};">
+                                                        <h6 class="fw-bold small mb-2 text-danger">
+                                                            <i class="bi bi-hospital me-1"></i> سعر كشف العيادة ($)
+                                                        </h6>
+                                                        <p class="text-secondary small mb-2">كشف العيادة له سعر موحد للكشف والفحص المباشر في مقر العيادة.</p>
+                                                        <input type="number" step="0.01" name="clinic_price" class="form-control rounded-3 bg-white" value="{{ $service->clinic_price ?? $service->price }}" placeholder="50.00">
                                                     </div>
 
-                                                    <div class="mb-3" id="editPaymentUrlBox{{ $service->id }}">
-                                                        <label class="form-label small fw-bold text-primary"><i class="bi bi-link-45deg me-1"></i> رابط الدفع الخارجي الخاص بالخدمة (Gumroad / رابط مباشر)</label>
-                                                        <input type="url" name="payment_url" class="form-control rounded-3" value="{{ $service->payment_url }}" placeholder="https://younisalmurshed.gumroad.com/l/...">
-                                                        <div class="form-text small">رابط صفحة الدفع الخاصة بهذه الخدمة لنقل العميل إليها مباشرة.</div>
-                                                    </div>
-
-                                                    <div class="p-3 bg-light rounded-4 border mb-3">
-                                                        <h6 class="fw-bold text-primary small mb-3"><i class="bi bi-cash-coin me-1"></i> تسعير قنوات التواصل ($)</h6>
+                                                    {{-- Online Channels Pricing Box (3 distinct channel prices) --}}
+                                                    <div class="p-3 rounded-4 border mb-3 bg-light" id="editOnlineChannelsBox{{ $service->id }}" style="display: {{ $service->type !== 'clinic' ? 'block' : 'none' }};">
+                                                        <h6 class="fw-bold text-primary small mb-2">
+                                                            <i class="bi bi-cash-coin me-1"></i> أسعار قنوات الاستشارة الأونلاين ($)
+                                                        </h6>
+                                                        <p class="text-secondary small mb-3">حدد سعر كل قناة تواصل بحسب وسيلة الاستشارة المختارة.</p>
                                                         <div class="row g-3">
-                                                            <div class="col-md-6" id="editClinicPriceBox{{ $service->id }}">
-                                                                <label class="form-label small fw-bold text-danger"><i class="bi bi-hospital me-1"></i> سعر كشف العيادة ($)</label>
-                                                                <input type="number" step="0.01" name="clinic_price" class="form-control rounded-3" value="{{ $service->clinic_price ?? $service->price }}" placeholder="0.00">
+                                                            <div class="col-md-4">
+                                                                <label class="form-label small fw-bold" style="color: #b45309;"><i class="bi bi-chat-dots me-1"></i> استشارة شات ($)</label>
+                                                                <input type="number" step="0.01" name="chat_price" class="form-control rounded-3 bg-white" value="{{ $service->chat_price ?? $service->price }}" placeholder="30.00">
                                                             </div>
-                                                            <div class="col-md-6 edit-online-channel-{{ $service->id }}">
-                                                                <label class="form-label small fw-bold text-warning-emphasis"><i class="bi bi-chat-dots me-1"></i> سعر استشارة الشات ($)</label>
-                                                                <input type="number" step="0.01" name="chat_price" class="form-control rounded-3" value="{{ $service->chat_price ?? $service->price }}" placeholder="0.00">
+                                                            <div class="col-md-4">
+                                                                <label class="form-label small fw-bold" style="color: #047857;"><i class="bi bi-telephone me-1"></i> استشارة صوت ($)</label>
+                                                                <input type="number" step="0.01" name="voice_price" class="form-control rounded-3 bg-white" value="{{ $service->voice_price ?? $service->price }}" placeholder="40.00">
                                                             </div>
-                                                            <div class="col-md-6 edit-online-channel-{{ $service->id }}">
-                                                                <label class="form-label small fw-bold text-success"><i class="bi bi-telephone me-1"></i> سعر استشارة الصوت ($)</label>
-                                                                <input type="number" step="0.01" name="voice_price" class="form-control rounded-3" value="{{ $service->voice_price ?? $service->price }}" placeholder="0.00">
-                                                            </div>
-                                                            <div class="col-md-6 edit-online-channel-{{ $service->id }}">
-                                                                <label class="form-label small fw-bold text-info-emphasis"><i class="bi bi-camera-video me-1"></i> سعر استشارة الفيديو ($)</label>
-                                                                <input type="number" step="0.01" name="video_price" class="form-control rounded-3" value="{{ $service->video_price ?? $service->price }}" placeholder="0.00">
+                                                            <div class="col-md-4">
+                                                                <label class="form-label small fw-bold" style="color: #6d28d9;"><i class="bi bi-camera-video me-1"></i> استشارة فيديو ($)</label>
+                                                                <input type="number" step="0.01" name="video_price" class="form-control rounded-3 bg-white" value="{{ $service->video_price ?? $service->price }}" placeholder="50.00">
                                                             </div>
                                                         </div>
                                                     </div>
 
                                                     <div class="form-check form-switch text-start">
                                                         <input class="form-check-input float-end ms-2" type="checkbox" role="switch" name="is_active" id="editActive{{ $service->id }}" @if($service->is_active) checked @endif>
-                                                        <label class="form-check-label fw-bold small text-dark" for="editActive{{ $service->id }}">تفعيل الخدمة وإظهارها في قائمة الحجز</label>
+                                                        <label class="form-check-label fw-bold small text-dark" for="editActive{{ $service->id }}">تفعيل الخدمة وإظهارها للمرضى في صفحة الحجز</label>
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer bg-light border-top">
@@ -350,7 +383,7 @@
                                 </div>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center py-4 text-secondary">لا توجد خدمات مضافة حالياً.</td>
+                                    <td colspan="5" class="text-center py-4 text-secondary">لا توجد خدمات مضافة حالياً.</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -372,62 +405,65 @@
                 <form action="{{ route('admin.services.store') }}" method="POST">
                     @csrf
                     
-                    {{-- Category Selection --}}
+                    {{-- Category Selection (2 Types Only) --}}
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-primary"><i class="bi bi-tags-fill me-1"></i> تصنيف ونوع الحجز للخدمة</label>
+                        <label class="form-label small fw-bold text-primary"><i class="bi bi-tags-fill me-1"></i> تصنيف ونوع الخدمة</label>
                         <select name="type" class="form-select rounded-3 fw-bold" id="addServiceType" onchange="toggleAddServiceFields()" required>
-                            <option value="both" selected>🔄 كلاهما متاح (أونلاين وعيادة)</option>
-                            <option value="online">💻 استشارة أونلاين فقط</option>
-                            <option value="clinic">🏥 كشف في مقر العيادة فقط (بغداد)</option>
+                            <option value="online" selected>💻 استشارة أونلاين</option>
+                            <option value="clinic">🏥 كشف في العيادة</option>
                         </select>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label small fw-bold">اسم الخدمة</label>
-                        <input type="text" name="title" class="form-control rounded-3" placeholder="مثال: استشارة زوجية وأسرية - 45 دقيقة" required>
+                        <input type="text" name="title" class="form-control rounded-3" placeholder="مثال: استشارة نفسية - 45 دقيقة" required>
                     </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">المدة (بالدقائق)</label>
+                        <input type="number" name="duration" class="form-control rounded-3" placeholder="30" required min="5" value="30">
+                    </div>
+
                     <div class="mb-3">
                         <label class="form-label small fw-bold">الوصف والتفاصيل</label>
                         <textarea name="description" class="form-control rounded-3" rows="2" placeholder="اكتب هنا تفاصيل الجلسة ومميزاتها..."></textarea>
                     </div>
-                    <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <label class="form-label small fw-bold">السعر الأساسي ($)</label>
-                            <input type="number" step="0.01" name="price" class="form-control rounded-3" placeholder="50.00" required>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label small fw-bold">المدة (دقائق)</label>
-                            <input type="number" name="duration" class="form-control rounded-3" placeholder="30" required>
-                        </div>
+
+                    {{-- Clinic Pricing (Single Price) --}}
+                    <div class="p-3 rounded-4 border mb-3" id="addClinicPriceBox" style="background: #fff1f2; border-color: #fecdd3 !important; display: none;">
+                        <h6 class="fw-bold small mb-2 text-danger">
+                            <i class="bi bi-hospital me-1"></i> سعر كشف العيادة ($)
+                        </h6>
+                        <p class="text-secondary small mb-2">سعر موحد للكشف والفحص المباشر في مقر العيادة.</p>
+                        <input type="number" step="0.01" name="clinic_price" class="form-control rounded-3 bg-white" placeholder="مثال: 50.00">
                     </div>
 
-                    <div class="mb-3" id="addPaymentUrlBox">
-                        <label class="form-label small fw-bold text-primary"><i class="bi bi-link-45deg me-1"></i> رابط الدفع الخارجي (Gumroad)</label>
-                        <input type="url" name="payment_url" class="form-control rounded-3" placeholder="https://younisalmurshed.gumroad.com/l/srjlvw?wanted=true">
-                        <div class="form-text small">رابط بوابة Gumroad أو رابط الدفع المباشر الخاص بهذه الخدمة.</div>
-                    </div>
+                    {{-- Online Channels Pricing (3 Distinct Channel Prices) --}}
+                    <div class="p-3 rounded-4 border mb-3 bg-light" id="addOnlineChannelsBox" style="display: block;">
+                        <h6 class="fw-bold text-primary small mb-2">
+                            <i class="bi bi-cash-coin me-1"></i> أسعار قنوات الاستشارة الأونلاين ($)
+                        </h6>
+                        <p class="text-secondary small mb-3">حدد سعر كل قناة تواصل بحسب وسيلة الاستشارة:</p>
 
-                    <div class="border rounded-4 p-3 bg-light mb-3">
-                        <h6 class="fw-bold text-primary small mb-3"><i class="bi bi-cash-coin me-1"></i> تسعير قنوات التواصل المباشر ($)</h6>
-                        
-                        <div class="mb-2.5" id="addClinicPriceBox">
-                            <label class="form-label small fw-bold text-danger mb-1"><i class="bi bi-hospital me-1"></i> سعر كشف العيادة ($)</label>
-                            <input type="number" step="0.01" name="clinic_price" class="form-control form-control-sm rounded-3" placeholder="اختياري (أو نفس الأساسي)">
+                        <div class="mb-2.5">
+                            <label class="form-label small fw-bold mb-1" style="color: #b45309;">
+                                <i class="bi bi-chat-dots me-1"></i> سعر استشارة الشات ($)
+                            </label>
+                            <input type="number" step="0.01" name="chat_price" class="form-control form-control-sm rounded-3 bg-white" placeholder="مثال: 30.00">
                         </div>
 
-                        <div class="add-online-channels">
-                            <div class="mb-2.5">
-                                <label class="form-label small fw-bold text-warning-emphasis mb-1"><i class="bi bi-chat-dots me-1"></i> سعر استشارة الشات ($)</label>
-                                <input type="number" step="0.01" name="chat_price" class="form-control form-control-sm rounded-3" placeholder="اختياري">
-                            </div>
-                            <div class="mb-2.5">
-                                <label class="form-label small fw-bold text-success mb-1"><i class="bi bi-telephone me-1"></i> سعر استشارة الصوت ($)</label>
-                                <input type="number" step="0.01" name="voice_price" class="form-control form-control-sm rounded-3" placeholder="اختياري">
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label small fw-bold text-info-emphasis mb-1"><i class="bi bi-camera-video me-1"></i> سعر استشارة الفيديو ($)</label>
-                                <input type="number" step="0.01" name="video_price" class="form-control form-control-sm rounded-3" placeholder="اختياري">
-                            </div>
+                        <div class="mb-2.5">
+                            <label class="form-label small fw-bold mb-1" style="color: #047857;">
+                                <i class="bi bi-telephone me-1"></i> سعر استشارة الصوت ($)
+                            </label>
+                            <input type="number" step="0.01" name="voice_price" class="form-control form-control-sm rounded-3 bg-white" placeholder="مثال: 40.00">
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label small fw-bold mb-1" style="color: #6d28d9;">
+                                <i class="bi bi-camera-video me-1"></i> سعر استشارة الفيديو ($)
+                            </label>
+                            <input type="number" step="0.01" name="video_price" class="form-control form-control-sm rounded-3 bg-white" placeholder="مثال: 50.00">
                         </div>
                     </div>
 
@@ -435,8 +471,9 @@
                         <input class="form-check-input float-end ms-2" type="checkbox" role="switch" name="is_active" id="activeSwitch" checked>
                         <label class="form-check-label fw-bold small text-dark" for="activeSwitch">تفعيل الخدمة فورياً للحجز</label>
                     </div>
+
                     <button type="submit" class="btn btn-royal-primary w-100 py-3 rounded-pill fw-bold shadow-sm">
-                        <i class="bi bi-plus-circle me-1"></i> إضافة الخدمة والأسعار
+                        <i class="bi bi-plus-circle me-1"></i> إضافة الخدمة وحفظ الأسعار
                     </button>
                 </form>
             </div>
@@ -466,37 +503,33 @@ function filterServicesTable(category, btn) {
     });
 }
 
+// Toggle Add Form Fields between Clinic vs Online
 function toggleAddServiceFields() {
     const type = document.getElementById('addServiceType').value;
     const clinicBox = document.getElementById('addClinicPriceBox');
-    const onlineChannels = document.querySelectorAll('.add-online-channels');
-    
+    const onlineBox = document.getElementById('addOnlineChannelsBox');
+
     if (type === 'clinic') {
         clinicBox.style.display = 'block';
-        onlineChannels.forEach(el => el.style.display = 'none');
-    } else if (type === 'online') {
-        clinicBox.style.display = 'none';
-        onlineChannels.forEach(el => el.style.display = 'block');
+        onlineBox.style.display = 'none';
     } else {
-        clinicBox.style.display = 'block';
-        onlineChannels.forEach(el => el.style.display = 'block');
+        clinicBox.style.display = 'none';
+        onlineBox.style.display = 'block';
     }
 }
 
+// Toggle Edit Modal Fields between Clinic vs Online
 function toggleEditServiceFields(id) {
     const type = document.getElementById('editServiceType' + id).value;
     const clinicBox = document.getElementById('editClinicPriceBox' + id);
-    const onlineChannels = document.querySelectorAll('.edit-online-channel-' + id);
+    const onlineBox = document.getElementById('editOnlineChannelsBox' + id);
 
     if (type === 'clinic') {
         clinicBox.style.display = 'block';
-        onlineChannels.forEach(el => el.style.display = 'none');
-    } else if (type === 'online') {
-        clinicBox.style.display = 'none';
-        onlineChannels.forEach(el => el.style.display = 'block');
+        onlineBox.style.display = 'none';
     } else {
-        clinicBox.style.display = 'block';
-        onlineChannels.forEach(el => el.style.display = 'block');
+        clinicBox.style.display = 'none';
+        onlineBox.style.display = 'block';
     }
 }
 </script>

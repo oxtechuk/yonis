@@ -126,6 +126,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::middleware([CheckPermission::class . ':manage_settings'])->group(function () {
         Route::get('/settings', [AdminDashboardController::class, 'settings'])->name('settings');
         Route::post('/settings', [AdminDashboardController::class, 'updateSettings'])->name('settings.update');
+        Route::post('/settings/test-email', [AdminDashboardController::class, 'sendTestEmail'])->name('settings.test-email');
         Route::get('/api-control', [AdminDashboardController::class, 'apiControl'])->name('api-control');
         Route::post('/api-control', [AdminDashboardController::class, 'updateApiControl'])->name('api-control.update');
         Route::post('/api-control/token/{id}/delete', [AdminDashboardController::class, 'revokeToken'])->name('api-control.token.revoke');

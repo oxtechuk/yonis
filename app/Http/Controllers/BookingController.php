@@ -17,6 +17,7 @@ use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Stripe\Stripe;
 use Stripe\PaymentIntent;
+use App\Services\NotificationMailService;
 
 class BookingController extends Controller
 {
@@ -251,9 +252,14 @@ class BookingController extends Controller
             'transaction_reference' => $transRef
         ]);
 
+        // Send Email Notifications (Fail-safe via NotificationMailService)
+        NotificationMailService::notifyDoctorNewBooking($booking, 'إشعار تحويل وتأكيد دفع جديد');
+        NotificationMailService::notifyPatientBookingReceived($booking);
+
         return response()->json([
             'success' => true,
-            'message' => 'تم إرسال تأكيد الدفع بنجاح. سيقوم الدكتور بمراجعة دفعك وتأكيد الحجز.',
+            'status' => 'PendingPaymentReview',
+            'message' => 'تم استلام طلبك وتأكيد الدفع بنجاح. حجزك الآن قيد المراجعة، وبعد إتمام التحقق سيصلك رقم تأكيد الحجز النهائي وتفاصيل الموعد.',
             'booking_reference' => $bookingRef,
             'payment_method' => $paymentMethod,
             'transaction_reference' => $transRef,

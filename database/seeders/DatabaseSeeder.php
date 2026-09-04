@@ -214,6 +214,42 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        Testimonial::updateOrCreate(
+            ['client_name_ar' => 'د. هدى الجبوري'],
+            [
+                'client_name_en' => 'Dr. Huda Al-Jubouri',
+                'client_avatar' => 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80',
+                'rating' => 5,
+                'content_ar' => 'كدكتورة، أقدّر جداً النهج العلمي المنظم الذي يتبعه د. يونس. ساعدني في تجاوز مرحلة إرهاق واحتراق مهني حادة، والآن أتمتع بتوازن ممتاز بين عملي وحياتي.',
+                'content_en' => 'As a physician, I highly appreciate Dr. Younis scientific approach. He helped me overcome severe burnout.',
+                'is_active' => true,
+            ]
+        );
+
+        Testimonial::updateOrCreate(
+            ['client_name_ar' => 'أحمد العبيدي'],
+            [
+                'client_name_en' => 'Ahmed Al-Obeidi',
+                'client_avatar' => 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+                'rating' => 5,
+                'content_ar' => 'كنت متردداً ومتحفظاً بخصوص استشارة معالج نفسي، لكن منذ الجلسة الأولى شعرت بأمان كبير وراحة نفسية. أسلوب عملي ومبسط ساعدني في التغلب على القلق الاجتماعي.',
+                'content_en' => 'I was hesitant about psychological counseling, but from session one I felt immense psychological safety and comfort.',
+                'is_active' => true,
+            ]
+        );
+
+        Testimonial::updateOrCreate(
+            ['client_name_ar' => 'مريم النجفي'],
+            [
+                'client_name_en' => 'Maryam Al-Najafi',
+                'client_avatar' => 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+                'rating' => 5,
+                'content_ar' => 'المواعيد الأونلاين دقيقة جداً والتعامل في قمة الاحترام. التمارين السلوكية التي وجهني لها الدكتور أحدثت فارقاً حقيقياً في تخفيف التوتر اليومي.',
+                'content_en' => 'Online sessions were prompt and deeply respectful. The behavioral exercises made a true difference in relieving daily tension.',
+                'is_active' => true,
+            ]
+        );
+
         // 6. Create Reels / Video Testimonials
         Reel::updateOrCreate(
             ['title' => 'كيف تتخلص من التفكير الزائد (Overthinking) والقلق المستمر؟'],
@@ -247,6 +283,42 @@ class DatabaseSeeder extends Seeder
                 'platform' => 'tiktok',
                 'duration' => 30,
                 'sort_order' => 3,
+                'is_active' => true,
+            ]
+        );
+
+        Reel::updateOrCreate(
+            ['title' => '5 علامات واضحة تدل على الاحتراق النفسي والمهني (Burnout)'],
+            [
+                'thumbnail_url' => 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80',
+                'video_url' => 'https://www.youtube.com/shorts/5burnoutsigns',
+                'platform' => 'youtube',
+                'duration' => 50,
+                'sort_order' => 4,
+                'is_active' => true,
+            ]
+        );
+
+        Reel::updateOrCreate(
+            ['title' => 'تقنية 5-4-3-2-1 السحرية لتهدئة العقل الفوري أثناء التوتر'],
+            [
+                'thumbnail_url' => 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=600&q=80',
+                'video_url' => 'https://www.tiktok.com/@younisalmurshed/video/groundingtechnique',
+                'platform' => 'tiktok',
+                'duration' => 40,
+                'sort_order' => 5,
+                'is_active' => true,
+            ]
+        );
+
+        Reel::updateOrCreate(
+            ['title' => 'كيف تحمي نفسك من الاستنزاف العاطفي في العلاقات السامة؟'],
+            [
+                'thumbnail_url' => 'https://images.unsplash.com/photo-1499209974431-9dddcece7f88?auto=format&fit=crop&w=600&q=80',
+                'video_url' => 'https://www.youtube.com/shorts/healthyboundaries',
+                'platform' => 'youtube',
+                'duration' => 55,
+                'sort_order' => 6,
                 'is_active' => true,
             ]
         );

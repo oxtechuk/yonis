@@ -59,6 +59,78 @@ class Booking extends Model
         };
     }
 
+    /**
+     * Group status into 4 primary clean categories:
+     * - 'pending_payment': بانتظار تأكيد الدفع
+     * - 'upcoming': حجز قادم مؤكد
+     * - 'completed': مكتمل
+     * - 'cancelled': ملغي
+     */
+    public function getStatusCategoryAttribute(): string
+    {
+        return match ($this->status) {
+            'AwaitingPayment', 'PendingPaymentReview', 'Pending' => 'pending_payment',
+            'Confirmed' => 'upcoming',
+            'Completed' => 'completed',
+            'CancelledByPatient', 'CancelledByDoctor', 'Cancelled' => 'cancelled',
+            'NoShow' => 'noshow',
+            default => 'other'
+        };
+    }
+
+    /**
+     * Get clean Arabic status label
+     */
+    public function getStatusLabelAttribute(): string
+    {
+        return match ($this->status) {
+            'PendingPaymentReview' => 'بانتظار تأكيد الدفع',
+            'AwaitingPayment' => 'بانتظار تأكيد الدفع',
+            'Pending' => 'بانتظار المراجعة',
+            'Confirmed' => 'حجز قادم مؤكد',
+            'Completed' => 'مكتمل',
+            'CancelledByPatient' => 'ملغي (بواسطة المريض)',
+            'CancelledByDoctor' => 'ملغي (بواسطة الطبيب)',
+            'Cancelled' => 'ملغي',
+            'NoShow' => 'لم يحضر',
+            default => $this->status
+        };
+    }
+
+    /**
+     * Get badge configuration for views
+     */
+    public function getStatusBadgeAttribute(): array
+    {
+        return match ($this->status_category) {
+            'pending_payment' => [
+                'class' => 'bg-warning-subtle text-warning-emphasis border border-warning',
+                'icon' => 'bi-hourglass-split',
+                'label' => 'بانتظار تأكيد الدفع',
+            ],
+            'upcoming' => [
+                'class' => 'bg-success-subtle text-success border border-success',
+                'icon' => 'bi-calendar-check-fill',
+                'label' => 'حجز قادم مؤكد',
+            ],
+            'completed' => [
+                'class' => 'bg-info-subtle text-info border border-info',
+                'icon' => 'bi-check2-all',
+                'label' => 'مكتمل',
+            ],
+            'cancelled' => [
+                'class' => 'bg-danger-subtle text-danger border border-danger',
+                'icon' => 'bi-x-circle-fill',
+                'label' => str_contains($this->status, 'Patient') ? 'ملغي بواسطة المريض' : (str_contains($this->status, 'Doctor') ? 'ملغي بواسطة الطبيب' : 'ملغي'),
+            ],
+            default => [
+                'class' => 'bg-secondary-subtle text-secondary border border-secondary',
+                'icon' => 'bi-dash-circle',
+                'label' => 'لم يحضر',
+            ]
+        };
+    }
+
 
     /**
      * Patient relation

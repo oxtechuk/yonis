@@ -257,24 +257,91 @@
 
                 <!-- 4. Notifications Panel -->
                 <div class="tab-pane fade" id="notifications-panel" role="tabpanel" aria-labelledby="notifications-tab">
-                    <div class="col-lg-8">
-                        <h6 class="fw-bold text-dark mb-3">تفضيلات إشعارات البريد الإلكتروني</h6>
+                    <div class="col-lg-9">
                         
-                        <div class="form-check form-switch text-start mb-3 p-3 bg-light rounded-4 border d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
                             <div>
-                                <label class="form-check-label fw-bold text-dark" for="notifyNewSwitch">إشعار عند حجز جديد</label>
-                                <div class="text-secondary small">إرسال إشعار تلقائي عند نجاح عملية حجز موعد جديد.</div>
+                                <h5 class="fw-bold text-dark m-0"><i class="bi bi-envelope-check-fill text-primary me-2"></i> نظام إشعارات البريد الإلكتروني (Gmail / SMTP)</h5>
+                                <p class="text-secondary small mb-0 mt-1">إرسال إشعارات فورية للطبيب عند الحجز والدفع، وإشعارات تأكيد المواعيد للمرضى.</p>
                             </div>
-                            <input class="form-check-input ms-0 fs-5" type="checkbox" role="switch" name="notify_new_booking" id="notifyNewSwitch" value="1" @if($settings['notify_new_booking'] === '1') checked @endif>
                         </div>
 
-                        <div class="form-check form-switch text-start mb-4 p-3 bg-light rounded-4 border d-flex justify-content-between align-items-center">
+                        <!-- Master Switch -->
+                        <div class="form-check form-switch text-start mb-3 p-3 bg-light rounded-4 border d-flex justify-content-between align-items-center">
                             <div>
-                                <label class="form-check-label fw-bold text-dark" for="notifyCancelSwitch">إشعار عند إلغاء الحجز</label>
-                                <div class="text-secondary small">إرسال إشعار فوري عند إلغاء حجز أو استرداد الأموال.</div>
+                                <label class="form-check-label fw-bold text-dark" for="emailEnabledSwitch">تفعيل إرسال الإشعارات البريدية</label>
+                                <div class="text-secondary small">تمكين نظام إرسال الإيميلات للمراجعين ولإدارة العيادة تلقائياً.</div>
                             </div>
-                            <input class="form-check-input ms-0 fs-5" type="checkbox" role="switch" name="notify_cancellation" id="notifyCancelSwitch" value="1" @if($settings['notify_cancellation'] === '1') checked @endif>
+                            <input class="form-check-input ms-0 fs-5" type="checkbox" role="switch" name="email_notifications_enabled" id="emailEnabledSwitch" value="1" @if(($settings['email_notifications_enabled'] ?? '1') === '1') checked @endif>
                         </div>
+
+                        <!-- Doctor Recipient Email -->
+                        <div class="card border-0 bg-light rounded-4 p-3 mb-3 border">
+                            <label class="form-label fw-bold text-dark mb-1">
+                                <i class="bi bi-person-badge text-primary me-1"></i> البريد الإلكتروني لاستقبال إشعارات الحجز (إيميل الطبيب)
+                            </label>
+                            <p class="text-secondary small mb-2">البريد الذي ستصل إليه تنبيهات الحجوزات الجديدة وإشعارات تحويل الأموال فورياً.</p>
+                            <input type="email" name="notification_email" class="form-control form-control-lg rounded-3 bg-white" placeholder="dr.yonis@gmail.com" value="{{ $settings['notification_email'] ?? 'dr.yonis@gmail.com' }}">
+                        </div>
+
+                        <!-- Notification Events -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch text-start p-3 bg-light rounded-4 border d-flex justify-content-between align-items-center h-100">
+                                    <div>
+                                        <label class="form-check-label fw-bold text-dark" for="notifyNewSwitch">إشعار حجز جديد</label>
+                                        <div class="text-secondary small">تنبيه فوري عند تسجيل حجز جديد أو دفع محلي.</div>
+                                    </div>
+                                    <input class="form-check-input ms-0 fs-5" type="checkbox" role="switch" name="notify_new_booking" id="notifyNewSwitch" value="1" @if($settings['notify_new_booking'] === '1') checked @endif>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch text-start p-3 bg-light rounded-4 border d-flex justify-content-between align-items-center h-100">
+                                    <div>
+                                        <label class="form-check-label fw-bold text-dark" for="notifyCancelSwitch">إشعار إلغاء الحجز</label>
+                                        <div class="text-secondary small">إرسال تنبيه في حال قام المريض بإلغاء موعده.</div>
+                                    </div>
+                                    <input class="form-check-input ms-0 fs-5" type="checkbox" role="switch" name="notify_cancellation" id="notifyCancelSwitch" value="1" @if($settings['notify_cancellation'] === '1') checked @endif>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Gmail SMTP Instructions Box -->
+                        <div class="alert alert-info border-0 rounded-4 p-3 mb-4 text-start" style="background:#eff6ff;color:#1e40af;line-height:1.7;">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="bi bi-google fs-4 text-primary flex-shrink-0 mt-1"></i>
+                                <div>
+                                    <strong class="d-block mb-1" style="font-size: 0.95rem;">ربط حساب Gmail عبر Google App Password:</strong>
+                                    <span class="small">لاستخدام بريد Gmail الشخصي أو بريد العيادة للإرسال، تأكد من وضع المتغيرات التالية في ملف <code>.env</code> على الخادم:</span>
+                                    <div class="bg-white p-2.5 rounded-3 border mt-2 font-monospace small text-dark" style="direction:ltr;text-align:left;">
+                                        MAIL_MAILER=smtp<br>
+                                        MAIL_HOST=smtp.gmail.com<br>
+                                        MAIL_PORT=587<br>
+                                        MAIL_USERNAME=your-email@gmail.com<br>
+                                        MAIL_PASSWORD=xxxx-xxxx-xxxx-xxxx <span class="text-muted"># (Google App Password المكون من 16 حرف)</span><br>
+                                        MAIL_ENCRYPTION=tls<br>
+                                        MAIL_FROM_ADDRESS=your-email@gmail.com<br>
+                                        MAIL_FROM_NAME="عيادة د. يونس المرشد"
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SMTP Test Email Box -->
+                        <div class="card border-0 rounded-4 p-3.5 mb-2" style="background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:1.5px dashed #cbd5e1 !important;">
+                            <h6 class="fw-bold text-dark mb-1"><i class="bi bi-send-check text-success me-1"></i> اختبار اتصال البريد (Live SMTP Test)</h6>
+                            <p class="text-secondary small mb-3">أدخل أي بريد إلكتروني تود تجربة الإرسال إليه للتأكد من أن السيرفر متصل بـ Gmail بنجاح:</p>
+                            
+                            <div class="input-group">
+                                <input type="email" id="test-email-input" class="form-control rounded-end-3 bg-white" placeholder="test@example.com" value="{{ $settings['notification_email'] ?? 'dr.yonis@gmail.com' }}">
+                                <button type="button" class="btn btn-primary rounded-start-3 px-3 fw-bold" id="send-test-btn" onclick="sendTestEmailAjax()">
+                                    <i class="bi bi-paperplane me-1"></i> إرسال بريد تجريبي الآن
+                                </button>
+                            </div>
+                            
+                            <div id="test-email-feedback" class="mt-2 d-none"></div>
+                        </div>
+
                     </div>
                 </div>
 
@@ -554,6 +621,53 @@ function previewQR(input, imgId) {
         };
         reader.readAsDataURL(input.files[0]);
     }
+}
+
+function sendTestEmailAjax() {
+    const input = document.getElementById('test-email-input');
+    const btn = document.getElementById('send-test-btn');
+    const feedback = document.getElementById('test-email-feedback');
+    const email = input.value.trim();
+
+    if (!email) {
+        alert('يرجى كتابة بريد إلكتروني صالح للاختبار');
+        return;
+    }
+
+    btn.disabled = true;
+    const oldHtml = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> جارٍ الإرسال...';
+    feedback.className = 'mt-2 d-none';
+
+    fetch('{{ route("admin.settings.test-email") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({ email: email })
+    })
+    .then(r => r.json().then(data => ({ status: r.status, body: data })))
+    .then(({ status, body }) => {
+        btn.disabled = false;
+        btn.innerHTML = oldHtml;
+        feedback.classList.remove('d-none');
+        if (status === 200 && body.success) {
+            feedback.className = 'alert alert-success border-0 rounded-3 p-2.5 small mt-2';
+            feedback.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> ' + body.message;
+        } else {
+            feedback.className = 'alert alert-danger border-0 rounded-3 p-2.5 small mt-2';
+            feedback.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> ' + (body.message || 'فشل إرسال البريد');
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = oldHtml;
+        feedback.classList.remove('d-none');
+        feedback.className = 'alert alert-danger border-0 rounded-3 p-2.5 small mt-2';
+        feedback.innerHTML = '<i class="bi bi-x-circle-fill me-1"></i> حدث خطأ أثناء محاولة الاتصال بالسيرفر.';
+    });
 }
 </script>
 @endpush

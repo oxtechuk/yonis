@@ -347,11 +347,17 @@
                 <div id="app-screen-3" class="d-none">
                     <div class="text-center py-4">
                         <div class="mx-auto mb-3 d-flex align-items-center justify-content-center"
-                             style="width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-size:2.2rem;box-shadow:0 12px 28px rgba(16,185,129,.35);">
-                            <i class="bi bi-check-lg"></i>
+                             style="width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-size:2.2rem;box-shadow:0 12px 28px rgba(245,158,11,.35);">
+                            <i class="bi bi-hourglass-split"></i>
                         </div>
-                        <h4 class="fw-black text-dark mb-1">تم تسجيل طلب الحجز بنجاح!</h4>
-                        <p class="text-secondary small mb-4">يرجى إرسال لقطة شاشة إيصال الدفع عبر واتساب ليتم مراجعة الدفع وتأكيد الحجز نهائياً خلال 24 ساعة.</p>
+                        <span class="badge bg-warning text-dark px-3 py-1.5 rounded-pill fw-bold mb-2" style="font-size:0.85rem;">
+                            <i class="bi bi-clock-history me-1"></i> الحجز قيد المراجعة والتدقيق
+                        </span>
+                        <h4 class="fw-black text-dark mb-2">تم تسجيل طلب الحجز بنجاح!</h4>
+                        <div class="alert alert-warning border-0 rounded-4 p-3 mb-3 text-start small" style="background:#fffbeb;color:#92400e;line-height:1.7;">
+                            <i class="bi bi-info-circle-fill text-warning fs-5 me-1 align-middle"></i>
+                            <strong>تنبيه هام:</strong> حجزك الآن <u>قيد المراجعة</u> من قبل الإدارة. بعد إتمام التحقق من عملية الدفع، سيصلك <strong>رقم تأكيد الحجز النهائي</strong> وتفاصيل الموعد مباشرة. يرجى إرسال إشعار التحويل لتسريع التأكيد.
+                        </div>
 
                         {{-- معلومات الحجز (summary) --}}
                         <div class="rounded-4 p-3 mb-4 text-start" style="background:linear-gradient(135deg,rgba(59,82,164,.07),rgba(59,82,164,.02));border:1.5px solid rgba(59,82,164,.12);">

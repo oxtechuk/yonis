@@ -333,6 +333,16 @@
 				{
 					"name": "Step 1: Initialize Checkout (حجز جلسة واختيار طريقة الدفع)",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "POST",
 						"header": [
 							{
@@ -348,7 +358,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"service_id\": 1,\n    \"booking_type\": \"online\",\n    \"consultation_type\": \"video\",\n    \"payment_method\": \"zaincash\",\n    \"date\": \"2026-09-02\",\n    \"start_time\": \"14:30\",\n    \"title\": \"استشارة حول نوبات القلق والتوتر\",\n    \"notes\": \"جلسة فيديو عبر الإنترنت\",\n    \"name\": \"مستفيد تجريبي\",\n    \"phone\": \"+9647799887766\",\n    \"password\": \"password123\"\n}"
+							"raw": "{\n    \"service_id\": 1,\n    \"booking_type\": \"online\",\n    \"consultation_type\": \"video\",\n    \"payment_method\": \"zaincash\",\n    \"date\": \"2026-09-02\",\n    \"start_time\": \"14:30\",\n    \"title\": \"استشارة حول نوبات القلق والتوتر\",\n    \"notes\": \"جلسة فيديو عبر الإنترنت\",\n    \"name\": null,\n    \"phone\": null,\n    \"password\": null\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/checkout/initialize",
@@ -361,7 +371,7 @@
 								"initialize"
 							]
 						},
-						"description": "خطوة 1: اختيار الجلسة والوقت وقناة التواصل وطريقة الدفع (zaincash, superki, card, stripe). يرجع booking_reference، و qr_code، و payment_instructions، ورابط الواتساب whatsapp_url لتأكيد التحويل."
+						"description": "خطوة 1: اختيار الجلسة والوقت وقناة التواصل وطريقة الدفع (zaincash, superki, card, stripe). إذا كان العميل مسجل ومعه Bearer Token، تكون حقول الاسم ورقم الهاتف والباسورد اختيارية تماماً (null أو مهملة) ويرتبط الحجز بحسابه مباشرة."
 					},
 					"response": []
 				},
