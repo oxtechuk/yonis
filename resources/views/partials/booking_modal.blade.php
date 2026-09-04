@@ -76,22 +76,22 @@
                             <div class="app-duration-item" onclick="selectAppDuration(15, 30, this)">
                                 <div class="app-duration-icon"><i class="bi bi-hourglass-split"></i></div>
                                 <div class="app-duration-time">15 {{ __('messages.minutes') }}</div>
-                                <div class="app-duration-price">30 $</div>
+                                <div class="app-duration-price">30 {{ \App\Models\Setting::currencySymbol() }}</div>
                             </div>
                             <div class="app-duration-item selected" onclick="selectAppDuration(30, 50, this)">
                                 <div class="app-duration-icon"><i class="bi bi-hourglass-split"></i></div>
                                 <div class="app-duration-time">30 {{ __('messages.minutes') }}</div>
-                                <div class="app-duration-price">50 $</div>
+                                <div class="app-duration-price">50 {{ \App\Models\Setting::currencySymbol() }}</div>
                             </div>
                             <div class="app-duration-item" onclick="selectAppDuration(45, 75, this)">
                                 <div class="app-duration-icon"><i class="bi bi-hourglass-split"></i></div>
                                 <div class="app-duration-time">45 {{ __('messages.minutes') }}</div>
-                                <div class="app-duration-price">75 $</div>
+                                <div class="app-duration-price">75 {{ \App\Models\Setting::currencySymbol() }}</div>
                             </div>
                             <div class="app-duration-item" onclick="selectAppDuration(60, 100, this)">
                                 <div class="app-duration-icon"><i class="bi bi-hourglass-split"></i></div>
                                 <div class="app-duration-time">60 {{ __('messages.minutes') }}</div>
-                                <div class="app-duration-price">100 $</div>
+                                <div class="app-duration-price">100 {{ \App\Models\Setting::currencySymbol() }}</div>
                             </div>
                         </div>
                     </div>
@@ -111,11 +111,11 @@
                     <div class="bg-white p-3 rounded-4 border mb-3">
                         <div class="d-flex justify-content-between mb-2 fs-6">
                             <span class="text-secondary">{{ __('messages.order_total') }}:</span>
-                            <span class="fw-bold text-dark" id="app-session-price">50 $</span>
+                            <span class="fw-bold text-dark" id="app-session-price">50 {{ \App\Models\Setting::currencySymbol() }}</span>
                         </div>
                         <div class="d-flex justify-content-between fs-6 border-top pt-2">
                             <span class="fw-bold text-dark">{{ __('messages.order_total') }}:</span>
-                            <span class="fw-bold" style="color:var(--primary-color);" id="app-required-price">50 $</span>
+                            <span class="fw-bold" style="color:var(--primary-color);" id="app-required-price">50 {{ \App\Models\Setting::currencySymbol() }}</span>
                         </div>
                     </div>
 
@@ -130,7 +130,7 @@
                     <div class="mobile-app-bottom-bar">
                         <div>
                             <div class="app-total-label">{{ __('messages.order_total') }}</div>
-                            <div class="app-total-value" id="app-bottom-total">50 $</div>
+                            <div class="app-total-value" id="app-bottom-total">50 {{ \App\Models\Setting::currencySymbol() }}</div>
                         </div>
                         <button type="button" class="btn-app-primary d-flex align-items-center gap-2" onclick="goToAppScreen2()">
                             <span>{{ __('messages.next') }}: اختيار الموعد والدفع</span>
@@ -337,7 +337,7 @@
                             <i class="bi bi-arrow-right me-1"></i> {{ __('messages.back') }}
                         </button>
                         <button type="button" class="btn-app-primary flex-fill" id="app-submit-pay-btn" onclick="executeAppBooking()">
-                            <i class="bi bi-check-circle-fill me-1"></i> تأكيد الحجز وإرسال الإيصال (<span id="app-btn-price-display">50 $</span>)
+                            <i class="bi bi-check-circle-fill me-1"></i> تأكيد الحجز وإرسال الإيصال (<span id="app-btn-price-display">50 {{ \App\Models\Setting::currencySymbol() }}</span>)
                         </button>
                     </div>
 
@@ -379,7 +379,7 @@
                             </div>
                             <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2">
                                 <span class="fw-bold text-dark">المبلغ الإجمالي:</span>
-                                <span class="fw-black fs-5" style="color:var(--primary-color);" id="app-res-type">50 $</span>
+                                <span class="fw-black fs-5" style="color:var(--primary-color);" id="app-res-type">50 {{ \App\Models\Setting::currencySymbol() }}</span>
                             </div>
                         </div>
 
@@ -497,9 +497,11 @@ function selectAppDuration(duration, price, el) {
     if (el) el.classList.add('selected');
 }
 
+const appCurrencySymbol = '{{ \App\Models\Setting::currencySymbol() }}';
+
 function updateModalPrice(price) {
     appState.price = price;
-    const pText = price + ' $';
+    const pText = price + ' ' + appCurrencySymbol;
     if (document.getElementById('app-session-price')) document.getElementById('app-session-price').textContent = pText;
     if (document.getElementById('app-required-price')) document.getElementById('app-required-price').textContent = pText;
     if (document.getElementById('app-bottom-total')) document.getElementById('app-bottom-total').textContent = pText;
@@ -912,7 +914,7 @@ function executeAppBooking() {
             
             if (btn) {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> تأكيد الحجز وإرسال الإيصال (' + (appState.price || 50) + ' $)';
+                btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> تأكيد الحجز وإرسال الإيصال (' + (appState.price || 50) + ' ' + appCurrencySymbol + ')';
             }
 
             const ref = data?.booking_reference || 'REF-' + Math.floor(1000 + Math.random() * 9000);
@@ -927,7 +929,7 @@ function executeAppBooking() {
             if (document.getElementById('app-res-ref')) document.getElementById('app-res-ref').textContent = '#' + ref;
             if (document.getElementById('app-res-service')) document.getElementById('app-res-service').textContent = appState.title || 'جلسة استشارة نفسية';
             if (document.getElementById('app-res-datetime')) document.getElementById('app-res-datetime').textContent = appState.date + ' | ' + appState.slot;
-            if (document.getElementById('app-res-type')) document.getElementById('app-res-type').textContent = (appState.price || 50) + ' $';
+            if (document.getElementById('app-res-type')) document.getElementById('app-res-type').textContent = (appState.price || 50) + ' ' + appCurrencySymbol;
 
             const payMethodLabels = {
                 zaincash: 'زين كاش (ZainCash)',
@@ -937,7 +939,7 @@ function executeAppBooking() {
             const methodLabel = payMethodLabels[appState.paymentMethod] || 'زين كاش';
             if (document.getElementById('app-res-paymethod')) document.getElementById('app-res-paymethod').textContent = methodLabel;
 
-            const waMsg = `السلام عليكم دكتور يونس، تم تسجيل طلب حجز موعد مؤكد\nرقم المرجع: #${ref}\nالاسم: ${name}\nالخدمة: ${appState.title}\nالموعد: ${appState.date} (${appState.slot})\nطريقة الدفع: ${methodLabel}\nالمبلغ: ${appState.price || 50} $\nمرفق لكم لقطة شاشة إيصال الدفع.`;
+            const waMsg = `السلام عليكم دكتور يونس، تم تسجيل طلب حجز موعد مؤكد\nرقم المرجع: #${ref}\nالاسم: ${name}\nالخدمة: ${appState.title}\nالموعد: ${appState.date} (${appState.slot})\nطريقة الدفع: ${methodLabel}\nالمبلغ: ${appState.price || 50} ${appCurrencySymbol}\nمرفق لكم لقطة شاشة إيصال الدفع.`;
             const waUrl = waNumber ? `https://wa.me/${waNumber}?text=${encodeURIComponent(waMsg)}` : `https://wa.me/?text=${encodeURIComponent(waMsg)}`;
             if (document.getElementById('app-start-consultation-link')) document.getElementById('app-start-consultation-link').href = waUrl;
 
@@ -955,7 +957,7 @@ function executeAppBooking() {
         .catch(err => {
             if (btn) {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> تأكيد الحجز وإرسال الإيصال (' + (appState.price || 50) + ' $)';
+                btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> تأكيد الحجز وإرسال الإيصال (' + (appState.price || 50) + ' ' + appCurrencySymbol + ')';
             }
             alert(err.message || 'تعذّر إكمال الطلب. يرجى إعادة المحاولة.');
         });

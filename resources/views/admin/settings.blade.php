@@ -350,6 +350,65 @@
                 <div class="tab-pane fade" id="payment-panel" role="tabpanel" aria-labelledby="payment-tab">
                     <div class="row g-4">
 
+                        {{-- ─── العملة الرسمية للمنصة (Platform Currency & Symbol) ─── --}}
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                                <div class="card-header border-0 py-3 px-4 d-flex justify-content-between align-items-center"
+                                     style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="rounded-3 d-flex align-items-center justify-content-center text-white"
+                                             style="width:44px;height:44px;background:rgba(255,255,255,0.15);font-size:1.4rem;">
+                                            <i class="bi bi-coin text-warning"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold text-white m-0">العملة الرسمية للمنصة (Platform Currency)</h6>
+                                            <span class="text-white opacity-75 small">العملة الافتراضية لعرض الأسعار وحسابات الدفع في الموقع، لوحة التحكم والتطبيق</span>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold">
+                                        العملة الحالية: {{ $settings['currency_code'] ?? 'IQD' }} ({{ $settings['currency_symbol'] ?? 'د.ع' }})
+                                    </span>
+                                </div>
+                                <div class="card-body p-4 bg-light">
+                                    <div class="row g-3 align-items-center">
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold text-dark">
+                                                <i class="bi bi-cash-stack text-success me-1"></i> كود العملة الأساسي (Currency Code)
+                                            </label>
+                                            <select name="currency_code" id="system_currency_code" class="form-select form-select-lg rounded-3 fw-bold" onchange="updateCurrencySymbolSuggestion(this.value)">
+                                                <option value="IQD" @selected(($settings['currency_code'] ?? 'IQD') === 'IQD')>IQD — دينار عراقي (الافتراضي 🇮🇶)</option>
+                                                <option value="USD" @selected(($settings['currency_code'] ?? '') === 'USD')>USD — دولار أمريكي ($ 🇺🇸)</option>
+                                                <option value="SAR" @selected(($settings['currency_code'] ?? '') === 'SAR')>SAR — ريال سعودي (ر.س 🇸🇦)</option>
+                                                <option value="AED" @selected(($settings['currency_code'] ?? '') === 'AED')>AED — درهم إماراتي (د.إ 🇦🇪)</option>
+                                                <option value="EGP" @selected(($settings['currency_code'] ?? '') === 'EGP')>EGP — جنيه مصري (ج.م 🇪🇬)</option>
+                                                <option value="EUR" @selected(($settings['currency_code'] ?? '') === 'EUR')>EUR — يورو (€ 🇪🇺)</option>
+                                                <option value="KWD" @selected(($settings['currency_code'] ?? '') === 'KWD')>KWD — دينار كويتي (د.ك 🇰🇼)</option>
+                                                <option value="QAR" @selected(($settings['currency_code'] ?? '') === 'QAR')>QAR — ريال قطري (ر.ق 🇶🇦)</option>
+                                                <option value="OMR" @selected(($settings['currency_code'] ?? '') === 'OMR')>OMR — ريال عماني (ر.ع 🇴🇲)</option>
+                                                <option value="BHD" @selected(($settings['currency_code'] ?? '') === 'BHD')>BHD — دينار بحريني (د.ب 🇧🇭)</option>
+                                                <option value="JOD" @selected(($settings['currency_code'] ?? '') === 'JOD')>JOD — دينار أردني (د.أ 🇯🇴)</option>
+                                            </select>
+                                            <div class="form-text text-muted small mt-1">
+                                                حدد العملة المعتمدة للمنصة بالكامل. سيتم تطبيقها فوراً على الموقع والـ API.
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold text-dark">
+                                                <i class="bi bi-tag text-primary me-1"></i> رمز العملة المعروض للمرضى (Currency Symbol)
+                                            </label>
+                                            <input type="text" name="currency_symbol" id="system_currency_symbol"
+                                                   class="form-control form-control-lg rounded-3 fw-bold"
+                                                   placeholder="مثال: د.ع أو $ أو ر.س"
+                                                   value="{{ $settings['currency_symbol'] ?? 'د.ع' }}">
+                                            <div class="form-text text-muted small mt-1">
+                                                هذا الرمز سيظهر بجوار الأسعار في واجهة الحجز، البطاقات، والفواتير (مثال: 50,000 د.ع).
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         {{-- ─── زين كاش ─────────────────────────────────────── --}}
                         <div class="col-12">
                             <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
@@ -665,9 +724,30 @@ function sendTestEmailAjax() {
         btn.disabled = false;
         btn.innerHTML = oldHtml;
         feedback.classList.remove('d-none');
-        feedback.className = 'alert alert-danger border-0 rounded-3 p-2.5 small mt-2';
+    feedback.className = 'alert alert-danger border-0 rounded-3 p-2.5 small mt-2';
         feedback.innerHTML = '<i class="bi bi-x-circle-fill me-1"></i> حدث خطأ أثناء محاولة الاتصال بالسيرفر.';
     });
+}
+
+const defaultCurrencySymbols = {
+    'IQD': 'د.ع',
+    'USD': '$',
+    'SAR': 'ر.س',
+    'AED': 'د.إ',
+    'EGP': 'ج.م',
+    'EUR': '€',
+    'KWD': 'د.ك',
+    'QAR': 'ر.ق',
+    'OMR': 'ر.ع',
+    'BHD': 'د.ب',
+    'JOD': 'د.أ'
+};
+
+function updateCurrencySymbolSuggestion(code) {
+    const symInput = document.getElementById('system_currency_symbol');
+    if (symInput && defaultCurrencySymbols[code]) {
+        symInput.value = defaultCurrencySymbols[code];
+    }
 }
 </script>
 @endpush

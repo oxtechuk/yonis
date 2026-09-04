@@ -606,7 +606,7 @@
                                         <div>
                                             <span class="text-secondary small fw-bold d-block mb-1">الرسوم تبدأ من</span>
                                             <div class="pricing-main-price">
-                                                ${{ number_format($service->chat_price ?? $service->price, 0) }}
+                                                {{ number_format($service->chat_price ?? $service->price, 0) }} {{ \App\Models\Setting::currencySymbol() }}
                                                 <small>/ للجلسة</small>
                                             </div>
                                         </div>
@@ -688,7 +688,7 @@
                                         <div>
                                             <span class="text-secondary small fw-bold d-block mb-1">رسوم الكشف السريري</span>
                                             <div class="pricing-main-price" style="color: #881337;">
-                                                ${{ number_format($service->clinic_price ?? $service->price, 0) }}
+                                                {{ number_format($service->clinic_price ?? $service->price, 0) }} {{ \App\Models\Setting::currencySymbol() }}
                                                 <small>/ للجلسة</small>
                                             </div>
                                         </div>

@@ -158,12 +158,15 @@ class ApiController extends Controller
         $voiceEnabled = Setting::get('voice_enabled', '1') === '1';
         $videoEnabled = Setting::get('video_enabled', '1') === '1';
 
+        $currencyCode = Setting::currencyCode();
+        $currencySymbol = Setting::currencySymbol();
+
         $allRaw = Service::where('is_active', true)->get();
 
         // Format Clinic Services
         $clinicServices = $allRaw->filter(function ($s) {
             return in_array($s->type, ['clinic', 'both'], true);
-        })->map(function ($s) {
+        })->map(function ($s) use ($currencyCode, $currencySymbol) {
             $clinicPrice = (float) ($s->clinic_price ?? $s->price);
             return [
                 'id' => $s->id,
@@ -173,7 +176,8 @@ class ApiController extends Controller
                 'price' => $clinicPrice,
                 'clinic_price' => $clinicPrice,
                 'booking_type' => 'clinic',
-                'currency' => 'USD',
+                'currency' => $currencyCode,
+                'currency_symbol' => $currencySymbol,
                 'type' => $s->type,
                 'location' => Setting::get('clinic_address', 'مقر العيادة - د. يونس المرشد'),
             ];
@@ -182,7 +186,7 @@ class ApiController extends Controller
         // Format Online Services with distinct channel prices (Voice, Chat, Video)
         $onlineServices = $allRaw->filter(function ($s) {
             return in_array($s->type, ['online', 'both'], true);
-        })->map(function ($s) use ($chatEnabled, $voiceEnabled, $videoEnabled) {
+        })->map(function ($s) use ($chatEnabled, $voiceEnabled, $videoEnabled, $currencyCode, $currencySymbol) {
             $basePrice = (float) $s->price;
             $videoPrice = (float) ($s->video_price ?? $basePrice);
             $voicePrice = (float) ($s->voice_price ?? round($basePrice * 0.9, 2));
@@ -194,7 +198,8 @@ class ApiController extends Controller
                 'description' => $s->description,
                 'duration' => $s->duration,
                 'booking_type' => 'online',
-                'currency' => 'USD',
+                'currency' => $currencyCode,
+                'currency_symbol' => $currencySymbol,
                 'type' => $s->type,
                 'price' => $videoPrice, // default base online
                 // Distinct direct prices as requested
@@ -207,7 +212,8 @@ class ApiController extends Controller
                         'channel' => 'video',
                         'name' => 'مكالمة فيديو أونلاين',
                         'price' => $videoPrice,
-                        'currency' => 'USD',
+                        'currency' => $currencyCode,
+                        'currency_symbol' => $currencySymbol,
                         'duration' => $s->duration,
                         'is_enabled' => $videoEnabled,
                     ],
@@ -215,7 +221,8 @@ class ApiController extends Controller
                         'channel' => 'voice',
                         'name' => 'استشارة صوتية',
                         'price' => $voicePrice,
-                        'currency' => 'USD',
+                        'currency' => $currencyCode,
+                        'currency_symbol' => $currencySymbol,
                         'duration' => $s->duration,
                         'is_enabled' => $voiceEnabled,
                     ],
@@ -223,7 +230,8 @@ class ApiController extends Controller
                         'channel' => 'chat',
                         'name' => 'محادثة نصية (شات)',
                         'price' => $chatPrice,
-                        'currency' => 'USD',
+                        'currency' => $currencyCode,
+                        'currency_symbol' => $currencySymbol,
                         'duration' => $s->duration,
                         'is_enabled' => $chatEnabled,
                     ],
@@ -237,6 +245,8 @@ class ApiController extends Controller
             return response()->json([
                 'success' => true,
                 'type' => 'clinic',
+                'currency' => $currencyCode,
+                'currency_symbol' => $currencySymbol,
                 'is_enabled' => $clinicEnabled,
                 'total' => $clinicServices->count(),
                 'services' => $clinicServices,
@@ -247,6 +257,8 @@ class ApiController extends Controller
             return response()->json([
                 'success' => true,
                 'type' => 'online',
+                'currency' => $currencyCode,
+                'currency_symbol' => $currencySymbol,
                 'is_enabled' => $onlineEnabled,
                 'channels_enabled' => [
                     'video' => $videoEnabled,
@@ -260,6 +272,8 @@ class ApiController extends Controller
 
         return response()->json([
             'success' => true,
+            'currency' => $currencyCode,
+            'currency_symbol' => $currencySymbol,
             'channels_enabled' => [
                 'clinic' => $clinicEnabled,
                 'online' => $onlineEnabled,
@@ -357,6 +371,9 @@ class ApiController extends Controller
                 'chat_enabled' => Setting::get('chat_enabled', '1') === '1',
                 'voice_enabled' => Setting::get('voice_enabled', '1') === '1',
                 'video_enabled' => Setting::get('video_enabled', '1') === '1',
+                'currency' => Setting::currencyCode(),
+                'currency_code' => Setting::currencyCode(),
+                'currency_symbol' => Setting::currencySymbol(),
                 'default_payment_url' => Setting::get('default_payment_url', 'https://younisalmurshed.gumroad.com/l/srjlvw?wanted=true'),
                 'max_reschedule_allowed' => (int) Setting::get('max_reschedule_allowed', '2'),
                 'min_reschedule_notice_hours' => (int) Setting::get('min_reschedule_notice_hours', '24'),
@@ -653,12 +670,15 @@ class ApiController extends Controller
                 $paymentIntentId = $paymentMethod . '_' . Str::random(12);
             }
 
+            $currencyCode = Setting::currencyCode();
+            $currencySymbol = Setting::currencySymbol();
+
             // Record payment log
             Payment::create([
                 'booking_id' => $booking->id,
                 'payment_intent_id' => $paymentIntentId,
                 'amount' => $calculatedPrice,
-                'currency' => 'usd',
+                'currency' => strtolower($currencyCode),
                 'status' => 'Pending',
             ]);
 
@@ -677,7 +697,7 @@ class ApiController extends Controller
                     : Setting::get('payment_zaincash_instructions', 'يرجى تحويل المبلغ عبر تطبيق زين كاش ومسح رمز الـ QR ثم إرسال الإشعار'));
 
             $cleanWa = preg_replace('/[^0-9]/', '', $whatsappNumber);
-            $waMsg = urlencode("مرحباً دكتور يونس، تم حجز موعد جديد برقم: {$bookingRef}\nالخدمة: {$service->title}\nالمبلغ: {$calculatedPrice}$\nطريقة الدفع: {$paymentMethod}\nيرجى مراجعة وتأكيد الحجز.");
+            $waMsg = urlencode("مرحباً دكتور يونس، تم حجز موعد جديد برقم: {$bookingRef}\nالخدمة: {$service->title}\nالمبلغ: {$calculatedPrice} {$currencySymbol}\nطريقة الدفع: {$paymentMethod}\nيرجى مراجعة وتأكيد الحجز.");
             $waUrl = "https://wa.me/{$cleanWa}?text={$waMsg}";
 
             // Fail-safe Email notifications to Doctor and Patient
@@ -690,6 +710,8 @@ class ApiController extends Controller
                 'stripe_enabled' => $stripeEnabled,
                 'client_secret' => $clientSecret,
                 'amount' => $calculatedPrice,
+                'currency' => $currencyCode,
+                'currency_symbol' => $currencySymbol,
                 'payment_method' => $paymentMethod,
                 'qr_code' => $activeQr,
                 'payment_instructions' => $instructions,

@@ -1741,7 +1741,7 @@ class AdminDashboardController extends Controller
                 'قناة الاستشارة',
                 'التاريخ',
                 'الوقت',
-                'المبلغ ($)',
+                'المبلغ (' . Setting::currencySymbol() . ')',
                 'حالة الحجز',
                 'حالة الدفع'
             ]);

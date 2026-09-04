@@ -73,9 +73,9 @@
                     <i class="bi bi-currency-dollar fs-5"></i>
                 </div>
             </div>
-            <h3 class="fw-black text-dark m-0 mb-1">${{ number_format($stats['revenue'], 2) }}</h3>
-            <div class="d-flex align-items-center justify-content-between small">
-                <span class="text-muted" style="font-size: 0.72rem;">معلق: ${{ number_format($stats['pending_revenue'], 2) }}</span>
+            <h3 class="fw-black text-dark m-0 mb-1">{{ number_format($stats['revenue'], 0) }} {{ \App\Models\Setting::currencySymbol() }}</h3>
+            <div class="d-flex align-items-center justify-content-between mt-1">
+                <span class="text-muted" style="font-size: 0.72rem;">معلق: {{ number_format($stats['pending_revenue'], 0) }} {{ \App\Models\Setting::currencySymbol() }}</span>
                 <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill" style="font-size: 0.7rem;">محصل</span>
             </div>
         </div>
@@ -164,7 +164,7 @@
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <span class="badge rounded-pill px-3 py-1.5" style="background: rgba(64, 85, 165, 0.1); color: var(--primary-color); font-weight: 700;">
-                        <i class="bi bi-cash me-1"></i> إجمالي: ${{ number_format(array_sum($monthlyRevenues), 2) }}
+                        <i class="bi bi-cash me-1"></i> إجمالي: {{ number_format(array_sum($monthlyRevenues), 0) }} {{ \App\Models\Setting::currencySymbol() }}
                     </span>
                 </div>
             </div>

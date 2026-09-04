@@ -132,7 +132,7 @@
                     <i class="bi bi-cash-stack"></i>
                 </div>
             </div>
-            <h4 class="fw-black text-success m-0 mb-0.5">${{ number_format($metrics['paid_revenue'], 2) }}</h4>
+            <h4 class="fw-black text-success m-0 mb-0.5">{{ number_format($metrics['paid_revenue'], 0) }} {{ \App\Models\Setting::currencySymbol() }}</h4>
             <span class="text-muted" style="font-size: 0.7rem;">إجمالي المدفوع فعلياً</span>
         </div>
     </div>
@@ -160,7 +160,7 @@
                     <i class="bi bi-hourglass-split"></i>
                 </div>
             </div>
-            <h4 class="fw-black text-warning-emphasis m-0 mb-0.5">${{ number_format($metrics['pending_revenue'], 2) }}</h4>
+            <h4 class="fw-black text-warning-emphasis m-0 mb-0.5">{{ number_format($metrics['pending_revenue'], 0) }} {{ \App\Models\Setting::currencySymbol() }}</h4>
             <span class="text-muted" style="font-size: 0.7rem;">حجوزات قيد إتمام السداد</span>
         </div>
     </div>
@@ -174,7 +174,7 @@
                     <i class="bi bi-receipt"></i>
                 </div>
             </div>
-            <h4 class="fw-black text-primary m-0 mb-0.5">${{ number_format($metrics['avg_booking_value'], 2) }}</h4>
+            <h4 class="fw-black text-primary m-0 mb-0.5">{{ number_format($metrics['avg_booking_value'], 0) }} {{ \App\Models\Setting::currencySymbol() }}</h4>
             <span class="text-muted" style="font-size: 0.7rem;">معدل الدخل لكل استشارة</span>
         </div>
     </div>
@@ -223,7 +223,7 @@
                                     </td>
                                     <td class="py-2"><span class="badge bg-light text-dark border px-2 py-0.5">{{ $srv['duration'] }} د</span></td>
                                     <td class="py-2"><strong>{{ $srv['count'] }}</strong></td>
-                                    <td class="py-2 fw-bold text-success">${{ number_format($srv['revenue'], 2) }}</td>
+                                    <td class="py-2 fw-bold text-success">{{ number_format($srv['revenue'], 0) }} {{ \App\Models\Setting::currencySymbol() }}</td>
                                     <td class="pe-3 py-2">
                                         <div class="d-flex align-items-center gap-1.5">
                                             <div class="progress flex-grow-1" style="height: 5px;">
@@ -268,7 +268,7 @@
                         </div>
                         <div class="d-flex justify-content-between align-items-center text-secondary" style="font-size: 0.75rem;">
                             <span>الدخل المحصل:</span>
-                            <strong class="text-success fs-7">${{ number_format($ch['revenue'], 2) }}</strong>
+                            <strong class="text-success fs-7">{{ number_format($ch['revenue'], 0) }} {{ \App\Models\Setting::currencySymbol() }}</strong>
                         </div>
                     </div>
                 @endforeach
@@ -321,7 +321,7 @@
                                 <div><strong>{{ $b->date instanceof \DateTimeInterface ? $b->date->format('Y-m-d') : substr((string)$b->date, 0, 10) }}</strong></div>
                                 <div class="text-secondary" style="font-size: 0.75rem;">{{ Carbon\Carbon::parse($b->start_time)->format('H:i') }} - {{ Carbon\Carbon::parse($b->end_time)->format('H:i') }}</div>
                             </td>
-                            <td class="py-2 fw-bold text-success">${{ number_format($b->price ?? $b->service?->price ?? 0, 2) }}</td>
+                            <td class="py-2 fw-bold text-success">{{ number_format($b->price ?? $b->service?->price ?? 0, 0) }} {{ \App\Models\Setting::currencySymbol() }}</td>
                             <td class="py-2">
                                 @if($b->status === 'AwaitingPayment')
                                     <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-0.5 rounded-pill" style="font-size: 0.7rem;">بانتظار الدفع</span>
@@ -387,7 +387,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 labels: trendLabels,
                 datasets: [
                     {
-                        label: 'الإيرادات المحصلة ($)',
+                        label: 'الإيرادات المحصلة (' + '{{ \App\Models\Setting::currencySymbol() }}' + ')',
                         data: trendRevenue,
                         borderColor: '#10b981',
                         backgroundColor: gradient,
@@ -442,7 +442,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         position: 'right',
                         grid: { color: 'rgba(0, 0, 0, 0.04)' },
                         ticks: {
-                            callback: function(v) { return '$' + v; },
+                            callback: function(v) { return v + ' {{ \App\Models\Setting::currencySymbol() }}'; },
                             font: { family: 'Cairo', size: 10 }
                         }
                     },

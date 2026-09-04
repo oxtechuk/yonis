@@ -125,7 +125,7 @@
                                     <span class="saas-badge saas-badge-amber">غير مدفوع</span>
                                 @endif
                             </td>
-                            <td class="fw-bold">${{ number_format($b->price ?? 50, 2) }}</td>
+                            <td class="fw-bold">{{ number_format($b->price ?? 50, 0) }} {{ \App\Models\Setting::currencySymbol() }}</td>
                             <td class="text-end">
                                 @if(in_array($b->status, ['AwaitingPayment', 'Confirmed', 'Rescheduled']))
                                     @if($b->status === 'AwaitingPayment' && $b->service && !empty($b->service->payment_url))
