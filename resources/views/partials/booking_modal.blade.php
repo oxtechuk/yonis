@@ -183,36 +183,63 @@
                         <div class="mb-3">
                             <label class="form-label small fw-bold text-secondary mb-1">{{ __('messages.full_name') }}</label>
                             <div class="position-relative">
-                                <input type="text" id="app_user_name" class="form-control app-input w-100 pe-4" placeholder="{{ __('messages.full_name') }}" value="{{ Auth::check() ? Auth::user()->name : '' }}" required>
+                                <input type="text" id="app_user_name" class="form-control app-input w-100 pe-4" placeholder="{{ __('messages.full_name') }}" value="{{ Auth::check() ? Auth::user()->name : '' }}" oninput="savePatientBookingToStorage()" required>
                                 <i class="bi bi-person position-absolute top-50 translate-middle-y end-0 me-3 text-secondary"></i>
                             </div>
                         </div>
 
-                        {{-- WhatsApp with SVG Country Flag Picker (Default Iraq +964) --}}
+                        {{-- WhatsApp with Unicode Country Flag Picker --}}
                         <div class="mb-3">
                             <label class="form-label small fw-bold text-secondary mb-1">{{ __('messages.whatsapp_number') }}</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0 pe-1 ps-2" style="border-radius: 0 16px 16px 0;">
-                                    <img id="app_country_flag_img" src="https://flagcdn.com/w40/iq.png" width="24" height="16" class="rounded shadow-sm" alt="العراق">
+                                <span class="input-group-text bg-light border-end-0 pe-2 ps-2 fs-5" id="app_country_flag_badge" style="border-radius: 0 16px 16px 0; user-select: none;">
+                                    🇮🇶
                                 </span>
-                                <select class="form-select bg-light fw-bold text-dark border-start-0 border-end-0 ps-1 pe-3" id="app_country_code" style="max-width: 145px; cursor:pointer;" onchange="onModalCountryCodeChanged(this)">
-                                    <option value="+964" data-flag="https://flagcdn.com/w40/iq.png" selected>+964 (العراق)</option>
-                                    <option value="+966" data-flag="https://flagcdn.com/w40/sa.png">+966 (السعودية)</option>
-                                    <option value="+971" data-flag="https://flagcdn.com/w40/ae.png">+971 (الإمارات)</option>
-                                    <option value="+965" data-flag="https://flagcdn.com/w40/kw.png">+965 (الكويت)</option>
-                                    <option value="+974" data-flag="https://flagcdn.com/w40/qa.png">+974 (قطر)</option>
-                                    <option value="+968" data-flag="https://flagcdn.com/w40/om.png">+968 (عُمان)</option>
-                                    <option value="+973" data-flag="https://flagcdn.com/w40/bh.png">+973 (البحرين)</option>
-                                    <option value="+962" data-flag="https://flagcdn.com/w40/jo.png">+962 (الأردن)</option>
-                                    <option value="+20" data-flag="https://flagcdn.com/w40/eg.png">+20 (مصر)</option>
-                                    <option value="+961" data-flag="https://flagcdn.com/w40/lb.png">+961 (لبنان)</option>
-                                    <option value="+90" data-flag="https://flagcdn.com/w40/tr.png">+90 (تركيا)</option>
-                                    <option value="+44" data-flag="https://flagcdn.com/w40/gb.png">+44 (بريطانيا)</option>
-                                    <option value="+1" data-flag="https://flagcdn.com/w40/us.png">+1 (أمريكا/كندا)</option>
-                                    <option value="+49" data-flag="https://flagcdn.com/w40/de.png">+49 (ألمانيا)</option>
-                                    <option value="+46" data-flag="https://flagcdn.com/w40/se.png">+46 (السويد)</option>
+                                <select class="form-select bg-light fw-bold text-dark border-start-0 border-end-0 ps-1 pe-3" id="app_country_code" style="max-width: 155px; cursor:pointer;" onchange="onModalCountryCodeChanged(this)">
+                                    <option value="+964" data-flag="🇮🇶" selected>🇮🇶 +964 (العراق)</option>
+                                    <option value="+966" data-flag="🇸🇦">🇸🇦 +966 (السعودية)</option>
+                                    <option value="+971" data-flag="🇦🇪">🇦🇪 +971 (الإمارات)</option>
+                                    <option value="+965" data-flag="🇰🇼">🇰🇼 +965 (الكويت)</option>
+                                    <option value="+974" data-flag="🇶🇦">🇶🇦 +974 (قطر)</option>
+                                    <option value="+968" data-flag="🇴🇲">🇴🇲 +968 (عُمان)</option>
+                                    <option value="+973" data-flag="🇧🇭">🇧🇭 +973 (البحرين)</option>
+                                    <option value="+962" data-flag="🇯🇴">🇯🇴 +962 (الأردن)</option>
+                                    <option value="+20" data-flag="🇪🇬">🇪🇬 +20 (مصر)</option>
+                                    <option value="+961" data-flag="🇱🇧">🇱🇧 +961 (لبنان)</option>
+                                    <option value="+963" data-flag="🇸🇾">🇸🇾 +963 (سوريا)</option>
+                                    <option value="+970" data-flag="🇵🇸">🇵🇸 +970 (فلسطين)</option>
+                                    <option value="+967" data-flag="🇾🇪">🇾🇪 +967 (اليمن)</option>
+                                    <option value="+218" data-flag="🇱🇾">🇱🇾 +218 (ليبيا)</option>
+                                    <option value="+249" data-flag="🇸🇩">🇸🇩 +249 (السودان)</option>
+                                    <option value="+213" data-flag="🇩🇿">🇩🇿 +213 (الجزائر)</option>
+                                    <option value="+212" data-flag="🇲🇦">🇲🇦 +212 (المغرب)</option>
+                                    <option value="+216" data-flag="🇹🇳">🇹🇳 +216 (تونس)</option>
+                                    <option value="+90" data-flag="🇹🇷">🇹🇷 +90 (تركيا)</option>
+                                    <option value="+44" data-flag="🇬🇧">🇬🇧 +44 (بريطانيا)</option>
+                                    <option value="+1" data-flag="🇺🇸">🇺🇸 +1 (أمريكا / كندا)</option>
+                                    <option value="+49" data-flag="🇩🇪">🇩🇪 +49 (ألمانيا)</option>
+                                    <option value="+46" data-flag="🇸🇪">🇸🇪 +46 (السويد)</option>
+                                    <option value="+33" data-flag="🇫🇷">🇫🇷 +33 (فرنسا)</option>
+                                    <option value="+31" data-flag="🇳🇱">🇳🇱 +31 (هولندا)</option>
+                                    <option value="+61" data-flag="🇦🇺">🇦🇺 +61 (أستراليا)</option>
+                                    <option value="+41" data-flag="🇨🇭">🇨🇭 +41 (سويسرا)</option>
+                                    <option value="+43" data-flag="🇦🇹">🇦🇹 +43 (النمسا)</option>
+                                    <option value="+47" data-flag="🇳🇴">🇳🇴 +47 (النرويج)</option>
+                                    <option value="+45" data-flag="🇩🇰">🇩🇰 +45 (الدنمارك)</option>
+                                    <option value="+32" data-flag="🇧🇪">🇧🇪 +32 (بلجيكا)</option>
+                                    <option value="+39" data-flag="🇮🇹">🇮🇹 +39 (إيطاليا)</option>
+                                    <option value="+34" data-flag="🇪🇸">🇪🇸 +34 (إسبانيا)</option>
                                 </select>
-                                <input type="tel" id="app_user_phone" class="form-control app-input rounded-start-4" placeholder="7701234567" value="{{ Auth::check() ? preg_replace('/^\+964/', '', Auth::user()->phone ?? '') : '' }}" oninput="checkUserRegistrationStatus()" required>
+                                <input type="tel" id="app_user_phone" class="form-control app-input rounded-start-4" placeholder="7701234567" value="{{ Auth::check() ? preg_replace('/^\+964/', '', Auth::user()->phone ?? '') : '' }}" oninput="savePatientBookingToStorage(); checkUserRegistrationStatus();" required>
+                            </div>
+                        </div>
+
+                        {{-- Email Field --}}
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-secondary mb-1">البريد الإلكتروني (لتأكيد الموعد واستلام التفاصيل)</label>
+                            <div class="position-relative">
+                                <input type="email" id="app_user_email" class="form-control app-input w-100 pe-4" placeholder="name@example.com" value="{{ Auth::check() ? Auth::user()->email : '' }}" oninput="savePatientBookingToStorage()">
+                                <i class="bi bi-envelope position-absolute top-50 translate-middle-y end-0 me-3 text-secondary"></i>
                             </div>
                         </div>
 
@@ -649,9 +676,16 @@ function selectServiceAndOpenModal(id, title, price, duration, categoryType) {
     
     if (price) updateModalPrice(price);
     
+    // Ensure screen 1 is active and restore patient info
+    document.getElementById('app-screen-1')?.classList.remove('d-none');
+    document.getElementById('app-screen-2')?.classList.add('d-none');
+    document.getElementById('app-screen-3')?.classList.add('d-none');
+    restorePatientBookingData();
+
     const modalEl = document.getElementById('bookingModal');
     if (modalEl) {
-        new bootstrap.Modal(modalEl).show();
+        const bsModal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        bsModal.show();
     }
 }
 
@@ -806,17 +840,77 @@ function selectAppSlot(time, el) {
 
 function onModalCountryCodeChanged(selectEl) {
     const opt = selectEl.options[selectEl.selectedIndex];
-    const flagImg = document.getElementById('app_country_flag_img');
-    if (flagImg && opt && opt.getAttribute('data-flag')) {
-        flagImg.src = opt.getAttribute('data-flag');
-        flagImg.alt = opt.text;
+    const flagBadge = document.getElementById('app_country_flag_badge');
+    const flag = opt ? (opt.getAttribute('data-flag') || '🇮🇶') : '🇮🇶';
+    if (flagBadge) {
+        flagBadge.textContent = flag;
     }
+    localStorage.setItem('yonis_country_code', selectEl.value);
+    localStorage.setItem('yonis_country_flag', flag);
     checkUserRegistrationStatus();
+}
+
+function savePatientBookingToStorage() {
+    const nameInput = document.getElementById('app_user_name');
+    const phoneInput = document.getElementById('app_user_phone');
+    const emailInput = document.getElementById('app_user_email');
+    const codeSelect = document.getElementById('app_country_code');
+    const opt = codeSelect ? codeSelect.options[codeSelect.selectedIndex] : null;
+
+    if (nameInput && nameInput.value.trim()) {
+        localStorage.setItem('yonis_patient_name', nameInput.value.trim());
+    }
+    if (phoneInput && phoneInput.value.trim()) {
+        localStorage.setItem('yonis_patient_phone', phoneInput.value.trim());
+    }
+    if (emailInput && emailInput.value.trim()) {
+        localStorage.setItem('yonis_patient_email', emailInput.value.trim());
+    }
+    if (codeSelect && codeSelect.value) {
+        localStorage.setItem('yonis_country_code', codeSelect.value);
+        if (opt && opt.getAttribute('data-flag')) {
+            localStorage.setItem('yonis_country_flag', opt.getAttribute('data-flag'));
+        }
+    }
+}
+
+function restorePatientBookingData() {
+    const savedName = localStorage.getItem('yonis_patient_name');
+    const savedPhone = localStorage.getItem('yonis_patient_phone');
+    const savedCode = localStorage.getItem('yonis_country_code');
+    const savedFlag = localStorage.getItem('yonis_country_flag');
+    const savedEmail = localStorage.getItem('yonis_patient_email');
+
+    const nameInput = document.getElementById('app_user_name');
+    const phoneInput = document.getElementById('app_user_phone');
+    const codeSelect = document.getElementById('app_country_code');
+    const emailInput = document.getElementById('app_user_email');
+    const flagBadge = document.getElementById('app_country_flag_badge');
+
+    if (nameInput && (!nameInput.value || nameInput.value.trim() === '') && savedName) {
+        nameInput.value = savedName;
+    }
+    if (phoneInput && (!phoneInput.value || phoneInput.value.trim() === '') && savedPhone) {
+        phoneInput.value = savedPhone;
+    }
+    if (emailInput && (!emailInput.value || emailInput.value.trim() === '') && savedEmail) {
+        emailInput.value = savedEmail;
+    }
+    if (codeSelect && savedCode) {
+        codeSelect.value = savedCode;
+        if (flagBadge) flagBadge.textContent = savedFlag || '🇮🇶';
+    }
+
+    if (phoneInput && phoneInput.value.trim().length >= 6) {
+        checkUserRegistrationStatus();
+    }
 }
 
 function checkUserRegistrationStatus() {
     const countryCode = document.getElementById('app_country_code') ? document.getElementById('app_country_code').value : '+964';
-    let rawPhone = document.getElementById('app_user_phone').value.trim();
+    const phoneInput = document.getElementById('app_user_phone');
+    if (!phoneInput) return;
+    let rawPhone = phoneInput.value.trim();
     rawPhone = rawPhone.replace(/^0+/, '');
     
     if (!rawPhone || rawPhone.length < 6) {
@@ -844,6 +938,7 @@ function checkUserRegistrationStatus() {
             const passWrapper = document.getElementById('app_password_wrapper');
             const passInput = document.getElementById('app_user_password');
             const nameInput = document.getElementById('app_user_name');
+            const emailInput = document.getElementById('app_user_email');
 
             if (badge) badge.classList.remove('d-none');
             if (res.is_registered) {
@@ -854,9 +949,17 @@ function checkUserRegistrationStatus() {
                 }
                 if (passWrapper) passWrapper.style.display = 'none';
                 if (passInput) passInput.value = '';
-                if (res.user && res.user.name && nameInput && !nameInput.value) {
-                    nameInput.value = res.user.name;
+                
+                // Populate name and email if available
+                if (res.user) {
+                    if (res.user.name && nameInput && (!nameInput.value || nameInput.value.trim() === '')) {
+                        nameInput.value = res.user.name;
+                    }
+                    if (res.user.email && emailInput && (!emailInput.value || emailInput.value.trim() === '')) {
+                        emailInput.value = res.user.email;
+                    }
                 }
+                savePatientBookingToStorage();
             } else {
                 appUserIsRegistered = false;
                 if (badge) {
@@ -873,11 +976,13 @@ function checkUserRegistrationStatus() {
 function executeAppBooking() {
     const nameInput = document.getElementById('app_user_name');
     const phoneInput = document.getElementById('app_user_phone');
+    const emailInput = document.getElementById('app_user_email');
     const passInput = document.getElementById('app_user_password');
     const countryCode = document.getElementById('app_country_code') ? document.getElementById('app_country_code').value : '+964';
 
     const name = nameInput ? nameInput.value.trim() : '';
     let rawPhone = phoneInput ? phoneInput.value.trim().replace(/^0+/, '') : '';
+    const email = emailInput ? emailInput.value.trim() : '';
     const password = passInput ? passInput.value.trim() : '';
 
     if (!name || !rawPhone) {
@@ -895,6 +1000,9 @@ function executeAppBooking() {
         if (passInput) passInput.focus();
         return;
     }
+
+    // Persist details for any future booking
+    savePatientBookingToStorage();
 
     const btn = document.getElementById('app-submit-pay-btn');
     if (btn) {
@@ -916,6 +1024,7 @@ function executeAppBooking() {
         start_time: appState.slot,
         name: name,
         phone: fullPhone,
+        email: email || null,
         password: password || null,
         title: appState.title,
         notes: appState.details,
@@ -984,4 +1093,20 @@ function executeAppBooking() {
             alert(err.message || 'تعذّر إكمال الطلب. يرجى إعادة المحاولة.');
         });
 }
+
+// Modal lifecycle and auto-restore
+document.addEventListener('DOMContentLoaded', function() {
+    restorePatientBookingData();
+
+    const modalEl = document.getElementById('bookingModal');
+    if (modalEl) {
+        modalEl.addEventListener('show.bs.modal', function() {
+            // Always return to screen 1 on opening modal (so second booking doesn't get stuck)
+            document.getElementById('app-screen-1')?.classList.remove('d-none');
+            document.getElementById('app-screen-2')?.classList.add('d-none');
+            document.getElementById('app-screen-3')?.classList.add('d-none');
+            restorePatientBookingData();
+        });
+    }
+});
 </script>

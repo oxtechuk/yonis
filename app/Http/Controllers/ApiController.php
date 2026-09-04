@@ -449,7 +449,20 @@ class ApiController extends Controller
         }
 
         $user = User::query()
-            ->when(!empty($phone), fn($q) => $q->where('phone', $phone))
+            ->when(!empty($phone), function ($q) use ($phone) {
+                $digits = preg_replace('/\D/', '', $phone);
+                $withoutZero = ltrim($digits, '0');
+                $last9 = strlen($withoutZero) >= 9 ? substr($withoutZero, -9) : $withoutZero;
+
+                $q->where(function ($sub) use ($phone, $digits, $last9) {
+                    $sub->where('phone', $phone)
+                        ->orWhere('phone', '+' . $digits)
+                        ->orWhere('phone', $digits);
+                    if (strlen($last9) >= 7) {
+                        $sub->orWhere('phone', 'like', '%' . $last9);
+                    }
+                });
+            })
             ->when(!empty($email), fn($q) => $q->orWhere('email', $email))
             ->first();
 
@@ -524,7 +537,18 @@ class ApiController extends Controller
             $checkPhone = $request->input('phone');
             $checkEmail = $request->input('email');
             if (!empty($checkPhone)) {
-                $existingUser = User::where('phone', $checkPhone)->first();
+                $digits = preg_replace('/\D/', '', $checkPhone);
+                $withoutZero = ltrim($digits, '0');
+                $last9 = strlen($withoutZero) >= 9 ? substr($withoutZero, -9) : $withoutZero;
+
+                $existingUser = User::where(function ($sub) use ($checkPhone, $digits, $last9) {
+                    $sub->where('phone', $checkPhone)
+                        ->orWhere('phone', '+' . $digits)
+                        ->orWhere('phone', $digits);
+                    if (strlen($last9) >= 7) {
+                        $sub->orWhere('phone', 'like', '%' . $last9);
+                    }
+                })->first();
             }
             if (!$existingUser && !empty($checkEmail)) {
                 $existingUser = User::where('email', $checkEmail)->first();
