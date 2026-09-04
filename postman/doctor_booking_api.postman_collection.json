@@ -331,7 +331,7 @@
 					"response": []
 				},
 				{
-					"name": "Step 1: Initialize Checkout (حجز جلسة ورابط Gumroad الخارجي)",
+					"name": "Step 1: Initialize Checkout (حجز جلسة واختيار طريقة الدفع)",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -348,7 +348,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"service_id\": 1,\n    \"booking_type\": \"online\",\n    \"consultation_type\": \"video\",\n    \"date\": \"2026-09-02\",\n    \"start_time\": \"14:30\",\n    \"title\": \"استشارة حول نوبات القلق والتوتر\",\n    \"notes\": \"جلسة فيديو عبر الإنترنت\",\n    \"name\": \"مستفيد تجريبي\",\n    \"phone\": \"+9647799887766\",\n    \"password\": \"password123\"\n}"
+							"raw": "{\n    \"service_id\": 1,\n    \"booking_type\": \"online\",\n    \"consultation_type\": \"video\",\n    \"payment_method\": \"zaincash\",\n    \"date\": \"2026-09-02\",\n    \"start_time\": \"14:30\",\n    \"title\": \"استشارة حول نوبات القلق والتوتر\",\n    \"notes\": \"جلسة فيديو عبر الإنترنت\",\n    \"name\": \"مستفيد تجريبي\",\n    \"phone\": \"+9647799887766\",\n    \"password\": \"password123\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/checkout/initialize",
@@ -361,12 +361,48 @@
 								"initialize"
 							]
 						},
-						"description": "خطوة 1: اختيار الجلسة والوقت وقناة التواصل وإدخال البيانات. يرجع payment_url (رابط منصة Gumroad الخاص بالدكتور)، booking_reference، و is_registered/requires_account."
+						"description": "خطوة 1: اختيار الجلسة والوقت وقناة التواصل وطريقة الدفع (zaincash, superki, card, stripe). يرجع booking_reference، و qr_code، و payment_instructions، ورابط الواتساب whatsapp_url لتأكيد التحويل."
 					},
 					"response": []
 				},
 				{
-					"name": "Step 2: Confirm Checkout (تأكيد الحجز والدفع واستلام Token)",
+					"name": "Step 2A: Confirm Local Payment (تأكيد دفع زين كاش / سوبركي)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"booking_ref\": \"BK-XXXXXX\",\n    \"payment_method\": \"zaincash\",\n    \"transaction_reference\": \"TX-12345678\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/booking/BK-XXXXXX/confirm-payment",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"booking",
+								"BK-XXXXXX",
+								"confirm-payment"
+							]
+						},
+						"description": "تأكيد الدفع المحلي بعد مسح رمز QR زين كاش أو سوبركي لتحويل الحجز إلى قيد المراجعة PendingPaymentReview."
+					},
+					"response": []
+				},
+				{
+					"name": "Step 2B: Confirm Online Checkout (تأكيد الدفع الإلكتروني واستلام Token)",
 					"request": {
 						"method": "POST",
 						"header": [

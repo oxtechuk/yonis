@@ -1,4 +1,4 @@
-﻿{
+{
   "info": {
     "_postman_id": "yonis-clinic-api-v2",
     "name": "🏥 Yonis Clinic API (Official)",
@@ -41,7 +41,7 @@
               "host": ["{{base_url}}"],
               "path": ["config"]
             },
-            "description": "يعيد خيارات النظام: هل الدفع المباشر مفعّل؟ هل حجز العيادة متاح؟ هل استشارة الفيديو/الشات متاحة؟"
+            "description": "يعيد خيارات وإعدادات المنصة: بوابات وطرق الدفع المحلية (زين كاش، سوبركي، فيزا/ماستر كارد، رموز الـ QR ورابط الواتساب للتأكيد) وحالة تفعيل الحجز والاستشارات."
           }
         }
       ]
@@ -315,7 +315,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"service_id\": 1,\n  \"booking_type\": \"online\",\n  \"consultation_type\": \"video\",\n  \"date\": \"2026-10-15\",\n  \"start_time\": \"10:00 AM\",\n  \"title\": \"استشارة نفسية متخصصة\",\n  \"notes\": \"أعاني من نوبات توتر أثناء العمل وضغوط يومية\",\n  \"name\": \"أحمد محمد عبد الله\",\n  \"phone\": \"+9647701234567\",\n  \"email\": \"ahmed@example.com\",\n  \"password\": \"password\"\n}",
+              "raw": "{\n  \"service_id\": 1,\n  \"booking_type\": \"online\",\n  \"consultation_type\": \"video\",\n  \"payment_method\": \"zaincash\",\n  \"date\": \"2026-10-15\",\n  \"start_time\": \"10:00 AM\",\n  \"title\": \"استشارة نفسية متخصصة\",\n  \"notes\": \"أعاني من نوبات توتر أثناء العمل وضغوط يومية\",\n  \"name\": \"أحمد محمد عبد الله\",\n  \"phone\": \"+9647701234567\",\n  \"email\": \"ahmed@example.com\",\n  \"password\": \"password\"\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
@@ -323,7 +323,7 @@
               "host": ["{{base_url}}"],
               "path": ["checkout", "initialize"]
             },
-            "description": "إنشاء الحجز في النظام. يقوم بإنشاء مرجع الحجز (Booking Reference) وحفظه تلقائياً في متغير {{booking_ref}}."
+            "description": "إنشاء الحجز في النظام. يقوم بإنشاء مرجع الحجز (Booking Reference) وحفظه تلقائياً في متغير {{booking_ref}}. يقبل payment_method (zaincash, superki, card, stripe) ويرجع رمز الـ QR وتعليمات الدفع ورابط الواتساب للتأكيد."
           }
         },
         {
@@ -336,7 +336,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"booking_ref\": \"{{booking_ref}}\"\n}",
+              "raw": "{\n  \"booking_ref\": \"{{booking_ref}}\",\n  \"payment_method\": \"zaincash\",\n  \"transaction_reference\": \"TX-987654321\"\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {

@@ -223,14 +223,40 @@ class BookingController extends Controller
         }
 
         $booking->status = 'PendingPaymentReview';
+
+        $paymentMethod = $request->input('payment_method');
+        $transRef = $request->input('transaction_reference') ?? $request->input('transaction_id');
+
+        if ($paymentMethod || $transRef) {
+            $noteAdd = [];
+            if ($paymentMethod) $noteAdd[] = "طريقة الدفع: {$paymentMethod}";
+            if ($transRef) $noteAdd[] = "رقم المعاملة: {$transRef}";
+            $booking->notes = trim(($booking->notes ? $booking->notes . " | " : "") . implode(' - ', $noteAdd));
+        }
+
         $booking->save();
 
-        Log::info("Booking {$bookingRef} marked as PendingPaymentReview by patient.");
+        if ($booking->payment) {
+            $updateData = [];
+            if ($transRef) {
+                $updateData['payment_intent_id'] = $transRef;
+            }
+            if (!empty($updateData)) {
+                $booking->payment->update($updateData);
+            }
+        }
+
+        Log::info("Booking {$bookingRef} marked as PendingPaymentReview by patient.", [
+            'payment_method' => $paymentMethod,
+            'transaction_reference' => $transRef
+        ]);
 
         return response()->json([
             'success' => true,
             'message' => 'تم إرسال تأكيد الدفع بنجاح. سيقوم الدكتور بمراجعة دفعك وتأكيد الحجز.',
             'booking_reference' => $bookingRef,
+            'payment_method' => $paymentMethod,
+            'transaction_reference' => $transRef,
         ]);
     }
 

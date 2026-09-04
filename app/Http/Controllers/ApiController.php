@@ -210,6 +210,11 @@ class ApiController extends Controller
      */
     public function getApiConfig()
     {
+        $payZainEnabled = Setting::get('payment_zaincash_enabled', '1') === '1';
+        $paySuperkiEnabled = Setting::get('payment_superki_enabled', '1') === '1';
+        $payCardEnabled = Setting::get('payment_card_enabled', '0') === '1';
+        $defaultPaymentMethod = $payZainEnabled ? 'zaincash' : ($paySuperkiEnabled ? 'superki' : ($payCardEnabled ? 'card' : 'zaincash'));
+
         return response()->json([
             'success' => true,
             'config' => [
@@ -223,6 +228,25 @@ class ApiController extends Controller
                 'default_payment_url' => Setting::get('default_payment_url', 'https://younisalmurshed.gumroad.com/l/srjlvw?wanted=true'),
                 'max_reschedule_allowed' => (int) Setting::get('max_reschedule_allowed', '2'),
                 'min_reschedule_notice_hours' => (int) Setting::get('min_reschedule_notice_hours', '24'),
+                'payment' => [
+                    'default_method' => $defaultPaymentMethod,
+                    'zaincash' => [
+                        'enabled' => $payZainEnabled,
+                        'qr'      => Setting::get('payment_zaincash_qr', ''),
+                        'label'   => Setting::get('payment_zaincash_label', 'افتح تطبيق زين كاش وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال للدكتور.'),
+                    ],
+                    'superki' => [
+                        'enabled' => $paySuperkiEnabled,
+                        'qr'      => Setting::get('payment_superki_qr', ''),
+                        'label'   => Setting::get('payment_superki_label', 'افتح تطبيق SuperKi وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال للدكتور.'),
+                    ],
+                    'card' => [
+                        'enabled'      => $payCardEnabled,
+                        'link'         => Setting::get('payment_card_link', ''),
+                        'instructions' => Setting::get('payment_card_instructions', 'يمكنك الدفع مباشرة باستخدام أي بطاقة فيزا أو ماستر كارد بأمان وسرية تامة.'),
+                    ],
+                    'whatsapp_number' => Setting::get('whatsapp_number', '+9647700000000'),
+                ]
             ]
         ]);
     }
@@ -306,6 +330,7 @@ class ApiController extends Controller
             'service_id' => 'required|exists:services,id',
             'booking_type' => 'nullable|in:clinic,online',
             'consultation_type' => 'nullable|in:clinic,chat,voice,video',
+            'payment_method' => 'nullable|string|in:zaincash,superki,card,stripe',
             'date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|string',
             'title' => 'nullable|string|max:255',
@@ -359,7 +384,16 @@ class ApiController extends Controller
         $defaultPaymentUrl = 'https://younisalmurshed.gumroad.com/l/srjlvw?wanted=true';
         $paymentUrl = !empty($service->payment_url) ? $service->payment_url : $defaultPaymentUrl;
 
-        return DB::transaction(function () use ($request, $service, $dateStr, $startTimeStr, $endTimeStr, $bookingType, $consultationType, $calculatedPrice, $existingUser, $isRegistered, $paymentUrl) {
+        // Payment method resolution
+        $payZainEnabled = Setting::get('payment_zaincash_enabled', '1') === '1';
+        $paySuperkiEnabled = Setting::get('payment_superki_enabled', '1') === '1';
+        $payCardEnabled = Setting::get('payment_card_enabled', '0') === '1';
+        $stripeEnabled = Setting::get('stripe_enabled', '0') === '1';
+
+        $defaultMethod = $payZainEnabled ? 'zaincash' : ($paySuperkiEnabled ? 'superki' : ($payCardEnabled ? 'card' : 'zaincash'));
+        $paymentMethod = $request->input('payment_method') ?: $defaultMethod;
+
+        return DB::transaction(function () use ($request, $service, $dateStr, $startTimeStr, $endTimeStr, $bookingType, $consultationType, $calculatedPrice, $existingUser, $isRegistered, $paymentUrl, $paymentMethod, $stripeEnabled) {
             // Check double booking
             $overlapExists = Booking::where('date', $dateStr)
                 ->whereIn('status', ['AwaitingPayment', 'Confirmed', 'Completed'])
@@ -411,12 +445,10 @@ class ApiController extends Controller
                 'status' => 'AwaitingPayment',
             ]);
 
-            // Check if Stripe gateway is enabled in settings
-            $stripeEnabled = Setting::get('stripe_enabled', '0') === '1';
             $clientSecret = null;
             $paymentIntentId = null;
 
-            if ($stripeEnabled) {
+            if ($paymentMethod === 'stripe' && $stripeEnabled) {
                 try {
                     $stripeSecret = config('services.stripe.secret');
                     if (!empty($stripeSecret) && !str_contains($stripeSecret, 'placeholder')) {
@@ -441,8 +473,7 @@ class ApiController extends Controller
                     ], 500);
                 }
             } else {
-                // Stripe disabled: using external Gumroad / direct link flow
-                $paymentIntentId = 'gumroad_ext_' . Str::random(12);
+                $paymentIntentId = $paymentMethod . '_' . Str::random(12);
             }
 
             // Record payment log
@@ -454,13 +485,35 @@ class ApiController extends Controller
                 'status' => 'Pending',
             ]);
 
+            // Resolve QR and Instructions
+            $zainQr = Setting::get('payment_zaincash_qr') ? asset('storage/' . Setting::get('payment_zaincash_qr')) : null;
+            $superkiQr = Setting::get('payment_superki_qr') ? asset('storage/' . Setting::get('payment_superki_qr')) : null;
+            $cardLink = Setting::get('payment_card_link', '');
+            $cardInstructions = Setting::get('payment_card_instructions', '');
+            $whatsappNumber = Setting::get('doctor_whatsapp', Setting::get('clinic_phone', '+9647700000000'));
+
+            $activeQr = ($paymentMethod === 'superki') ? $superkiQr : $zainQr;
+            $instructions = ($paymentMethod === 'card')
+                ? $cardInstructions
+                : (($paymentMethod === 'superki')
+                    ? Setting::get('payment_superki_instructions', 'يرجى تحويل المبلغ عبر تطبيق سوبركي ومسح رمز الـ QR ثم إرسال الإشعار')
+                    : Setting::get('payment_zaincash_instructions', 'يرجى تحويل المبلغ عبر تطبيق زين كاش ومسح رمز الـ QR ثم إرسال الإشعار'));
+
+            $cleanWa = preg_replace('/[^0-9]/', '', $whatsappNumber);
+            $waMsg = urlencode("مرحباً دكتور يونس، تم حجز موعد جديد برقم: {$bookingRef}\nالخدمة: {$service->title}\nالمبلغ: {$calculatedPrice}$\nطريقة الدفع: {$paymentMethod}\nيرجى مراجعة وتأكيد الحجز.");
+            $waUrl = "https://wa.me/{$cleanWa}?text={$waMsg}";
+
             return response()->json([
                 'success' => true,
                 'booking_reference' => $bookingRef,
                 'stripe_enabled' => $stripeEnabled,
                 'client_secret' => $clientSecret,
                 'amount' => $calculatedPrice,
-                'payment_url' => $paymentUrl,
+                'payment_method' => $paymentMethod,
+                'qr_code' => $activeQr,
+                'payment_instructions' => $instructions,
+                'whatsapp_url' => $waUrl,
+                'payment_url' => ($paymentMethod === 'card' && !empty($cardLink)) ? $cardLink : $paymentUrl,
                 'is_registered' => $isRegistered,
                 'requires_account' => !$isRegistered,
                 'requires_password' => !$isRegistered,
