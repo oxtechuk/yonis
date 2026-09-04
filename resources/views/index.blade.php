@@ -391,8 +391,13 @@
             {{-- Photo Column --}}
             <div class="col-lg-5 text-center position-relative">
                 <div class="hero-photo-frame">
-                    @if($profile && !empty($profile->hero_image))
-                        <img src="{{ $profile->hero_image }}" alt="{{ $doctorName }}" loading="eager">
+                    @if($profile && (!empty($profile->hero_image) || !empty($profile->hero_image_mobile)))
+                        <picture>
+                            @if(!empty($profile->hero_image_mobile))
+                                <source media="(max-width: 768px)" srcset="{{ $profile->hero_image_mobile }}">
+                            @endif
+                            <img src="{{ $profile->hero_image ?: $profile->hero_image_mobile }}" alt="{{ $doctorName }}" loading="eager">
+                        </picture>
                     @elseif($profile && $profile->gallery && count($profile->gallery) > 0)
                         <img src="{{ $profile->gallery[0] }}" alt="{{ $doctorName }}" loading="eager">
                     @else

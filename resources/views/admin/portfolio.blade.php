@@ -25,20 +25,50 @@
                 @csrf
 
                 <div class="row g-3 mb-4">
-                    <!-- Hero Image -->
+                    <!-- 1. Web Hero Image -->
                     <div class="col-md-6">
-                        <label class="form-label small fw-bold">صورة المعالج الرئيسية (Hero Section)</label>
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <label class="form-label small fw-bold m-0 text-dark">
+                                <i class="bi bi-laptop text-primary me-1"></i> صورة المعالج للموقع (Web Hero)
+                            </label>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill small">الموقع الإلكتروني</span>
+                        </div>
                         <div class="d-flex align-items-center gap-3 border p-3 rounded-4 bg-light">
                             <div class="position-relative">
                                 @if(!empty($profile->hero_image))
-                                    <img src="{{ $profile->hero_image }}" alt="Hero Image" class="rounded-3 shadow-sm" style="width: 75px; height: 75px; object-fit: cover;">
+                                    <img src="{{ $profile->hero_image }}" alt="Web Hero Image" class="rounded-3 shadow-sm border" style="width: 75px; height: 75px; object-fit: cover;">
                                 @else
                                     <div class="bg-secondary text-white rounded-3 d-flex align-items-center justify-content-center" style="width: 75px; height: 75px;"><i class="bi bi-person fs-2"></i></div>
                                 @endif
                             </div>
                             <div class="flex-grow-1">
                                 <input type="file" name="hero_image_file" class="form-control form-control-sm mb-1" accept="image/*">
-                                <span class="text-muted small" style="font-size:0.75rem;">تأثير صورة الهيرو الكبيرة</span>
+                                <span class="text-muted small" style="font-size:0.75rem;">تظهر في واجهة الموقع لشاشات الكمبيوتر والمتصفح</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Mobile App Hero Image (API) -->
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <label class="form-label small fw-bold m-0 text-dark">
+                                <i class="bi bi-phone text-success me-1"></i> صورة المعالج للموبايل (Mobile & API Hero)
+                            </label>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill small">تطبيق الموبايل والـ API</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-3 border p-3 rounded-4 bg-light">
+                            <div class="position-relative">
+                                @if(!empty($profile->hero_image_mobile))
+                                    <img src="{{ $profile->hero_image_mobile }}" alt="Mobile Hero Image" class="rounded-3 shadow-sm border border-success" style="width: 75px; height: 75px; object-fit: cover;">
+                                @elseif(!empty($profile->hero_image))
+                                    <img src="{{ $profile->hero_image }}" alt="Fallback Hero Image" class="rounded-3 shadow-sm border opacity-75" style="width: 75px; height: 75px; object-fit: cover;" title="مأخوذة تلقائياً من صورة الموقع">
+                                @else
+                                    <div class="bg-success text-white rounded-3 d-flex align-items-center justify-content-center" style="width: 75px; height: 75px;"><i class="bi bi-phone fs-2"></i></div>
+                                @endif
+                            </div>
+                            <div class="flex-grow-1">
+                                <input type="file" name="hero_image_mobile_file" class="form-control form-control-sm mb-1" accept="image/*">
+                                <span class="text-muted small" style="font-size:0.75rem;">مخصصة للـ API وتطبيق الموبايل (أبعاد رأسية ملائمة للشاشات)</span>
                             </div>
                         </div>
                     </div>

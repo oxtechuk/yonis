@@ -15,7 +15,8 @@ class SetLocaleMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $locale = Session::get('locale', config('app.locale', 'ar'));
+        $defaultLocale = \App\Models\Setting::get('default_language', config('app.locale', 'ar'));
+        $locale = Session::get('locale', $defaultLocale);
 
         if (in_array($locale, ['ar', 'en'])) {
             App::setLocale($locale);

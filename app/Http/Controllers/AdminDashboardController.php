@@ -915,6 +915,7 @@ class AdminDashboardController extends Controller
             'instagram' => 'nullable|url',
             'linkedin' => 'nullable|url',
             'hero_image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
+            'hero_image_mobile_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
             'about_image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
             'site_logo_file' => 'nullable|image|mimes:jpeg,png,jpg,webp,svg|max:2048',
             'gallery_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:3072',
@@ -934,11 +935,18 @@ class AdminDashboardController extends Controller
             'linkedin' => $request->linkedin,
         ];
 
-        // Hero Image Upload
+        // Web Hero Image Upload
         $heroImage = $profile->hero_image;
         if ($request->hasFile('hero_image_file')) {
             $path = $this->storePublicUpload($request->file('hero_image_file'), 'branding');
             $heroImage = asset('storage/' . $path);
+        }
+
+        // Mobile Hero Image Upload (For Mobile App & API)
+        $heroImageMobile = $profile->hero_image_mobile;
+        if ($request->hasFile('hero_image_mobile_file')) {
+            $path = $this->storePublicUpload($request->file('hero_image_mobile_file'), 'branding');
+            $heroImageMobile = asset('storage/' . $path);
         }
 
         // About Image Upload
@@ -969,6 +977,7 @@ class AdminDashboardController extends Controller
             'bio' => $request->bio,
             'bio_en' => $request->bio_en ?: null,
             'hero_image' => $heroImage,
+            'hero_image_mobile' => $heroImageMobile,
             'about_image' => $aboutImage,
             'education' => $education,
             'experience' => $experience,
@@ -1305,6 +1314,12 @@ class AdminDashboardController extends Controller
             'currency_code'                 => Setting::currencyCode(),
             'currency_symbol'               => Setting::currencySymbol(),
             'default_consultation_duration' => Setting::get('default_consultation_duration', '45'),
+            // ─── إعدادات الواتساب واللغة ──────────────────────────────────────
+            'default_language'              => Setting::get('default_language', 'ar'),
+            'whatsapp_number'               => Setting::get('whatsapp_number', '+9647800000000'),
+            'whatsapp_widget_enabled'       => Setting::get('whatsapp_widget_enabled', '1'),
+            'whatsapp_default_message'      => Setting::get('whatsapp_default_message', 'مرحباً دكتور يونس، أود الاستفسار عن حجز موعد استشارة.'),
+            'whatsapp_widget_greeting'      => Setting::get('whatsapp_widget_greeting', 'أهلاً بك! 👋 معك عيادة الدكتور يونس المرشد. كيف يمكننا مساعدتك اليوم؟'),
         ];
         return view('admin.settings', compact('settings'));
     }
@@ -1439,6 +1454,23 @@ class AdminDashboardController extends Controller
         // مدة الاستشارة الافتراضية
         if ($request->filled('default_consultation_duration')) {
             Setting::set('default_consultation_duration', max(5, (int) $request->default_consultation_duration));
+        }
+
+        // إعدادات اللغة الافتراضية
+        if ($request->filled('default_language')) {
+            Setting::set('default_language', in_array($request->default_language, ['ar', 'en']) ? $request->default_language : 'ar');
+        }
+
+        // إعدادات ويدجت الواتساب
+        Setting::set('whatsapp_widget_enabled', $request->has('whatsapp_widget_enabled') ? '1' : '0');
+        if ($request->has('whatsapp_number')) {
+            Setting::set('whatsapp_number', trim($request->whatsapp_number ?? ''));
+        }
+        if ($request->has('whatsapp_default_message')) {
+            Setting::set('whatsapp_default_message', trim($request->whatsapp_default_message ?? ''));
+        }
+        if ($request->has('whatsapp_widget_greeting')) {
+            Setting::set('whatsapp_widget_greeting', trim($request->whatsapp_widget_greeting ?? ''));
         }
 
         return redirect()->back()->with('success', 'تم حفظ جميع الإعدادات بنجاح!');

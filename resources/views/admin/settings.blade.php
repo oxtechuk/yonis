@@ -42,6 +42,11 @@
                         <i class="bi bi-credit-card-2-front-fill me-1 text-danger"></i> إعدادات الدفع
                     </button>
                 </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-bold px-4 rounded-3" id="whatsapp-tab" data-bs-toggle="tab" data-bs-target="#whatsapp-panel" type="button" role="tab">
+                        <i class="bi bi-whatsapp me-1 text-success"></i> الواتساب واللغة (WhatsApp)
+                    </button>
+                </li>
             </ul>
 
             <!-- Tab Content -->
@@ -676,6 +681,169 @@
 
                     </div>{{-- end row --}}
                 </div>{{-- end payment-panel --}}
+
+                {{-- 6. WhatsApp & Language Settings Panel --}}
+                <div class="tab-pane fade" id="whatsapp-panel" role="tabpanel" aria-labelledby="whatsapp-tab">
+                    <div class="row g-4 col-lg-10">
+
+                        {{-- Default Language Card --}}
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                                <div class="card-header border-0 py-3 px-4 d-flex justify-content-between align-items-center"
+                                     style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="rounded-3 d-flex align-items-center justify-content-center text-white"
+                                             style="width:44px;height:44px;background:rgba(255,255,255,0.15);font-size:1.4rem;">
+                                            <i class="bi bi-translate"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold text-white m-0">اللغة الافتراضية للموقع (Default Language)</h6>
+                                            <span class="text-white opacity-75 small">تحديد لغة عرض الموقع الأساسية للزوار الجدد (Default Site Locale)</span>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-white text-dark px-3 py-2 rounded-pill fw-bold">
+                                        الحالية: {{ ($settings['default_language'] ?? 'ar') === 'ar' ? 'العربية (Arabic 🇮🇶)' : 'English 🇬🇧' }}
+                                    </span>
+                                </div>
+                                <div class="card-body p-4 bg-light">
+                                    <div class="row g-3 align-items-center">
+                                        <div class="col-md-7">
+                                            <label class="form-label fw-bold text-dark">
+                                                <i class="bi bi-globe me-1 text-primary"></i> اللغة الافتراضية لمنصة العيادة
+                                            </label>
+                                            <select name="default_language" class="form-select form-select-lg rounded-3 fw-bold">
+                                                <option value="ar" @selected(($settings['default_language'] ?? 'ar') === 'ar')>
+                                                    العربية — اللغة الرسمية الافتراضية (RTL) 🇮🇶
+                                                </option>
+                                                <option value="en" @selected(($settings['default_language'] ?? '') === 'en')>
+                                                    English — Secondary Language (LTR) 🇬🇧
+                                                </option>
+                                            </select>
+                                            <div class="form-text text-muted small mt-1">
+                                                عندما يفتح أي زائر رابط الموقع للمرة الأولى، سيتم فتح الموقع بهذه اللغة تلقائياً مع الحفاظ على إمكانية التبديل للزائر.
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <div class="alert alert-info border-0 rounded-3 mb-0 d-flex align-items-start gap-2 small">
+                                                <i class="bi bi-info-circle-fill fs-5 text-primary flex-shrink-0"></i>
+                                                <div>
+                                                    <strong>ملاحظة:</strong> تم ضبط الموقع بالكامل افتراضياً ليعمل باللغة العربية مع اتجاه القراءة من اليمين إلى اليسار (RTL).
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- WhatsApp Widget Card --}}
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                                <div class="card-header border-0 py-3 px-4 d-flex justify-content-between align-items-center"
+                                     style="background: linear-gradient(135deg, #128c7e 0%, #25d366 100%);">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="rounded-3 d-flex align-items-center justify-content-center text-white"
+                                             style="width:44px;height:44px;background:rgba(255,255,255,0.2);font-size:1.5rem;">
+                                            <i class="bi bi-whatsapp"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold text-white m-0">ويدجت الواتساب العائم (WhatsApp Floating Widget)</h6>
+                                            <span class="text-white opacity-75 small">زر واتساب عائم تفاعلي يظهر لزوار الموقع لتسهيل التواصل والاستفسار المباشر</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-check form-switch m-0 d-flex align-items-center gap-2">
+                                        <input class="form-check-input" type="checkbox" role="switch"
+                                               id="whatsapp_widget_enabled" name="whatsapp_widget_enabled" value="1"
+                                               @checked(($settings['whatsapp_widget_enabled'] ?? '1') === '1')
+                                               style="width: 2.7rem; height: 1.4rem; cursor: pointer;">
+                                        <label class="form-check-label text-white fw-bold small" for="whatsapp_widget_enabled">
+                                            تفعيل الويدجت
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="card-body p-4 bg-light">
+                                    <div class="row g-4">
+
+                                        {{-- WhatsApp Phone Number --}}
+                                        <div class="col-md-7">
+                                            <label class="form-label fw-bold text-dark">
+                                                <i class="bi bi-telephone-outbound-fill text-success me-1"></i> رقم هاتف الواتساب (مع الرمز الدولي)
+                                            </label>
+                                            <div class="input-group input-group-lg">
+                                                <span class="input-group-text bg-white border-end-0 text-success fw-bold">
+                                                    <i class="bi bi-whatsapp"></i>
+                                                </span>
+                                                <input type="text" name="whatsapp_number" id="whatsapp_number_input"
+                                                       class="form-control border-start-0 rounded-start-3 font-monospace fw-bold"
+                                                       placeholder="+9647800000000 أو 07800000000"
+                                                       value="{{ $settings['whatsapp_number'] ?? '' }}">
+                                                <button type="button" class="btn btn-outline-success px-3 fw-bold" onclick="testWhatsAppLink()">
+                                                    <i class="bi bi-box-arrow-up-right me-1"></i> تجربة الرقم
+                                                </button>
+                                            </div>
+                                            <div class="form-text text-muted small mt-1">
+                                                اكتب الرقم مع رمز الدولة (مثال للعراق: <code>+9647801234567</code> أو <code>9647801234567</code>). سيتم تحويله تلقائياً لرابط مباشر.
+                                            </div>
+                                        </div>
+
+                                        {{-- Quick Preview Simulation --}}
+                                        <div class="col-md-5">
+                                            <div class="p-3 bg-white rounded-4 border shadow-sm h-100 d-flex flex-column justify-content-between">
+                                                <div>
+                                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill small fw-bold">
+                                                            <i class="bi bi-check-circle-fill me-1"></i> معاينة شكل الزر
+                                                        </span>
+                                                        <span class="text-muted small">يظهر أسفل الشاشة</span>
+                                                    </div>
+                                                    <div class="d-flex align-items-center gap-2 p-2 rounded-3 bg-light">
+                                                        <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center shadow-sm" style="width: 38px; height: 38px; font-size: 1.2rem;">
+                                                            <i class="bi bi-whatsapp"></i>
+                                                        </div>
+                                                        <div>
+                                                            <div class="fw-bold small text-dark">د. {{ $settings['doctor_name'] ?? 'يونس المرشد' }}</div>
+                                                            <div class="text-success small" style="font-size: 0.75rem;"><i class="bi bi-circle-fill text-success" style="font-size: 0.55rem;"></i> متصل الآن في واتساب</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="text-muted small mt-2">
+                                                    الزر يظهر للزوار في أسفل الشاشة مع حركة نبض ونقر لفتح محادثة واتساب الفورية.
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- WhatsApp Default Message --}}
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold text-dark">
+                                                <i class="bi bi-chat-dots-fill text-primary me-1"></i> الرسالة الافتراضية المكتوبة مسبقاً (Pre-filled Message)
+                                            </label>
+                                            <textarea name="whatsapp_default_message" rows="3" class="form-control rounded-3"
+                                                      placeholder="الرسالة التي ستظهر للمريض تلقائياً عند فتح واتساب">{{ $settings['whatsapp_default_message'] ?? 'مرحباً دكتور يونس، أود الاستفسار عن حجز موعد استشارة.' }}</textarea>
+                                            <div class="form-text text-muted small mt-1">
+                                                هذه الرسالة توضع جاهزة في خانة كتابة واتساب للمريض ليرسلها بضغطة زر واحدة.
+                                            </div>
+                                        </div>
+
+                                        {{-- WhatsApp Widget Greeting inside popup --}}
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold text-dark">
+                                                <i class="bi bi-chat-heart-fill text-danger me-1"></i> رسالة الترحيب في بطاقة الويدجت (Widget Greeting)
+                                            </label>
+                                            <textarea name="whatsapp_widget_greeting" rows="3" class="form-control rounded-3"
+                                                      placeholder="نص الترحيب بالزائر عند الضغط على الزر">{{ $settings['whatsapp_widget_greeting'] ?? 'أهلاً بك! 👋 معك عيادة الدكتور يونس المرشد. كيف يمكننا مساعدتك اليوم؟' }}</textarea>
+                                            <div class="form-text text-muted small mt-1">
+                                                تظهر داخل فقاعة المحادثة كتحية من الدكتور قبل انتقال الزائر إلى تطبيق واتساب.
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>{{-- end whatsapp-panel --}}
 
             </div>{{-- end tab-content --}}
 

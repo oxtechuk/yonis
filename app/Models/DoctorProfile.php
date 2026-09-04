@@ -14,6 +14,7 @@ class DoctorProfile extends Model
         'bio',
         'bio_en',
         'hero_image',
+        'hero_image_mobile',
         'about_image',
         'education',
         'experience',
@@ -22,6 +23,11 @@ class DoctorProfile extends Model
         'specialties_en',
         'social_links',
         'gallery',
+    ];
+
+    protected $appends = [
+        'hero_image_web',
+        'mobile_hero_image',
     ];
 
     protected $casts = [
@@ -33,6 +39,22 @@ class DoctorProfile extends Model
         'social_links' => 'array',
         'gallery' => 'array',
     ];
+
+    /**
+     * Get web hero image attribute (alias for hero_image)
+     */
+    public function getHeroImageWebAttribute(): ?string
+    {
+        return $this->hero_image;
+    }
+
+    /**
+     * Get mobile hero image attribute (falls back to hero_image if not specifically set)
+     */
+    public function getMobileHeroImageAttribute(): ?string
+    {
+        return !empty($this->hero_image_mobile) ? $this->hero_image_mobile : $this->hero_image;
+    }
 
     /**
      * User relation
