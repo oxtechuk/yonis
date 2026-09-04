@@ -63,7 +63,7 @@ class BookingController extends Controller
             ->get();
 
         $upcomingBookings = $bookings->filter(function ($b) {
-            return in_array($b->status, ['Confirmed', 'AwaitingPayment', 'Rescheduled']) &&
+            return in_array($b->status, ['Confirmed', 'AwaitingPayment', 'PendingPaymentReview', 'Pending', 'Rescheduled']) &&
                    (Carbon::parse($b->date)->isFuture() || Carbon::parse($b->date)->isToday());
         });
 
@@ -252,6 +252,45 @@ class BookingController extends Controller
             'transaction_reference' => $transRef
         ]);
 
+        // Ensure patient user account exists and authenticate them
+        if (!$booking->patient_id && !empty($booking->temp_user_data)) {
+            $temp = $booking->temp_user_data;
+            $phone = $temp['phone'] ?? null;
+            $email = $temp['email'] ?? null;
+            $name = $temp['name'] ?? 'عميل جديد';
+            $password = $temp['password'] ?? '12345678';
+
+            $user = null;
+            if ($phone) {
+                $digits = preg_replace('/\D/', '', $phone);
+                $last9 = strlen($digits) >= 9 ? substr($digits, -9) : $digits;
+                $user = User::where('phone', $phone)
+                    ->orWhere('phone', '+' . $digits)
+                    ->orWhere('phone', 'like', '%' . $last9)
+                    ->first();
+            }
+            if (!$user && $email) {
+                $user = User::where('email', $email)->first();
+            }
+            if (!$user) {
+                $userEmail = !empty($email) ? $email : ('patient_' . preg_replace('/\D/', '', (string)$phone) . '@yonis-app.com');
+                $user = User::create([
+                    'name' => $name,
+                    'phone' => $phone,
+                    'email' => $userEmail,
+                    'password' => Hash::make($password),
+                    'role' => 'patient',
+                ]);
+            }
+            $booking->patient_id = $user->id;
+            $booking->temp_user_data = null;
+            $booking->save();
+        }
+
+        if ($booking->patient) {
+            Auth::login($booking->patient, true);
+        }
+
         // Send Email Notifications (Fail-safe via NotificationMailService)
         NotificationMailService::notifyDoctorNewBooking($booking, 'إشعار تحويل وتأكيد دفع جديد');
         NotificationMailService::notifyPatientBookingReceived($booking);
@@ -263,7 +302,57 @@ class BookingController extends Controller
             'booking_reference' => $bookingRef,
             'payment_method' => $paymentMethod,
             'transaction_reference' => $transRef,
+            'redirect_url' => route('patient.dashboard'),
         ]);
+    }
+
+    /**
+     * Authenticate and redirect patient to their dashboard directly
+     */
+    public function goToPatientDashboard(Request $request, string $bookingRef)
+    {
+        $booking = Booking::with('patient')->where('booking_reference', $bookingRef)->first();
+        if ($booking) {
+            if (!$booking->patient_id && !empty($booking->temp_user_data)) {
+                $temp = $booking->temp_user_data;
+                $phone = $temp['phone'] ?? null;
+                $email = $temp['email'] ?? null;
+                $name = $temp['name'] ?? 'عميل جديد';
+                $password = $temp['password'] ?? '12345678';
+
+                $user = null;
+                if ($phone) {
+                    $digits = preg_replace('/\D/', '', $phone);
+                    $last9 = strlen($digits) >= 9 ? substr($digits, -9) : $digits;
+                    $user = User::where('phone', $phone)
+                        ->orWhere('phone', '+' . $digits)
+                        ->orWhere('phone', 'like', '%' . $last9)
+                        ->first();
+                }
+                if (!$user && $email) {
+                    $user = User::where('email', $email)->first();
+                }
+                if (!$user) {
+                    $userEmail = !empty($email) ? $email : ('patient_' . preg_replace('/\D/', '', (string)$phone) . '@yonis-app.com');
+                    $user = User::create([
+                        'name' => $name,
+                        'phone' => $phone,
+                        'email' => $userEmail,
+                        'password' => Hash::make($password),
+                        'role' => 'patient',
+                    ]);
+                }
+                $booking->patient_id = $user->id;
+                $booking->temp_user_data = null;
+                $booking->save();
+            }
+
+            if ($booking->patient) {
+                Auth::login($booking->patient, true);
+            }
+        }
+
+        return redirect()->route('patient.dashboard');
     }
 
     /**

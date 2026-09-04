@@ -667,22 +667,43 @@ class ApiController extends Controller
                 $bookingRef = 'BK-' . strtoupper(Str::random(8));
             } while (Booking::where('booking_reference', $bookingRef)->exists());
 
-            $patientId = $existingUser ? $existingUser->id : ($request->user() ? $request->user()->id : null);
-            $tempUserData = null;
+            $patient = $existingUser ?: ($request->user() ?: null);
 
-            if (!$patientId) {
-                $tempUserData = [
-                    'name' => $request->name,
-                    'phone' => $request->phone,
-                    'email' => $request->email ?? null,
-                    'password' => $request->password ?? '12345678',
-                ];
+            if (!$patient) {
+                $phone = $request->phone;
+                $email = $request->email;
+                $name = $request->name ?: 'عميل جديد';
+                $plainPassword = $request->password ?: '12345678';
+
+                // Look up by phone if exists
+                if (!empty($phone)) {
+                    $digits = preg_replace('/\D/', '', $phone);
+                    $last9 = strlen($digits) >= 9 ? substr($digits, -9) : $digits;
+                    $patient = User::where('phone', $phone)
+                        ->orWhere('phone', '+' . $digits)
+                        ->orWhere('phone', 'like', '%' . $last9)
+                        ->first();
+                }
+                if (!$patient && !empty($email)) {
+                    $patient = User::where('email', $email)->first();
+                }
+
+                if (!$patient) {
+                    $userEmail = !empty($email) ? $email : ('patient_' . preg_replace('/\D/', '', (string)$phone) . '@yonis-app.com');
+                    $patient = User::create([
+                        'name' => $name,
+                        'phone' => $phone,
+                        'email' => $userEmail,
+                        'password' => Hash::make($plainPassword),
+                        'role' => 'patient',
+                    ]);
+                }
             }
 
-            // Create booking record with temp_user_data
+            // Create booking record linked directly to patient
             $booking = Booking::create([
                 'booking_reference' => $bookingRef,
-                'patient_id' => $patientId,
+                'patient_id' => $patient ? $patient->id : null,
                 'service_id' => $service->id,
                 'booking_type' => $bookingType,
                 'consultation_type' => $consultationType,
@@ -692,9 +713,16 @@ class ApiController extends Controller
                 'end_time' => $endTimeStr,
                 'title' => $request->title ?? $service->title,
                 'notes' => $request->notes ?? null,
-                'temp_user_data' => $tempUserData,
+                'temp_user_data' => null,
                 'status' => 'AwaitingPayment',
             ]);
+
+            // Attempt login if session is active
+            if ($patient) {
+                try {
+                    Auth::login($patient, true);
+                } catch (\Throwable $e) {}
+            }
 
             $clientSecret = null;
             $paymentIntentId = null;
@@ -778,6 +806,7 @@ class ApiController extends Controller
                 'requires_account' => !$isRegistered,
                 'requires_password' => !$isRegistered,
                 'account_prompt' => $isRegistered ? null : 'يرجى إضافة كلمة المرور لإنشاء حسابك ومتابعة الحجز',
+                'redirect_url' => route('booking.view-dashboard', ['bookingRef' => $bookingRef]),
                 'booking' => $booking->fresh(['service', 'patient'])
             ], 201);
         });

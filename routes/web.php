@@ -41,6 +41,7 @@ Route::post('/api/bookings/stripe/webhook', [BookingController::class, 'stripeWe
 Route::get('/booking/success', [BookingController::class, 'bookingSuccess'])->name('booking.success');
 // Patient payment confirmation (public — works for guests too)
 Route::post('/booking/{bookingRef}/confirm-payment', [BookingController::class, 'confirmPayment'])->name('booking.confirm-payment');
+Route::get('/booking/{bookingRef}/view-dashboard', [BookingController::class, 'goToPatientDashboard'])->name('booking.view-dashboard');
 
 // Checkout routes alias (supports requests sent without /api prefix)
 Route::prefix('checkout')->group(function () {

@@ -370,61 +370,96 @@
 
                 </div>{{-- End Screen 2 --}}
 
-                {{-- ═══ SCREEN 3: تأكيد تسجيل الحجز ═══ --}}
+                {{-- ═══ SCREEN 3: تأكيد تسجيل الحجز وبطاقة الموعد الفاخرة ═══ --}}
                 <div id="app-screen-3" class="d-none">
                     <div class="text-center py-1">
+                        {{-- Top Glowing Status Icon --}}
                         <div class="mx-auto mb-2 d-flex align-items-center justify-content-center"
-                             style="width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-size:1.6rem;box-shadow:0 10px 24px rgba(245,158,11,.22);">
+                             style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-size:1.5rem;box-shadow:0 8px 22px rgba(245,158,11,.28);">
                             <i class="bi bi-hourglass-split"></i>
                         </div>
-                        <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-1.5" style="font-size:0.8rem;">
+                        <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-1" style="font-size:0.78rem;">
                             <i class="bi bi-clock-history me-1"></i> الحجز قيد المراجعة والتدقيق
                         </span>
-                        <h5 class="fw-black text-dark mb-2">تم تسجيل طلب الحجز بنجاح!</h5>
+                        <h5 class="fw-black text-dark mb-2" style="font-size: 1.12rem;">تم تسجيل طلب الحجز بنجاح!</h5>
                         
-                        {{-- إشعار المراجعة والتأكيد بشكل منسق وأنيق --}}
-                        <div class="rounded-3 p-2.5 mb-2.5 text-start border" style="background:#fffbeb;border-color:#fde68a !important;color:#92400e;display:block !important;">
+                        {{-- إشعار المراجعة والتأكيد الأنيق --}}
+                        <div class="rounded-3 p-2.5 mb-2.5 text-start border position-relative" style="background:linear-gradient(135deg, #fffbeb, #fef3c7);border-color:#fde68a !important;color:#92400e;border-right: 4px solid #f59e0b !important;">
                             <div class="d-flex align-items-start gap-2">
                                 <i class="bi bi-info-circle-fill text-warning fs-6 flex-shrink-0 mt-0.5"></i>
-                                <div style="line-height:1.6;font-size:0.84rem;flex-grow:1;display:block;">
-                                    <div class="fw-bold mb-0.5" style="color:#b45309;">تنبيه هام:</div>
+                                <div style="line-height:1.55;font-size:0.82rem;flex-grow:1;">
+                                    <div class="fw-bold" style="color:#b45309;">تنبيه المراجعة:</div>
                                     <div style="color:#78350f;">
-                                        حجزك الآن <strong>قيد المراجعة</strong> من قبل الإدارة. بعد إتمام التحقق من عملية الدفع، سيصلك <strong>رقم تأكيد الحجز النهائي</strong> وتفاصيل الموعد مباشرة.
+                                        حجزك الآن <strong>قيد المراجعة والتدقيق</strong>. بعد تأكيد عملية الدفع من الإدارة، سيصلك <strong>رقم التأكيد النهائي</strong> وتفاصيل الموعد مباشرة.
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        {{-- معلومات وملخص الحجز --}}
-                        <div class="rounded-3 p-2.5 mb-2.5 text-start bg-white shadow-sm border" style="border-color:#e2e8f0 !important;">
-                            <div class="d-flex justify-content-between align-items-center mb-2 pb-1.5 border-bottom">
-                                <span class="text-secondary small fw-bold">رقم المرجع:</span>
-                                <span class="fw-black text-primary font-monospace fs-6" id="app-res-ref" dir="ltr">#REF-8492</span>
+                        {{-- بطاقة تذكرة الموعد الإلكترونية (Luxury Appointment Voucher) --}}
+                        <div class="rounded-4 p-3 mb-2.5 text-start bg-white shadow-sm border position-relative" style="border-color:#e2e8f0 !important;box-shadow:0 10px 25px -5px rgba(15,23,42,0.06);">
+                            {{-- رأس التذكرة --}}
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom: 1.5px dashed #e2e8f0;">
+                                <div class="d-flex align-items-center gap-1.5">
+                                    <i class="bi bi-ticket-perforated-fill text-primary fs-6"></i>
+                                    <span class="fw-bold small text-secondary" style="font-size: 0.8rem;">تذكرة الحجز الإلكترونية</span>
+                                </div>
+                                <span class="badge bg-primary-subtle text-primary font-monospace px-2.5 py-1 rounded-pill fw-black" id="app-res-ref" dir="ltr" style="font-size: 0.88rem; letter-spacing: 0.5px;">#BK-REF</span>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center mb-1.5">
-                                <span class="text-secondary small">الخدمة:</span>
-                                <span class="fw-bold text-dark small" id="app-res-service">جلسة استشارة</span>
+
+                            {{-- بيانات الموعد --}}
+                            <div class="py-1">
+                                <div class="d-flex justify-content-between align-items-center mb-1.5">
+                                    <span class="text-secondary small d-flex align-items-center gap-1.5">
+                                        <i class="bi bi-heart-pulse-fill text-primary" style="font-size: 0.85rem;"></i> الخدمة:
+                                    </span>
+                                    <span class="fw-bold text-dark small text-end" id="app-res-service">جلسة استشارة</span>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mb-1.5">
+                                    <span class="text-secondary small d-flex align-items-center gap-1.5">
+                                        <i class="bi bi-calendar-check-fill text-primary" style="font-size: 0.85rem;"></i> الموعد:
+                                    </span>
+                                    <span class="fw-bold text-dark small font-monospace" id="app-res-datetime">—</span>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="text-secondary small d-flex align-items-center gap-1.5">
+                                        <i class="bi bi-credit-card-2-front-fill text-primary" style="font-size: 0.85rem;"></i> طريقة الدفع:
+                                    </span>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill fw-bold" id="app-res-paymethod">زين كاش</span>
+                                </div>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center mb-1.5">
-                                <span class="text-secondary small">الموعد:</span>
-                                <span class="fw-bold text-dark small" id="app-res-datetime">—</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center mb-1.5">
-                                <span class="text-secondary small">طريقة الدفع:</span>
-                                <span class="fw-bold text-success small" id="app-res-paymethod">زين كاش</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-1.5">
-                                <span class="fw-bold text-dark small">المبلغ الإجمالي:</span>
+
+                            {{-- شريط الإجمالي المميز --}}
+                            <div class="p-2.5 rounded-3 mt-1.5 d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); border: 1px solid #e2e8f0;">
+                                <span class="fw-bold text-dark small">المبلغ المطلوب:</span>
                                 <span class="fw-black fs-5" style="color:var(--primary-color);" id="app-res-type">50 {{ \App\Models\Setting::currencySymbol() }}</span>
                             </div>
                         </div>
 
-                        {{-- زر الإغلاق والعودة --}}
-                        <button type="button" class="btn btn-primary w-100 rounded-pill py-2.5 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2"
-                                data-bs-dismiss="modal" onclick="window.location.reload()" style="background:var(--primary-color);border:none;font-size:0.95rem;">
-                            <i class="bi bi-check-circle-fill fs-5"></i>
-                            <span>تم، إغلاق والعودة للرئيسية</span>
-                        </button>
+                        {{-- إشعار الحساب والمتابعة --}}
+                        <div class="rounded-3 p-2 mb-2.5 d-flex align-items-center justify-content-center gap-2 text-success small fw-bold" style="background:#ecfdf5; border: 1px solid #a7f3d0;">
+                            <i class="bi bi-person-check-fill fs-6"></i>
+                            <span style="font-size:0.8rem;">تم تسجيل حسابك وتفعيله تلقائياً لمتابعة الموعد!</span>
+                        </div>
+
+                        {{-- أزرار الإجراءات --}}
+                        <div class="d-flex flex-column gap-2">
+                            {{-- زر الانتقال المباشر للداشبورد --}}
+                            <a id="app-dashboard-link" href="{{ route('patient.dashboard') }}" class="btn btn-primary w-100 rounded-pill py-2.5 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2"
+                               style="background:linear-gradient(135deg, var(--primary-color), var(--primary-dark));border:none;font-size:0.95rem;box-shadow: 0 8px 20px rgba(59, 82, 164, 0.35);">
+                                <i class="bi bi-speedometer2 fs-5"></i>
+                                <span>الانتقال إلى لوحة التحكم ومتابعة الحجز</span>
+                                <i class="bi bi-arrow-left"></i>
+                            </a>
+
+                            {{-- زر إغلاق البوب اب والعودة للرئيسية --}}
+                            <button type="button" class="btn btn-light border w-100 rounded-pill py-2 text-secondary fw-bold small"
+                                    data-bs-dismiss="modal" onclick="window.location.reload()">
+                                <span>إغلاق والعودة للرئيسية</span>
+                            </button>
+                        </div>
                     </div>
                 </div>{{-- End Screen 3 --}}
 
@@ -1089,6 +1124,12 @@ function executeAppBooking() {
             const waMsg = `السلام عليكم دكتور يونس، تم تسجيل طلب حجز موعد مؤكد\nرقم المرجع: #${ref}\nالاسم: ${name}\nالخدمة: ${appState.title}\nالموعد: ${appState.date} (${appState.slot})\nطريقة الدفع: ${methodLabel}\nالمبلغ: ${appState.price || 50} ${appCurrencySymbol}\nمرفق لكم لقطة شاشة إيصال الدفع.`;
             const waUrl = waNumber ? `https://wa.me/${waNumber}?text=${encodeURIComponent(waMsg)}` : `https://wa.me/?text=${encodeURIComponent(waMsg)}`;
             if (document.getElementById('app-start-consultation-link')) document.getElementById('app-start-consultation-link').href = waUrl;
+
+            // Dynamically bind patient dashboard link
+            const dashLink = document.getElementById('app-dashboard-link');
+            if (dashLink) {
+                dashLink.href = `/booking/${ref}/view-dashboard`;
+            }
 
             // Auto trigger confirmation in backend
             fetch(`/booking/${ref}/confirm-payment`, {
