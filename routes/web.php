@@ -37,6 +37,13 @@ Route::get('/booking/success', [BookingController::class, 'bookingSuccess'])->na
 // Patient payment confirmation (public — works for guests too)
 Route::post('/booking/{bookingRef}/confirm-payment', [BookingController::class, 'confirmPayment'])->name('booking.confirm-payment');
 
+// Checkout routes alias (supports requests sent without /api prefix)
+Route::prefix('checkout')->group(function () {
+    Route::match(['get', 'post'], '/check-user', [ApiController::class, 'checkUser']);
+    Route::post('/initialize', [ApiController::class, 'initializeCheckout']);
+    Route::post('/confirm', [ApiController::class, 'confirmCheckout']);
+});
+
 // Authentication Routes (Web Session Protected with Rate Limiting)
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');

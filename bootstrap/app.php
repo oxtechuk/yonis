@@ -40,6 +40,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'stripe/webhook',
             'api/bookings/stripe/webhook',
             'api/payment/spaceremit/webhook',
+            'api/*',
+            'checkout/*',
+            'booking/*/confirm-payment',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

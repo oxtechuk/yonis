@@ -1,520 +1,807 @@
 {
-  "info": {
-    "_postman_id": "yonis-clinic-api-v2",
-    "name": "🏥 Yonis Clinic API (Official)",
-    "description": "المجموعة الرسمية للـ API لتطبيق ومنصة د. يونس المرشدي.\n\nتتضمن جميع الـ Endpoints مع بيانات حقيقية وفعلية من قاعدة البيانات.\n\n### بيانات الدخول التجريبية الجاهزة:\n- **المريض أحمد:** `+9647701234567` / كلمة المرور: `password`\n- **المريضة سارة:** `+9647809876543` / كلمة المرور: `password`\n- **د. يونس (المدير):** `dr.yonis@example.com` / كلمة المرور: `password`\n\n### المتغيرات التلقائية (Collection Variables):\n- `base_url`: عنوان السيرفر المحلي أو الأونلاين\n- `token`: يتم حفظه تلقائياً بمجرد استدعاء الـ Login\n- `booking_ref`: يتم حفظه تلقائياً بمجرد إنشاء حجز جديد",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
-  "variable": [
-    {
-      "key": "base_url",
-      "value": "http://localhost/yonis/public/api",
-      "type": "string",
-      "description": "عنوان الـ API الأساسي (موقعك المحلي أو دومين السيرفر)"
+    "info": {
+        "_postman_id": "yonis-clinic-api-v2",
+        "name": "🏥 Yonis Clinic API (Official)",
+        "description": "المجموعة الرسمية للـ API لتطبيق ومنصة د. يونس المرشدي.\n\nتتضمن جميع الـ Endpoints مع بيانات حقيقية وفعلية من قاعدة البيانات.\n\n### بيانات الدخول التجريبية الجاهزة:\n- **المريض أحمد:** `+9647701234567` / كلمة المرور: `password`\n- **المريضة سارة:** `+9647809876543` / كلمة المرور: `password`\n- **د. يونس (المدير):** `dr.yonis@example.com` / كلمة المرور: `password`\n\n### المتغيرات التلقائية (Collection Variables):\n- `base_url`: عنوان السيرفر المحلي أو الأونلاين\n- `token`: يتم حفظه تلقائياً بمجرد استدعاء الـ Login\n- `booking_ref`: يتم حفظه تلقائياً بمجرد إنشاء حجز جديد",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
-    {
-      "key": "token",
-      "value": "",
-      "type": "string",
-      "description": "رمز المصادقة Bearer Token (يتم تحديثه تلقائياً عند تسجيل الدخول)"
-    },
-    {
-      "key": "booking_ref",
-      "value": "BK-TEST8492",
-      "type": "string",
-      "description": "رقم مرجع الحجز المولد (مثل BK-XXXXXXXX)"
-    }
-  ],
-  "item": [
-    {
-      "name": "⚙️ 1. الإعدادات وحالة النظام (Config & Health)",
-      "item": [
+    "variable": [
         {
-          "name": "GET إعدادات التطبيق وخيارات الحجز والدفع",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/config",
-              "host": ["{{base_url}}"],
-              "path": ["config"]
-            },
-            "description": "يعيد خيارات وإعدادات المنصة: بوابات وطرق الدفع المحلية (زين كاش، سوبركي، فيزا/ماستر كارد، رموز الـ QR ورابط الواتساب للتأكيد) وحالة تفعيل الحجز والاستشارات."
-          }
+            "key": "base_url",
+            "value": "https://younis-almurshid.com",
+            "type": "string",
+            "description": "عنوان السيرفر الأساسي (مثال: https://younis-almurshid.com)"
+        },
+        {
+            "key": "token",
+            "value": "",
+            "type": "string",
+            "description": "رمز المصادقة Bearer Token (يتم تحديثه تلقائياً عند تسجيل الدخول)"
+        },
+        {
+            "key": "booking_ref",
+            "value": "BK-TEST8492",
+            "type": "string",
+            "description": "رقم مرجع الحجز المولد (مثل BK-XXXXXXXX)"
         }
-      ]
-    },
-    {
-      "name": "🔐 2. المصادقة والحساب (Auth)",
-      "item": [
+    ],
+    "item": [
         {
-          "name": "POST تسجيل دخول مريض (أحمد - بيانات فعلية)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const res = pm.response.json();",
-                  "if (res.token) {",
-                  "  pm.collectionVariables.set('token', res.token);",
-                  "  console.log('✅ Token saved successfully:', res.token);",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"login\": \"+9647701234567\",\n  \"password\": \"password\"\n}",
-              "options": { "raw": { "language": "json" } }
-            },
-            "url": {
-              "raw": "{{base_url}}/login",
-              "host": ["{{base_url}}"],
-              "path": ["login"]
-            },
-            "description": "تسجيل دخول برقم هاتف المريض الفعلي المسجل في الداتا بيز. يحفظ التوكن تلقائياً في متغير {{token}} لاستخدامه في الطلبات المحمية."
-          }
+            "name": "⚙️ 1. الإعدادات وحالة النظام (Config & Health)",
+            "item": [
+                {
+                    "name": "GET إعدادات التطبيق وخيارات الحجز والدفع",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/config",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "config"
+                            ]
+                        },
+                        "description": "يعيد خيارات وإعدادات المنصة: بوابات وطرق الدفع المحلية (زين كاش، سوبركي، فيزا/ماستر كارد، رموز الـ QR ورابط الواتساب للتأكيد) وحالة تفعيل الحجز والاستشارات."
+                    }
+                }
+            ]
         },
         {
-          "name": "POST تسجيل دخول الطبيب د. يونس (Admin)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const res = pm.response.json();",
-                  "if (res.token) {",
-                  "  pm.collectionVariables.set('token', res.token);",
-                  "  console.log('✅ Admin Token saved:', res.token);",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"login\": \"dr.yonis@example.com\",\n  \"password\": \"password\"\n}",
-              "options": { "raw": { "language": "json" } }
-            },
-            "url": {
-              "raw": "{{base_url}}/login",
-              "host": ["{{base_url}}"],
-              "path": ["login"]
-            },
-            "description": "تسجيل دخول حساب الطبيب الأدمن."
-          }
+            "name": "🔐 2. المصادقة والحساب (Auth)",
+            "item": [
+                {
+                    "name": "POST تسجيل دخول مريض (أحمد - بيانات فعلية)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "const res = pm.response.json();",
+                                    "if (res.token) {",
+                                    "  pm.collectionVariables.set('token', res.token);",
+                                    "  console.log('✅ Token saved successfully:', res.token);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"login\": \"+9647701234567\",\n  \"password\": \"password\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "login"
+                            ]
+                        },
+                        "description": "تسجيل دخول برقم هاتف المريض الفعلي المسجل في الداتا بيز. يحفظ التوكن تلقائياً في متغير {{token}} لاستخدامه في الطلبات المحمية."
+                    }
+                },
+                {
+                    "name": "POST تسجيل دخول الطبيب د. يونس (Admin)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "const res = pm.response.json();",
+                                    "if (res.token) {",
+                                    "  pm.collectionVariables.set('token', res.token);",
+                                    "  console.log('✅ Admin Token saved:', res.token);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"login\": \"dr.yonis@example.com\",\n  \"password\": \"password\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "login"
+                            ]
+                        },
+                        "description": "تسجيل دخول حساب الطبيب الأدمن."
+                    }
+                },
+                {
+                    "name": "POST إنشاء حساب مريض جديد (Register)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "const res = pm.response.json();",
+                                    "if (res.token) {",
+                                    "  pm.collectionVariables.set('token', res.token);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"علي حيدر كاظم\",\n  \"phone\": \"+9647719998877\",\n  \"email\": \"ali.haider@example.com\",\n  \"password\": \"password123\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/register",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "register"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "GET بيانات ملفي الشخصي (Current User)",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/user",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user"
+                            ]
+                        },
+                        "description": "يعيد بيانات المستخدم صاحب التوكن الحالي."
+                    }
+                },
+                {
+                    "name": "POST تسجيل الخروج (Logout)",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/logout",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "logout"
+                            ]
+                        }
+                    }
+                }
+            ]
         },
         {
-          "name": "POST إنشاء حساب مريض جديد (Register)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const res = pm.response.json();",
-                  "if (res.token) {",
-                  "  pm.collectionVariables.set('token', res.token);",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"علي حيدر كاظم\",\n  \"phone\": \"+9647719998877\",\n  \"email\": \"ali.haider@example.com\",\n  \"password\": \"password123\"\n}",
-              "options": { "raw": { "language": "json" } }
-            },
-            "url": {
-              "raw": "{{base_url}}/register",
-              "host": ["{{base_url}}"],
-              "path": ["register"]
-            }
-          }
+            "name": "👨‍⚕️ 3. الطبيب والخدمات والمواعيد",
+            "item": [
+                {
+                    "name": "GET الملف التعريفي للدكتور يونس (Doctor Profile)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/doctor/profile",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "doctor",
+                                "profile"
+                            ]
+                        },
+                        "description": "النبذة التعريفية، المؤهلات العلمية، الشهادات، روابط التواصل، ومعرض الصور."
+                    }
+                },
+                {
+                    "name": "GET قائمة الخدمات المتاحة وأسعارها الفعلية",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/services",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "services"
+                            ]
+                        },
+                        "description": "جلسات الاستشارة النفسية، CBT، واستشارات العلاقات بأسعارها الفعلية في العيادة والأونلاين."
+                    }
+                },
+                {
+                    "name": "GET المواعيد والأوقات المتاحة للحجز (Slots)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/slots?service_id=1&date=2026-10-15",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "slots"
+                            ],
+                            "query": [
+                                {
+                                    "key": "service_id",
+                                    "value": "1",
+                                    "description": "معرف الخدمة (1: استشارة أولية 30 دقيقة)"
+                                },
+                                {
+                                    "key": "date",
+                                    "value": "2026-10-15",
+                                    "description": "تاريخ اليوم المطلوب فحصه"
+                                }
+                            ]
+                        },
+                        "description": "استرجاع الساعات المتاحة للحجز وتصفية الساعات المحجوزة مسبقاً."
+                    }
+                },
+                {
+                    "name": "GET الفيديوهات والريلز (Reels)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/reels",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "reels"
+                            ]
+                        }
+                    }
+                }
+            ]
         },
         {
-          "name": "GET بيانات ملفي الشخصي (Current User)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                { "key": "token", "value": "{{token}}", "type": "string" }
-              ]
-            },
-            "method": "GET",
-            "header": [
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/user",
-              "host": ["{{base_url}}"],
-              "path": ["user"]
-            },
-            "description": "يعيد بيانات المستخدم صاحب التوكن الحالي."
-          }
+            "name": "💳 4. مسار الحجز والدفع (Booking & Payment Flow)",
+            "item": [
+                {
+                    "name": "1️⃣ POST فحص حالة المريض قبل الحجز (Check User)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"phone\": \"+9647701234567\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/checkout/check-user",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "checkout",
+                                "check-user"
+                            ]
+                        },
+                        "description": "فحص هل رقم الهاتف مسجل مسبقاً في العيادة؟\n- إذا كان مسجلاً: `is_registered: true` (لا يطلب منه تعيين باسورد مجدداً).\n- إذا كان جديداً: `is_registered: false` (يطلب كلمة مرور لإنشاء حسابه تلقائياً)."
+                    }
+                },
+                {
+                    "name": "2️⃣ POST إنشاء وتثبيت الحجز (Initialize Booking)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "const res = pm.response.json();",
+                                    "if (res.booking_reference) {",
+                                    "  pm.collectionVariables.set('booking_ref', res.booking_reference);",
+                                    "  console.log('✅ New Booking Reference Saved:', res.booking_reference);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"service_id\": 1,\n  \"booking_type\": \"online\",\n  \"consultation_type\": \"video\",\n  \"payment_method\": \"zaincash\",\n  \"date\": \"2026-10-15\",\n  \"start_time\": \"10:00 AM\",\n  \"title\": \"استشارة نفسية متخصصة\",\n  \"notes\": \"أعاني من نوبات توتر أثناء العمل وضغوط يومية\",\n  \"name\": \"أحمد محمد عبد الله\",\n  \"phone\": \"+9647701234567\",\n  \"email\": \"ahmed@example.com\",\n  \"password\": \"password\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/checkout/initialize",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "checkout",
+                                "initialize"
+                            ]
+                        },
+                        "description": "إنشاء الحجز في النظام. يقوم بإنشاء مرجع الحجز (Booking Reference) وحفظه تلقائياً في متغير {{booking_ref}}. يقبل payment_method (zaincash, superki, card, stripe) ويرجع رمز الـ QR وتعليمات الدفع ورابط الواتساب للتأكيد."
+                    }
+                },
+                {
+                    "name": "3️⃣ POST تأكيد الدفع المحلي (زين كاش / سوبركي)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"booking_ref\": \"{{booking_ref}}\",\n  \"payment_method\": \"zaincash\",\n  \"transaction_reference\": \"TX-987654321\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/booking/{{booking_ref}}/confirm-payment",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "booking",
+                                "{{booking_ref}}",
+                                "confirm-payment"
+                            ]
+                        },
+                        "description": "يقوم المريض بالضغط على 'أكدت الدفع' بعد مسح QR زين كاش أو سوبركي. يتحول الحجز إلى `PendingPaymentReview` بانتظار مراجعة الطبيب وتأكيده."
+                    }
+                },
+                {
+                    "name": "4️⃣ POST ويب هوك SpaceRemit التلقائي (Webhook Notification)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"status\": \"success\",\n  \"booking_ref\": \"{{booking_ref}}\",\n  \"transaction_id\": \"SP-TX-99881122\",\n  \"amount\": 50,\n  \"currency\": \"USD\",\n  \"notes\": \"Payment completed via SpaceRemit\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/payment/spaceremit/webhook",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "payment",
+                                "spaceremit",
+                                "webhook"
+                            ]
+                        },
+                        "description": "هذا هو رابط الـ Webhook الخاص بـ SpaceRemit الذي تضعه في لوحة تحكم SpaceRemit. عند نجاح الدفع يرسل إشعاراً ويحول الحجز مباشرة إلى `Confirmed` والدفع إلى `Paid`."
+                    }
+                },
+                {
+                    "name": "5️⃣ POST تأكيد الدفع عبر فيزا / ماستر كارد (Stripe Checkout Confirm)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"booking_reference\": \"{{booking_ref}}\",\n  \"payment_intent_id\": \"pi_mock_3928172635\",\n  \"password\": \"password\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/checkout/confirm",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "checkout",
+                                "confirm"
+                            ]
+                        },
+                        "description": "تأكيد الحجز فور إتمام عملية البطاقة الائتمانية (Visa / MasterCard). يقوم بتأكيد الحجز وتفعيل الدخول المباشر للمريض."
+                    }
+                }
+            ]
         },
         {
-          "name": "POST تسجيل الخروج (Logout)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                { "key": "token", "value": "{{token}}", "type": "string" }
-              ]
-            },
-            "method": "POST",
-            "header": [
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/logout",
-              "host": ["{{base_url}}"],
-              "path": ["logout"]
-            }
-          }
+            "name": "🗓️ 5. حجوزات المريض ومتابعتها (Patient Portal)",
+            "item": [
+                {
+                    "name": "GET جميع حجوزات المريض الحالي",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/patient/bookings",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "patient",
+                                "bookings"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "GET الحجوزات القادمة (Upcoming)",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/patient/bookings?tab=upcoming",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "patient",
+                                "bookings"
+                            ],
+                            "query": [
+                                {
+                                    "key": "tab",
+                                    "value": "upcoming"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "GET الحجوزات المكتملة السابقة (Completed)",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/patient/bookings?tab=completed",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "patient",
+                                "bookings"
+                            ],
+                            "query": [
+                                {
+                                    "key": "tab",
+                                    "value": "completed"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "POST إعادة جدولة الموعد (Reschedule Booking)",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"date\": \"2026-10-20\",\n  \"start_time\": \"11:30 AM\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/booking/1/reschedule",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "booking",
+                                "1",
+                                "reschedule"
+                            ]
+                        },
+                        "description": "تغيير تاريخ أو وقت موعد الجلسة (استبدل 1 بمعرف الحجز ID المطلوب)."
+                    }
+                },
+                {
+                    "name": "POST إلغاء الحجز من المريض (Cancel Booking)",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/booking/1/cancel",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "booking",
+                                "1",
+                                "cancel"
+                            ]
+                        },
+                        "description": "إلغاء الحجز مع معالجة الاسترداد المالي إذا كان الإلغاء قبل 24 ساعة من الموعد."
+                    }
+                }
+            ]
         }
-      ]
-    },
-    {
-      "name": "👨‍⚕️ 3. الطبيب والخدمات والمواعيد",
-      "item": [
-        {
-          "name": "GET الملف التعريفي للدكتور يونس (Doctor Profile)",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/doctor/profile",
-              "host": ["{{base_url}}"],
-              "path": ["doctor", "profile"]
-            },
-            "description": "النبذة التعريفية، المؤهلات العلمية، الشهادات، روابط التواصل، ومعرض الصور."
-          }
-        },
-        {
-          "name": "GET قائمة الخدمات المتاحة وأسعارها الفعلية",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/services",
-              "host": ["{{base_url}}"],
-              "path": ["services"]
-            },
-            "description": "جلسات الاستشارة النفسية، CBT، واستشارات العلاقات بأسعارها الفعلية في العيادة والأونلاين."
-          }
-        },
-        {
-          "name": "GET المواعيد والأوقات المتاحة للحجز (Slots)",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/slots?service_id=1&date=2026-10-15",
-              "host": ["{{base_url}}"],
-              "path": ["slots"],
-              "query": [
-                { "key": "service_id", "value": "1", "description": "معرف الخدمة (1: استشارة أولية 30 دقيقة)" },
-                { "key": "date", "value": "2026-10-15", "description": "تاريخ اليوم المطلوب فحصه" }
-              ]
-            },
-            "description": "استرجاع الساعات المتاحة للحجز وتصفية الساعات المحجوزة مسبقاً."
-          }
-        },
-        {
-          "name": "GET الفيديوهات والريلز (Reels)",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/reels",
-              "host": ["{{base_url}}"],
-              "path": ["reels"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "💳 4. مسار الحجز والدفع (Booking & Payment Flow)",
-      "item": [
-        {
-          "name": "1️⃣ POST فحص حالة المريض قبل الحجز (Check User)",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"phone\": \"+9647701234567\"\n}",
-              "options": { "raw": { "language": "json" } }
-            },
-            "url": {
-              "raw": "{{base_url}}/checkout/check-user",
-              "host": ["{{base_url}}"],
-              "path": ["checkout", "check-user"]
-            },
-            "description": "فحص هل رقم الهاتف مسجل مسبقاً في العيادة؟\n- إذا كان مسجلاً: `is_registered: true` (لا يطلب منه تعيين باسورد مجدداً).\n- إذا كان جديداً: `is_registered: false` (يطلب كلمة مرور لإنشاء حسابه تلقائياً)."
-          }
-        },
-        {
-          "name": "2️⃣ POST إنشاء وتثبيت الحجز (Initialize Booking)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const res = pm.response.json();",
-                  "if (res.booking_reference) {",
-                  "  pm.collectionVariables.set('booking_ref', res.booking_reference);",
-                  "  console.log('✅ New Booking Reference Saved:', res.booking_reference);",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"service_id\": 1,\n  \"booking_type\": \"online\",\n  \"consultation_type\": \"video\",\n  \"payment_method\": \"zaincash\",\n  \"date\": \"2026-10-15\",\n  \"start_time\": \"10:00 AM\",\n  \"title\": \"استشارة نفسية متخصصة\",\n  \"notes\": \"أعاني من نوبات توتر أثناء العمل وضغوط يومية\",\n  \"name\": \"أحمد محمد عبد الله\",\n  \"phone\": \"+9647701234567\",\n  \"email\": \"ahmed@example.com\",\n  \"password\": \"password\"\n}",
-              "options": { "raw": { "language": "json" } }
-            },
-            "url": {
-              "raw": "{{base_url}}/checkout/initialize",
-              "host": ["{{base_url}}"],
-              "path": ["checkout", "initialize"]
-            },
-            "description": "إنشاء الحجز في النظام. يقوم بإنشاء مرجع الحجز (Booking Reference) وحفظه تلقائياً في متغير {{booking_ref}}. يقبل payment_method (zaincash, superki, card, stripe) ويرجع رمز الـ QR وتعليمات الدفع ورابط الواتساب للتأكيد."
-          }
-        },
-        {
-          "name": "3️⃣ POST تأكيد الدفع المحلي (زين كاش / سوبركي)",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"booking_ref\": \"{{booking_ref}}\",\n  \"payment_method\": \"zaincash\",\n  \"transaction_reference\": \"TX-987654321\"\n}",
-              "options": { "raw": { "language": "json" } }
-            },
-            "url": {
-              "raw": "{{base_url}}/booking/{{booking_ref}}/confirm-payment",
-              "host": ["{{base_url}}"],
-              "path": ["booking", "{{booking_ref}}", "confirm-payment"]
-            },
-            "description": "يقوم المريض بالضغط على 'أكدت الدفع' بعد مسح QR زين كاش أو سوبركي. يتحول الحجز إلى `PendingPaymentReview` بانتظار مراجعة الطبيب وتأكيده."
-          }
-        },
-        {
-          "name": "4️⃣ POST ويب هوك SpaceRemit التلقائي (Webhook Notification)",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"status\": \"success\",\n  \"booking_ref\": \"{{booking_ref}}\",\n  \"transaction_id\": \"SP-TX-99881122\",\n  \"amount\": 50,\n  \"currency\": \"USD\",\n  \"notes\": \"Payment completed via SpaceRemit\"\n}",
-              "options": { "raw": { "language": "json" } }
-            },
-            "url": {
-              "raw": "{{base_url}}/payment/spaceremit/webhook",
-              "host": ["{{base_url}}"],
-              "path": ["payment", "spaceremit", "webhook"]
-            },
-            "description": "هذا هو رابط الـ Webhook الخاص بـ SpaceRemit الذي تضعه في لوحة تحكم SpaceRemit. عند نجاح الدفع يرسل إشعاراً ويحول الحجز مباشرة إلى `Confirmed` والدفع إلى `Paid`."
-          }
-        },
-        {
-          "name": "5️⃣ POST تأكيد الدفع عبر فيزا / ماستر كارد (Stripe Checkout Confirm)",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"booking_reference\": \"{{booking_ref}}\",\n  \"payment_intent_id\": \"pi_mock_3928172635\",\n  \"password\": \"password\"\n}",
-              "options": { "raw": { "language": "json" } }
-            },
-            "url": {
-              "raw": "{{base_url}}/checkout/confirm",
-              "host": ["{{base_url}}"],
-              "path": ["checkout", "confirm"]
-            },
-            "description": "تأكيد الحجز فور إتمام عملية البطاقة الائتمانية (Visa / MasterCard). يقوم بتأكيد الحجز وتفعيل الدخول المباشر للمريض."
-          }
-        }
-      ]
-    },
-    {
-      "name": "🗓️ 5. حجوزات المريض ومتابعتها (Patient Portal)",
-      "item": [
-        {
-          "name": "GET جميع حجوزات المريض الحالي",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                { "key": "token", "value": "{{token}}", "type": "string" }
-              ]
-            },
-            "method": "GET",
-            "header": [
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/patient/bookings",
-              "host": ["{{base_url}}"],
-              "path": ["patient", "bookings"]
-            }
-          }
-        },
-        {
-          "name": "GET الحجوزات القادمة (Upcoming)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                { "key": "token", "value": "{{token}}", "type": "string" }
-              ]
-            },
-            "method": "GET",
-            "header": [
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/patient/bookings?tab=upcoming",
-              "host": ["{{base_url}}"],
-              "path": ["patient", "bookings"],
-              "query": [
-                { "key": "tab", "value": "upcoming" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "GET الحجوزات المكتملة السابقة (Completed)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                { "key": "token", "value": "{{token}}", "type": "string" }
-              ]
-            },
-            "method": "GET",
-            "header": [
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/patient/bookings?tab=completed",
-              "host": ["{{base_url}}"],
-              "path": ["patient", "bookings"],
-              "query": [
-                { "key": "tab", "value": "completed" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "POST إعادة جدولة الموعد (Reschedule Booking)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                { "key": "token", "value": "{{token}}", "type": "string" }
-              ]
-            },
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"date\": \"2026-10-20\",\n  \"start_time\": \"11:30 AM\"\n}",
-              "options": { "raw": { "language": "json" } }
-            },
-            "url": {
-              "raw": "{{base_url}}/booking/1/reschedule",
-              "host": ["{{base_url}}"],
-              "path": ["booking", "1", "reschedule"]
-            },
-            "description": "تغيير تاريخ أو وقت موعد الجلسة (استبدل 1 بمعرف الحجز ID المطلوب)."
-          }
-        },
-        {
-          "name": "POST إلغاء الحجز من المريض (Cancel Booking)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                { "key": "token", "value": "{{token}}", "type": "string" }
-              ]
-            },
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{}",
-              "options": { "raw": { "language": "json" } }
-            },
-            "url": {
-              "raw": "{{base_url}}/booking/1/cancel",
-              "host": ["{{base_url}}"],
-              "path": ["booking", "1", "cancel"]
-            },
-            "description": "إلغاء الحجز مع معالجة الاسترداد المالي إذا كان الإلغاء قبل 24 ساعة من الموعد."
-          }
-        }
-      ]
-    }
-  ]
+    ]
 }
