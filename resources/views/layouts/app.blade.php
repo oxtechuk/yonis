@@ -347,11 +347,13 @@
                     </div>
                 </a>
 
-                <button class="navbar-toggler border-0 shadow-none px-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                    <span class="navbar-toggler-icon"></span>
+                <button class="navbar-toggler border-0 shadow-none p-1 d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSideMenu" aria-controls="mobileSideMenu" aria-label="القائمة">
+                    <div class="custom-hamburger-btn">
+                        <i class="bi bi-list fs-2 text-dark"></i>
+                    </div>
                 </button>
 
-                <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="collapse navbar-collapse d-none d-lg-flex" id="navbarNav">
                     {{-- Centered Nav Links --}}
                     <ul class="navbar-nav mx-auto align-items-lg-center gap-1 my-2 my-lg-0">
                         <li class="nav-item"><a class="nav-link nav-link-luxury @if(Route::is('home')) active @endif" href="{{ Route::is('home') ? '#hero' : route('home') }}">{{ __('messages.home') }}</a></li>
@@ -414,6 +416,138 @@
             </nav>
         </div>
     </header>
+
+    {{-- ═══ LUXURY MOBILE SIDE DRAWER MENU (منيو جانبي احترافي) ═══ --}}
+    <div class="offcanvas {{ $isAr ? 'offcanvas-start' : 'offcanvas-end' }} luxury-mobile-drawer" tabindex="-1" id="mobileSideMenu" aria-labelledby="mobileSideMenuLabel">
+        {{-- Drawer Header --}}
+        <div class="offcanvas-header border-bottom p-3">
+            <div class="d-flex align-items-center gap-2">
+                @if(!empty($siteLogo))
+                    <img src="{{ $siteLogo }}" alt="Logo" style="max-height: 38px; border-radius: 6px;">
+                @else
+                    <div class="navbar-logo-circle" style="width:36px; height:36px; font-size:1rem;"><i class="bi bi-heart-pulse-fill"></i></div>
+                @endif
+                <div class="d-flex flex-column text-start">
+                    <span class="fw-black lh-1 text-dark" style="font-size: 1.05rem;">{{ $isAr ? 'يونس المرشد' : 'Yonis Al-Murshid' }}</span>
+                    <span class="text-secondary small" style="font-size: 0.62rem; letter-spacing: 0.3px;">{{ $isAr ? 'للعلاج النفسي والتطوير الذاتي' : 'Psychological Therapy Clinic' }}</span>
+                </div>
+            </div>
+            <button type="button" class="btn-drawer-close" data-bs-dismiss="offcanvas" aria-label="إغلاق">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        {{-- Drawer Body --}}
+        <div class="offcanvas-body p-3 d-flex flex-column justify-content-between">
+            <div>
+                {{-- User Account Card in Drawer --}}
+                @auth
+                    <div class="drawer-user-card mb-3 p-3 rounded-4">
+                        <div class="d-flex align-items-center gap-2.5 mb-2">
+                            <div class="drawer-user-avatar">
+                                <i class="bi bi-person-check-fill"></i>
+                            </div>
+                            <div class="overflow-hidden">
+                                <div class="fw-bold text-dark text-truncate small">{{ Auth::user()->name }}</div>
+                                <div class="text-secondary font-monospace" style="font-size: 0.75rem;" dir="ltr">{{ Auth::user()->phone ?? Auth::user()->email }}</div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{{ Auth::user()->isAdmin() ? route('admin.dashboard') : route('patient.dashboard') }}" class="btn btn-sm btn-primary rounded-pill flex-fill fw-bold py-1.5 small" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); border: none;">
+                                <i class="bi bi-speedometer2 me-1"></i> {{ Auth::user()->isAdmin() ? 'لوحة الإدارة' : 'ملفي ومواعيدي' }}
+                            </a>
+                            <form action="{{ route('logout') }}" method="POST" class="m-0">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1.5 fw-bold" title="تسجيل الخروج">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                @else
+                    <div class="drawer-guest-card mb-3 p-3 rounded-4 text-center">
+                        <div class="small fw-bold text-dark mb-1">أهلاً بك في منصة د. يونس المرشد</div>
+                        <div class="text-secondary small mb-2.5" style="font-size: 0.78rem;">سجّل دخولك لمتابعة استشاراتك ومواعيدك الطبية</div>
+                        <div class="d-flex gap-2">
+                            <a href="{{ route('login') }}" class="btn btn-sm btn-outline-primary rounded-pill flex-fill fw-bold py-1.5">
+                                <i class="bi bi-box-arrow-in-right me-1"></i> تسجيل الدخول
+                            </a>
+                            <a href="{{ route('register') }}" class="btn btn-sm btn-primary rounded-pill flex-fill fw-bold py-1.5" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); border: none;">
+                                <i class="bi bi-person-plus me-1"></i> حساب جديد
+                            </a>
+                        </div>
+                    </div>
+                @endauth
+
+                {{-- Navigation Links List --}}
+                <div class="drawer-nav-list">
+                    <a href="{{ Route::is('home') ? '#hero' : route('home') }}" class="drawer-nav-item @if(Route::is('home')) active @endif" onclick="closeDrawerAfterClick(this)">
+                        <i class="bi bi-house-door-fill text-primary"></i>
+                        <span>{{ __('messages.home') }}</span>
+                        <i class="bi bi-chevron-left me-auto text-muted small"></i>
+                    </a>
+
+                    <a href="{{ Route::is('home') ? '#about' : route('home') . '#about' }}" class="drawer-nav-item" onclick="closeDrawerAfterClick(this)">
+                        <i class="bi bi-person-badge-fill text-primary"></i>
+                        <span>{{ __('messages.about') }}</span>
+                        <i class="bi bi-chevron-left me-auto text-muted small"></i>
+                    </a>
+
+                    <a href="{{ Route::is('home') ? '#gallery' : route('home') . '#gallery' }}" class="drawer-nav-item" onclick="closeDrawerAfterClick(this)">
+                        <i class="bi bi-images text-primary"></i>
+                        <span>{{ __('messages.gallery_label') }}</span>
+                        <i class="bi bi-chevron-left me-auto text-muted small"></i>
+                    </a>
+
+                    <a href="{{ Route::is('home') ? '#services' : route('home') . '#services' }}" class="drawer-nav-item" onclick="closeDrawerAfterClick(this)">
+                        <i class="bi bi-heart-pulse-fill text-primary"></i>
+                        <span>{{ __('messages.sessions') }}</span>
+                        <i class="bi bi-chevron-left me-auto text-muted small"></i>
+                    </a>
+
+                    <a href="{{ Route::is('home') ? '#reels-section' : route('home') . '#reels-section' }}" class="drawer-nav-item" onclick="closeDrawerAfterClick(this)">
+                        <i class="bi bi-play-circle-fill text-primary"></i>
+                        <span>{{ __('messages.videos') }}</span>
+                        <i class="bi bi-chevron-left me-auto text-muted small"></i>
+                    </a>
+
+                    @auth
+                        <a href="{{ Auth::user()->isAdmin() ? route('admin.dashboard') : route('patient.dashboard') }}" class="drawer-nav-item">
+                            <i class="bi bi-calendar-check-fill text-primary"></i>
+                            <span>{{ Auth::user()->isAdmin() ? 'لوحة تحكم الإدارة' : 'جدول مواعيدي واستشاراتي' }}</span>
+                            <i class="bi bi-chevron-left me-auto text-muted small"></i>
+                        </a>
+                    @endauth
+                </div>
+            </div>
+
+            {{-- Drawer Footer Actions --}}
+            <div class="drawer-footer-actions pt-3 border-top mt-3">
+                {{-- Book Now Button --}}
+                <button type="button" class="btn btn-primary rounded-pill w-100 py-2.5 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2 mb-2.5"
+                        data-bs-dismiss="offcanvas" data-bs-toggle="modal" data-bs-target="#bookingModal"
+                        style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); border: none; font-size: 0.95rem;">
+                    <i class="bi bi-calendar-check-fill"></i>
+                    <span>{{ __('messages.book_now') }}</span>
+                </button>
+
+                {{-- Language Switcher & WhatsApp Contact Row --}}
+                <div class="d-flex align-items-center justify-content-between gap-2">
+                    <a href="{{ route('lang.switch', $isAr ? 'en' : 'ar') }}" class="btn btn-light border rounded-pill flex-fill py-1.5 fw-bold small text-secondary d-flex align-items-center justify-content-center gap-1.5">
+                        <i class="bi bi-globe2 text-primary"></i>
+                        <span>{{ $isAr ? 'English' : 'العربية' }}</span>
+                    </a>
+                    @php
+                        $drWa = preg_replace('/[^0-9]/', '', \App\Models\Setting::get('whatsapp_number', '+9647700000000'));
+                    @endphp
+                    <a href="https://wa.me/{{ $drWa }}" target="_blank" class="btn btn-outline-success rounded-pill flex-fill py-1.5 fw-bold small d-flex align-items-center justify-content-center gap-1.5">
+                        <i class="bi bi-whatsapp"></i>
+                        <span>تواصل واتساب</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 
     {{-- ═══ Floating Luxury Toast Notifications ═══════════════ --}}
     @if(session('success') || session('error') || session('warning') || session('info') || $errors->any())
@@ -683,6 +817,24 @@
                 }
             });
         });
+
+        // Close Offcanvas Mobile Drawer when a link is clicked
+        function closeDrawerAfterClick(linkEl) {
+            const drawerEl = document.getElementById('mobileSideMenu');
+            if (drawerEl) {
+                const offcanvasInstance = bootstrap.Offcanvas.getInstance(drawerEl);
+                if (offcanvasInstance) offcanvasInstance.hide();
+            }
+            const targetHref = linkEl ? linkEl.getAttribute('href') : null;
+            if (targetHref && targetHref.startsWith('#')) {
+                const targetEl = document.querySelector(targetHref);
+                if (targetEl) {
+                    setTimeout(() => {
+                        targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 250);
+                }
+            }
+        }
 
         // Floating Toast Dismiss Helper
         function dismissToast(el) {
