@@ -351,19 +351,39 @@
                 const mainContent = document.querySelector('main');
                 if (sidebar) sidebar.classList.add('collapsed');
                 if (mainContent) mainContent.classList.add('expanded');
-                
-        // Toast Dismiss Helper
-        function dismissToast(el) {
+            }
+        })();
+
+        // Toast Dismiss Helper (Global)
+        window.dismissToast = function(el) {
             if (!el) return;
             el.classList.add('hide-toast');
-            setTimeout(() => el.remove(), 350);
-        }
+            setTimeout(() => {
+                if (el.parentNode) el.remove();
+            }, 400);
+        };
 
+        // Auto dismiss toasts and alert banners after 4 seconds
         document.addEventListener('DOMContentLoaded', function() {
+            // Auto dismiss floating toasts
             document.querySelectorAll('.luxury-toast').forEach(toast => {
                 setTimeout(() => {
-                    dismissToast(toast);
-                }, 5000);
+                    window.dismissToast(toast);
+                }, 4000);
+            });
+
+            // Auto dismiss any bootstrap alerts
+            document.querySelectorAll('.alert.alert-dismissible').forEach(alert => {
+                setTimeout(() => {
+                    try {
+                        const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                        if (bsAlert) bsAlert.close();
+                    } catch(e) {
+                        alert.style.transition = 'opacity 0.4s ease';
+                        alert.style.opacity = '0';
+                        setTimeout(() => alert.remove(), 400);
+                    }
+                }, 4000);
             });
         });
     </script>
