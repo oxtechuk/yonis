@@ -1,21 +1,21 @@
 @php
     $modalServices = $services ?? \App\Models\Service::where('is_active', true)->get();
-    $stripeActive = \App\Models\Setting::get('stripe_enabled', '0') === '1';
     $waRaw = \App\Models\Setting::get('whatsapp_number', '+9647700000000');
     $isArLocale = app()->getLocale() === 'ar';
     // ─ Payment settings ─
-    $payZainEnabled   = \App\Models\Setting::get('payment_zaincash_enabled', '0') === '1';
+    $payZainEnabled   = \App\Models\Setting::get('payment_zaincash_enabled', '1') === '1';
     $payZainQr        = \App\Models\Setting::get('payment_zaincash_qr', '');
-    $payZainLabel     = \App\Models\Setting::get('payment_zaincash_label', 'افتح تطبيق زين كاش وامسح الرمز لإتمام الدفع.');
-    $paySuperkiEnabled = \App\Models\Setting::get('payment_superki_enabled', '0') === '1';
+    $payZainLabel     = \App\Models\Setting::get('payment_zaincash_label', 'افتح تطبيق زين كاش وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال للدكتور.');
+    $paySuperkiEnabled = \App\Models\Setting::get('payment_superki_enabled', '1') === '1';
     $paySuperkiQr     = \App\Models\Setting::get('payment_superki_qr', '');
-    $paySuperkiLabel  = \App\Models\Setting::get('payment_superki_label', 'افتح تطبيق SuperKi وامسح الرمز.');
-    $payCardEnabled   = \App\Models\Setting::get('payment_card_enabled', '1') === '1';
+    $paySuperkiLabel  = \App\Models\Setting::get('payment_superki_label', 'افتح تطبيق SuperKi وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال للدكتور.');
+    $payCardEnabled   = \App\Models\Setting::get('payment_card_enabled', '0') === '1';
     $payCardKey       = \App\Models\Setting::get('payment_card_key', '');
     $payCardLink      = \App\Models\Setting::get('payment_card_link', '');
     $payCardCurrency  = \App\Models\Setting::get('payment_card_currency', 'USD');
     $payCardInstructions = \App\Models\Setting::get('payment_card_instructions', 'يمكنك الدفع مباشرة باستخدام أي بطاقة فيزا أو ماستر كارد صادرة محلياً أو دولياً بأمان وسرية تامة.');
     $anyPaymentActive = $payZainEnabled || $paySuperkiEnabled || $payCardEnabled;
+    $defaultPayMethod = $payZainEnabled ? 'zaincash' : ($paySuperkiEnabled ? 'superki' : ($payCardEnabled ? 'card' : 'zaincash'));
 @endphp
 
 {{-- ═══ REUSABLE BOOKING POPUP MODAL WITH INTERACTIVE FLOW ═══ --}}
@@ -107,61 +107,6 @@
                         <textarea id="app_consultation_details" class="form-control app-input w-100" rows="2" placeholder="{{ __('messages.consultation_details_ph') }}"></textarea>
                     </div>
 
-                    {{-- 5. Payment Method Section --}}
-                    @if($stripeActive)
-                        <div class="mb-4">
-                            <div class="app-section-title">{{ __('messages.payment_method') }}</div>
-                            
-                            {{-- Apple Pay Option --}}
-                            <div class="app-payment-card" onclick="selectAppPayment('apple_pay', this)">
-                                <div class="d-flex align-items-center gap-3">
-                                    <svg width="40" height="24" viewBox="0 0 36 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                      <rect width="36" height="20" rx="4" fill="#000000"/>
-                                      <path d="M12.1 10.4c0-1.5 1.2-2.2 1.3-2.3-.7-1.1-1.8-1.2-2.2-1.2-1-.1-1.9.6-2.4.6-.5 0-1.3-.6-2.1-.6-1.1 0-2.1.6-2.6 1.6-1.1 2-.3 4.9.8 6.4.5.8 1.2 1.6 2 1.6.8 0 1.1-.5 2.1-.5 1 0 1.3.5 2.1.5.8 0 1.4-.7 1.9-1.5.6-.9.8-1.7.9-1.8-.1 0-1.8-.7-1.8-2.8zM10.8 5.6c.4-.6.7-1.4.6-2.2-.7 0-1.5.5-1.9 1-.4.5-.7 1.3-.6 2.1.8.1 1.5-.4 1.9-.9z" fill="#FFF"/>
-                                      <text x="16" y="13.5" fill="#FFF" font-size="9" font-weight="bold" font-family="system-ui, sans-serif">Pay</text>
-                                    </svg>
-                                    <span class="fw-bold fs-6">{{ __('messages.pay_apple_pay') }}</span>
-                                </div>
-                                <div class="app-payment-radio"></div>
-                            </div>
-
-                            {{-- Card Option --}}
-                            <div class="app-payment-card selected" onclick="selectAppPayment('stripe_card', this)">
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="d-flex gap-1 align-items-center">
-                                        <svg width="34" height="22" viewBox="0 0 32 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                          <rect width="32" height="20" rx="4" fill="#1A1F71"/>
-                                          <circle cx="12" cy="10" r="7" fill="#EB001B"/>
-                                          <circle cx="20" cy="10" r="7" fill="#F79E1B"/>
-                                          <path d="M16 4.34a6.97 6.97 0 0 1 2.66 5.66c0 2.37-1.07 4.47-2.66 5.66a6.97 6.97 0 0 1-2.66-5.66c0-2.37 1.07-4.47 2.66-5.66z" fill="#FF5F00"/>
-                                        </svg>
-                                    </div>
-                                    <span class="fw-bold fs-6">الدفع بالبطاقة الإلكترونية (Stripe)</span>
-                                </div>
-                                <div class="app-payment-radio"></div>
-                            </div>
-
-                            <div class="mt-2 text-end">
-                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" onclick="autoFillStripeTestCard()">
-                                    <i class="bi bi-credit-card-2-front me-1"></i> تعبئة بطاقة Stripe التجريبية
-                                </button>
-                            </div>
-                        </div>
-                    @else
-                        <div class="mb-4">
-                            <div class="app-section-title">طريقة الدفع المعتمدة</div>
-                            <div class="d-flex align-items-center gap-3 p-3 rounded-4" style="background: rgba(64, 85, 165, 0.06); border: 1.5px solid rgba(64, 85, 165, 0.18);">
-                                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: var(--primary-color); color: #fff; font-size: 1.25rem;">
-                                    <i class="bi bi-shield-lock-fill"></i>
-                                </div>
-                                <div>
-                                    <div class="fw-bold text-dark fs-6 mb-1">دفع إلكتروني آمن عبر الرابط المباشر</div>
-                                    <div class="text-secondary small">سيتم تزويدك برابط الدفع المباشر الخاص بالمعالج فور تأكيد الموعد بأمان وسرية تامة.</div>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
-
                     {{-- Summary Totals & Terms --}}
                     <div class="bg-white p-3 rounded-4 border mb-3">
                         <div class="d-flex justify-content-between mb-2 fs-6">
@@ -187,7 +132,10 @@
                             <div class="app-total-label">{{ __('messages.order_total') }}</div>
                             <div class="app-total-value" id="app-bottom-total">50 $</div>
                         </div>
-                        <button type="button" class="btn-app-primary" onclick="goToAppScreen2()">{{ __('messages.next') }}</button>
+                        <button type="button" class="btn-app-primary d-flex align-items-center gap-2" onclick="goToAppScreen2()">
+                            <span>{{ __('messages.next') }}: اختيار الموعد والدفع</span>
+                            <i class="bi bi-arrow-left"></i>
+                        </button>
                     </div>
 
                 </div>{{-- End Screen 1 --}}
@@ -274,62 +222,38 @@
                         </div>
                     </div>
 
-                    {{-- Bottom Action Bar for Screen 2 --}}
-                    <div class="mobile-app-bottom-bar">
-                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="goToAppScreen1()"><i class="bi bi-arrow-right me-1"></i> {{ __('messages.back') }}</button>
-                        <button type="button" class="btn-app-primary" id="app-submit-pay-btn" onclick="executeAppBooking()">
-                            <i class="bi bi-credit-card-2-front-fill me-1"></i> الانتقال للدفع الآن وإتمام الحجز
-                        </button>
-                    </div>
-
-                </div>{{-- End Screen 2 --}}
-
-                {{-- ═══ SCREEN 3: اختيار طريقة الدفع ═══ --}}
-                <div id="app-screen-3" class="d-none">
-
-                    {{-- معلومات الحجز (summary) --}}
-                    <div class="rounded-4 p-3 mb-4" style="background:linear-gradient(135deg,rgba(59,82,164,.07),rgba(59,82,164,.02));border:1.5px solid rgba(59,82,164,.12);">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="text-secondary small">رقم المرجع</span>
-                            <span class="fw-black text-primary" id="app-res-ref">#REF-8492</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="text-secondary small">الخدمة</span>
-                            <span class="fw-bold text-dark small" id="app-res-service">جلسة استشارة</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="text-secondary small">الموعد</span>
-                            <span class="fw-bold text-dark small" id="app-res-datetime">—</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2">
-                            <span class="fw-bold text-dark">إجمالي الدفع</span>
-                            <span class="fw-black fs-5" style="color:var(--primary-color);" id="app-res-type">50 $</span>
-                        </div>
-                    </div>
-
+                    {{-- ═══ اختيار طريقة الدفع ═══ --}}
                     @if($anyPaymentActive)
-
+                    <div class="mb-4 pt-2 border-top">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="app-section-title fs-6 fw-black text-dark mb-0">
+                                <i class="bi bi-wallet2 text-primary me-1"></i> طريقة الدفع
+                            </div>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle small px-2 py-1">
+                                مسح QR Code
+                            </span>
+                        </div>
+                        
                         {{-- تبويبات طرق الدفع --}}
-                        <div class="app-section-title mb-3">اختر طريقة الدفع</div>
-                        <div class="d-flex gap-2 mb-4" id="payment-method-tabs" role="tablist">
+                        <div class="d-flex gap-2 mb-3" id="payment-method-tabs" role="tablist">
                             @if($payZainEnabled)
-                            <button type="button" class="btn pay-tab-btn flex-fill active"
+                            <button type="button" class="btn pay-tab-btn flex-fill {{ $defaultPayMethod === 'zaincash' ? 'active' : '' }}"
                                     id="pay-tab-zaincash" onclick="switchPayTab('zaincash')"
-                                    style="background:linear-gradient(135deg,#7c3aed,#4c1d95);color:#fff;border:none;border-radius:14px;padding:10px 6px;font-weight:700;font-size:.82rem;">
+                                    style="{{ $defaultPayMethod === 'zaincash' ? 'background:linear-gradient(135deg,#7c3aed,#4c1d95);color:#fff;' : 'background:#e2e8f0;color:#475569;' }}border:none;border-radius:14px;padding:10px 6px;font-weight:700;font-size:.85rem;">
                                  زين كاش
                             </button>
                             @endif
                             @if($paySuperkiEnabled)
-                            <button type="button" class="btn pay-tab-btn flex-fill {{ !$payZainEnabled ? 'active' : '' }}"
+                            <button type="button" class="btn pay-tab-btn flex-fill {{ $defaultPayMethod === 'superki' ? 'active' : '' }}"
                                     id="pay-tab-superki" onclick="switchPayTab('superki')"
-                                    style="{{ !$payZainEnabled ? 'background:linear-gradient(135deg,#0284c7,#075985);color:#fff;' : 'background:#e2e8f0;color:#475569;' }}border:none;border-radius:14px;padding:10px 6px;font-weight:700;font-size:.82rem;">
+                                    style="{{ $defaultPayMethod === 'superki' ? 'background:linear-gradient(135deg,#0284c7,#075985);color:#fff;' : 'background:#e2e8f0;color:#475569;' }}border:none;border-radius:14px;padding:10px 6px;font-weight:700;font-size:.85rem;">
                                  SuperKi
                             </button>
                             @endif
                             @if($payCardEnabled)
-                            <button type="button" class="btn pay-tab-btn flex-fill {{ (!$payZainEnabled && !$paySuperkiEnabled) ? 'active' : '' }}"
+                            <button type="button" class="btn pay-tab-btn flex-fill {{ $defaultPayMethod === 'card' ? 'active' : '' }}"
                                     id="pay-tab-card" onclick="switchPayTab('card')"
-                                    style="{{ (!$payZainEnabled && !$paySuperkiEnabled) ? 'background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;' : 'background:#e2e8f0;color:#475569;' }}border:none;border-radius:14px;padding:10px 6px;font-weight:700;font-size:.82rem;">
+                                    style="{{ $defaultPayMethod === 'card' ? 'background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;' : 'background:#e2e8f0;color:#475569;' }}border:none;border-radius:14px;padding:10px 6px;font-weight:700;font-size:.85rem;">
                                  فيزا وماستر كارد
                             </button>
                             @endif
@@ -337,18 +261,19 @@
 
                         {{-- ─── بانل زين كاش ─── --}}
                         @if($payZainEnabled)
-                        <div id="pay-panel-zaincash" class="pay-panel">
-                            <div class="text-center mb-3">
+                        <div id="pay-panel-zaincash" class="pay-panel {{ $defaultPayMethod !== 'zaincash' ? 'd-none' : '' }}">
+                            <div class="card border-0 rounded-4 p-3 bg-light shadow-none text-center">
                                 @if(!empty($payZainQr))
-                                    <div class="d-inline-block p-3 bg-white rounded-4 shadow-sm border">
+                                    <div class="d-inline-block p-2 bg-white rounded-4 shadow-sm border mx-auto mb-2">
                                         <img src="{{ $payZainQr }}" alt="ZainCash QR"
-                                             style="max-width:210px;max-height:210px;border-radius:10px;">
+                                             style="max-width:200px;max-height:200px;border-radius:10px;object-fit:contain;">
                                     </div>
-                                    <p class="text-secondary small mt-3 mb-0 px-2">{{ $payZainLabel }}</p>
+                                    <p class="text-secondary small mb-0 px-2 fw-bold">{{ $payZainLabel }}</p>
                                 @else
-                                    <div class="p-4 text-muted">
-                                        <i class="bi bi-qr-code" style="font-size:3rem;opacity:.3;"></i>
-                                        <p class="small mt-2">لم يتم إعداد صورة QR بعد — يرجى مراجعة الإعدادات</p>
+                                    <div class="p-3 text-muted">
+                                        <i class="bi bi-qr-code" style="font-size:2.8rem;opacity:.5;color:#7c3aed;"></i>
+                                        <p class="small mt-2 mb-1 fw-bold text-dark">دفع زين كاش عبر QR</p>
+                                        <p class="small text-muted mb-0">افتح تطبيق زين كاش وامسح الرمز لإتمام الدفع، ثم أرسل الإيصال عبر واتساب.</p>
                                     </div>
                                 @endif
                             </div>
@@ -357,127 +282,113 @@
 
                         {{-- ─── بانل SuperKi ─── --}}
                         @if($paySuperkiEnabled)
-                        <div id="pay-panel-superki" class="pay-panel @if($payZainEnabled) d-none @endif">
-                            <div class="text-center mb-3">
+                        <div id="pay-panel-superki" class="pay-panel {{ $defaultPayMethod !== 'superki' ? 'd-none' : '' }}">
+                            <div class="card border-0 rounded-4 p-3 bg-light shadow-none text-center">
                                 @if(!empty($paySuperkiQr))
-                                    <div class="d-inline-block p-3 bg-white rounded-4 shadow-sm border">
+                                    <div class="d-inline-block p-2 bg-white rounded-4 shadow-sm border mx-auto mb-2">
                                         <img src="{{ $paySuperkiQr }}" alt="SuperKi QR"
-                                             style="max-width:210px;max-height:210px;border-radius:10px;">
+                                             style="max-width:200px;max-height:200px;border-radius:10px;object-fit:contain;">
                                     </div>
-                                    <p class="text-secondary small mt-3 mb-0 px-2">{{ $paySuperkiLabel }}</p>
+                                    <p class="text-secondary small mb-0 px-2 fw-bold">{{ $paySuperkiLabel }}</p>
                                 @else
-                                    <div class="p-4 text-muted">
-                                        <i class="bi bi-qr-code" style="font-size:3rem;opacity:.3;"></i>
-                                        <p class="small mt-2">لم يتم إعداد صورة QR بعد — يرجى مراجعة الإعدادات</p>
+                                    <div class="p-3 text-muted">
+                                        <i class="bi bi-qr-code" style="font-size:2.8rem;opacity:.5;color:#0284c7;"></i>
+                                        <p class="small mt-2 mb-1 fw-bold text-dark">دفع SuperKi عبر QR</p>
+                                        <p class="small text-muted mb-0">افتح تطبيق SuperKi وامسح الرمز لإتمام الدفع، ثم أرسل الإيصال عبر واتساب.</p>
                                     </div>
                                 @endif
                             </div>
                         </div>
                         @endif
 
-                        {{-- ─── بانل فيزا وماستر كارد (Visa & MasterCard) ─── --}}
+                        {{-- ─── بانل فيزا وماستر كارد ─── --}}
                         @if($payCardEnabled)
-                        <div id="pay-panel-card" class="pay-panel @if($payZainEnabled || $paySuperkiEnabled) d-none @endif">
-                            <div class="card border-0 rounded-4 p-3 bg-light shadow-none mb-3">
-                                <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                        <div id="pay-panel-card" class="pay-panel {{ $defaultPayMethod !== 'card' ? 'd-none' : '' }}">
+                            <div class="card border-0 rounded-4 p-3 bg-light shadow-none mb-2">
+                                <div class="d-flex align-items-center justify-content-between mb-2 border-bottom pb-2">
                                     <div class="fw-bold text-dark small">
                                         <i class="bi bi-shield-check text-success me-1"></i> بوابة الدفع بالبطاقة الائتمانية
                                     </div>
                                     <div class="d-flex align-items-center gap-1">
-                                        {{-- Visa SVG Logo --}}
-                                        <span class="badge bg-white px-2 py-1 shadow-sm border text-primary fw-black" style="font-size: 0.8rem; letter-spacing: 0.5px;">VISA</span>
-                                        {{-- MasterCard SVG Logo --}}
+                                        <span class="badge bg-white px-2 py-1 shadow-sm border text-primary fw-black" style="font-size: 0.8rem;">VISA</span>
                                         <span class="badge bg-white px-2 py-1 shadow-sm border text-danger fw-black" style="font-size: 0.8rem;">MasterCard</span>
                                     </div>
                                 </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold text-secondary mb-1">رقم البطاقة (Card Number)</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-white border-end-0 text-secondary"><i class="bi bi-credit-card-2-front"></i></span>
-                                        <input type="text" id="card_number_input" class="form-control bg-white border-start-0 font-monospace" placeholder="4242 •••• •••• 4242" maxlength="19" oninput="formatCardNumber(this)">
-                                    </div>
-                                </div>
-
-                                <div class="row g-2 mb-3">
-                                    <div class="col-6">
-                                        <label class="form-label small fw-bold text-secondary mb-1">تاريخ الانتهاء</label>
-                                        <input type="text" id="card_expiry_input" class="form-control bg-white font-monospace text-center" placeholder="MM / YY" maxlength="5" oninput="formatCardExpiry(this)">
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="form-label small fw-bold text-secondary mb-1">رمز الأمان (CVC)</label>
-                                        <input type="password" id="card_cvc_input" class="form-control bg-white font-monospace text-center" placeholder="•••" maxlength="4">
-                                    </div>
-                                </div>
-
-                                <div class="mb-2">
-                                    <label class="form-label small fw-bold text-secondary mb-1">اسم حامل البطاقة</label>
-                                    <input type="text" id="card_name_input" class="form-control bg-white" placeholder="الاسم كما هو مطبوع على البطاقة">
-                                </div>
-
-                                <p class="text-secondary small mt-2 mb-0" style="font-size:0.75rem;">
-                                    <i class="bi bi-lock-fill text-muted me-1"></i> {{ $payCardInstructions }}
-                                </p>
-                            </div>
-
-                            @if(!empty($payCardLink))
-                            <div class="mb-3">
-                                <a href="{{ $payCardLink }}" target="_blank" class="btn btn-outline-primary w-100 py-2.5 rounded-pill fw-bold small d-flex align-items-center justify-content-center gap-2">
-                                    <i class="bi bi-box-arrow-up-right"></i> أو الدفع عبر رابط الدفع الإلكتروني المباشر
+                                <p class="text-secondary small mb-2">{{ $payCardInstructions }}</p>
+                                @if(!empty($payCardLink))
+                                <a href="{{ $payCardLink }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill fw-bold w-100 py-2">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i> فتح رابط الدفع الإلكتروني المباشر
                                 </a>
+                                @endif
                             </div>
-                            @endif
                         </div>
                         @endif
 
-                        {{-- زر "أكدت الدفع" --}}
-                        <div class="mt-4" id="pay-confirm-section">
-                            <button type="button" class="btn btn-royal-primary w-100 py-3 rounded-pill fw-bold shadow"
-                                    id="app-confirm-payment-btn" onclick="confirmPaymentByPatient()">
-                                <i class="bi bi-check-circle-fill me-2"></i> أكدت الدفع — تأكيد الحجز
-                            </button>
-                            <p class="text-secondary small text-center mt-2 mb-0">
-                                <i class="bi bi-info-circle me-1"></i>
-                                سيتم مراجعة الدفع من قبل الدكتور وتأكيد الحجز خلال 24 ساعة.
-                            </p>
+                        <div class="alert alert-light border rounded-4 p-2.5 mt-3 mb-0 d-flex align-items-center gap-2 small text-secondary">
+                            <i class="bi bi-info-circle-fill text-primary fs-5 flex-shrink-0"></i>
+                            <div>امسح رمز QR أعلاه لإتمام التحويل، ثم اضغط <strong>تأكيد الحجز</strong> لإرسال الإيصال وتثبيت الموعد.</div>
                         </div>
-
-                        {{-- شاشة التأكيد بعد ضغط الزر --}}
-                        <div id="pay-confirmed-screen" class="text-center py-3 d-none">
-                            <div class="mx-auto mb-3 d-flex align-items-center justify-content-center"
-                                 style="width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-size:2rem;box-shadow:0 10px 25px rgba(16,185,129,.35);">
-                                <i class="bi bi-check2"></i>
-                            </div>
-                            <h5 class="fw-black text-dark mb-1">تم إرسال تأكيدك!</h5>
-                            <p class="text-secondary small mb-4">سيراجع الدكتور دفعك ويؤكد الحجز خلال 24 ساعة. ستصلك رسالة تأكيد.</p>
-                            <a id="app-start-consultation-link" href="#" target="_blank"
-                               class="btn btn-outline-success w-100 py-3 rounded-pill fw-bold d-flex align-items-center justify-content-center gap-2 mb-2">
-                                <i class="bi bi-whatsapp fs-5"></i>
-                                <span>إرسال إيصال الدفع عبر واتسآب</span>
-                            </a>
-                            <button type="button" class="btn btn-light rounded-pill py-2 fw-bold text-secondary"
-                                    data-bs-dismiss="modal" onclick="window.location.reload()">
-                                <i class="bi bi-arrow-repeat me-1"></i> إغلاق
-                            </button>
-                        </div>
-
-                    @else
-                        {{-- لا توجد طريقة دفع مفعلة — عرض WhatsApp فقط --}}
-                        <div class="text-center py-3">
-                            <div class="mx-auto mb-3 d-flex align-items-center justify-content-center"
-                                 style="width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-size:2rem;">
-                                <i class="bi bi-hourglass-split"></i>
-                            </div>
-                            <h5 class="fw-black text-dark mb-2">تم تسجيل طلب الموعد</h5>
-                            <p class="text-secondary small mb-4">سيتواصل معك الدكتور لمتابعة تفاصيل الدفع.</p>
-                            <a id="app-start-consultation-link" href="#" target="_blank"
-                               class="btn btn-outline-success w-100 py-3 rounded-pill fw-bold d-flex align-items-center justify-content-center gap-2">
-                                <i class="bi bi-whatsapp fs-5"></i>
-                                <span>مراسلة الدكتور عبر واتسآب</span>
-                            </a>
-                        </div>
+                    </div>
                     @endif
 
+                    {{-- Bottom Action Bar for Screen 2 --}}
+                    <div class="mobile-app-bottom-bar">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-3" onclick="goToAppScreen1()">
+                            <i class="bi bi-arrow-right me-1"></i> {{ __('messages.back') }}
+                        </button>
+                        <button type="button" class="btn-app-primary flex-fill" id="app-submit-pay-btn" onclick="executeAppBooking()">
+                            <i class="bi bi-check-circle-fill me-1"></i> تأكيد الحجز وإرسال الإيصال (<span id="app-btn-price-display">50 $</span>)
+                        </button>
+                    </div>
+
+                </div>{{-- End Screen 2 --}}
+
+                {{-- ═══ SCREEN 3: تأكيد الحجز والواتساب ═══ --}}
+                <div id="app-screen-3" class="d-none">
+                    <div class="text-center py-4">
+                        <div class="mx-auto mb-3 d-flex align-items-center justify-content-center"
+                             style="width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-size:2.2rem;box-shadow:0 12px 28px rgba(16,185,129,.35);">
+                            <i class="bi bi-check-lg"></i>
+                        </div>
+                        <h4 class="fw-black text-dark mb-1">تم تسجيل طلب الحجز بنجاح!</h4>
+                        <p class="text-secondary small mb-4">يرجى إرسال لقطة شاشة إيصال الدفع عبر واتساب ليتم مراجعة الدفع وتأكيد الحجز نهائياً خلال 24 ساعة.</p>
+
+                        {{-- معلومات الحجز (summary) --}}
+                        <div class="rounded-4 p-3 mb-4 text-start" style="background:linear-gradient(135deg,rgba(59,82,164,.07),rgba(59,82,164,.02));border:1.5px solid rgba(59,82,164,.12);">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-secondary small">رقم المرجع:</span>
+                                <span class="fw-black text-primary font-monospace" id="app-res-ref">#REF-8492</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-secondary small">الخدمة:</span>
+                                <span class="fw-bold text-dark small" id="app-res-service">جلسة استشارة</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-secondary small">الموعد:</span>
+                                <span class="fw-bold text-dark small" id="app-res-datetime">—</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-secondary small">طريقة الدفع:</span>
+                                <span class="fw-bold text-success small" id="app-res-paymethod">زين كاش</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2">
+                                <span class="fw-bold text-dark">المبلغ الإجمالي:</span>
+                                <span class="fw-black fs-5" style="color:var(--primary-color);" id="app-res-type">50 $</span>
+                            </div>
+                        </div>
+
+                        <a id="app-start-consultation-link" href="#" target="_blank"
+                           class="btn btn-success w-100 py-3 rounded-pill fw-bold d-flex align-items-center justify-content-center gap-2 mb-3 shadow"
+                           style="background:linear-gradient(135deg,#25d366,#128c7e);border:none;font-size:1rem;">
+                            <i class="bi bi-whatsapp fs-5"></i>
+                            <span>إرسال إيصال الدفع عبر واتسآب</span>
+                        </a>
+
+                        <button type="button" class="btn btn-light w-100 rounded-pill py-2.5 fw-bold text-secondary border"
+                                data-bs-dismiss="modal" onclick="window.location.reload()">
+                            <i class="bi bi-check2 me-1"></i> إغلاق
+                        </button>
+                    </div>
                 </div>{{-- End Screen 3 --}}
 
             </div>
@@ -498,7 +409,7 @@ let appState = {
     duration: 30,
     price: 50,
     bookingType: 'online',
-    paymentMethod: '{{ $stripeActive ? "stripe_card" : "direct_confirmation" }}',
+    paymentMethod: '{{ $defaultPayMethod }}',
     title: '{{ $modalServices->first()->title ?? "استشارة نفسية متخصصة" }}',
     details: '',
     date: _initDateStr,
@@ -586,15 +497,11 @@ function updateModalPrice(price) {
     if (document.getElementById('app-session-price')) document.getElementById('app-session-price').textContent = pText;
     if (document.getElementById('app-required-price')) document.getElementById('app-required-price').textContent = pText;
     if (document.getElementById('app-bottom-total')) document.getElementById('app-bottom-total').textContent = pText;
+    if (document.getElementById('app-btn-price-display')) document.getElementById('app-btn-price-display').textContent = pText;
+    if (document.getElementById('app-res-type')) document.getElementById('app-res-type').textContent = pText;
 }
 
-function selectAppPayment(method, el) {
-    appState.paymentMethod = method;
-    document.querySelectorAll('.app-payment-card').forEach(c => c.classList.remove('selected'));
-    if (el) el.classList.add('selected');
-}
-
-// ─── Payment Tab Switcher (Screen 3) ───────────────────────────────────────
+// ─── Payment Tab Switcher ───────────────────────────────────────
 const payTabGradients = {
     zaincash:   'linear-gradient(135deg,#7c3aed,#4c1d95)',
     superki:    'linear-gradient(135deg,#0284c7,#075985)',
@@ -602,6 +509,7 @@ const payTabGradients = {
 };
 
 function switchPayTab(method) {
+    appState.paymentMethod = method;
     // Hide all panels
     document.querySelectorAll('.pay-panel').forEach(p => p.classList.add('d-none'));
     // Show selected panel
@@ -965,7 +873,7 @@ function executeAppBooking() {
     const btn = document.getElementById('app-submit-pay-btn');
     if (btn) {
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> جاري تجهيز رابط الدفع...';
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> جاري تأكيد وحفظ الحجز...';
     }
 
     const fullPhone = rawPhone.startsWith('+') ? rawPhone : (countryCode + rawPhone);
@@ -981,6 +889,7 @@ function executeAppBooking() {
         password: password || null,
         title: appState.title,
         notes: appState.details,
+        payment_method: appState.paymentMethod || 'zaincash',
     };
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : '';
@@ -997,23 +906,15 @@ function executeAppBooking() {
             
             if (btn) {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-credit-card-2-front-fill me-1"></i> الانتقال للدفع الآن وإتمام الحجز';
+                btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> تأكيد الحجز وإرسال الإيصال (' + (appState.price || 50) + ' $)';
             }
 
             const ref = data?.booking_reference || 'REF-' + Math.floor(1000 + Math.random() * 9000);
-            const paymentUrl = data?.payment_url || 'https://younisalmurshed.gumroad.com/l/srjlvw?wanted=true';
 
             // Store booking reference for payment confirmation
             appState.bookingRef = ref;
 
-            // 1. Immediately open external direct payment URL in a new tab
-            try {
-                window.open(paymentUrl, '_blank');
-            } catch (e) {
-                console.log('Popup blocked, using fallback button');
-            }
-
-            // 2. Transition UI to Screen 3 (Payment Selection)
+            // Transition UI to Screen 3 (Confirmation & WhatsApp)
             document.getElementById('app-screen-2').classList.add('d-none');
             document.getElementById('app-screen-3').classList.remove('d-none');
 
@@ -1021,22 +922,34 @@ function executeAppBooking() {
             if (document.getElementById('app-res-service')) document.getElementById('app-res-service').textContent = appState.title || 'جلسة استشارة نفسية';
             if (document.getElementById('app-res-datetime')) document.getElementById('app-res-datetime').textContent = appState.date + ' | ' + appState.slot;
             if (document.getElementById('app-res-type')) document.getElementById('app-res-type').textContent = (appState.price || 50) + ' $';
-            
 
-            // Direct Service Payment Link
-            const payBtn = document.getElementById('app-direct-payment-link');
-            if (payBtn) {
-                payBtn.href = paymentUrl;
-            }
+            const payMethodLabels = {
+                zaincash: 'زين كاش (ZainCash)',
+                superki: 'SuperKi',
+                card: 'فيزا وماستر كارد'
+            };
+            const methodLabel = payMethodLabels[appState.paymentMethod] || 'زين كاش';
+            if (document.getElementById('app-res-paymethod')) document.getElementById('app-res-paymethod').textContent = methodLabel;
 
-            const waMsg = `السلام عليكم دكتور يونس، تم تسجيل طلب حجز موعد\nرقم المرجع: #${ref}\nالاسم: ${name}\nالموعد المطلوب: ${appState.date} ${appState.slot}\nالنوع: ${appState.bookingType === 'clinic' ? 'كشف بالعيادة' : 'استشارة أونلاين'}\nحالة الدفع: جاري إتمام الدفع عبر الرابط المباشر\nرابط الدفع: ${paymentUrl}`;
+            const waMsg = `السلام عليكم دكتور يونس، تم تسجيل طلب حجز موعد مؤكد\nرقم المرجع: #${ref}\nالاسم: ${name}\nالخدمة: ${appState.title}\nالموعد: ${appState.date} (${appState.slot})\nطريقة الدفع: ${methodLabel}\nالمبلغ: ${appState.price || 50} $\nمرفق لكم لقطة شاشة إيصال الدفع.`;
             const waUrl = waNumber ? `https://wa.me/${waNumber}?text=${encodeURIComponent(waMsg)}` : `https://wa.me/?text=${encodeURIComponent(waMsg)}`;
             if (document.getElementById('app-start-consultation-link')) document.getElementById('app-start-consultation-link').href = waUrl;
+
+            // Auto trigger confirmation in backend
+            fetch(`/booking/${ref}/confirm-payment`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ booking_ref: ref, payment_method: appState.paymentMethod }),
+            }).catch(() => {});
         })
         .catch(err => {
             if (btn) {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-credit-card-2-front-fill me-1"></i> الانتقال للدفع الآن وإتمام الحجز';
+                btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> تأكيد الحجز وإرسال الإيصال (' + (appState.price || 50) + ' $)';
             }
             alert(err.message || 'تعذّر إكمال الطلب. يرجى إعادة المحاولة.');
         });

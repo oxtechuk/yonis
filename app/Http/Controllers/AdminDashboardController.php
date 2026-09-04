@@ -1192,12 +1192,16 @@ class AdminDashboardController extends Controller
             'notify_cancellation'      => Setting::get('notify_cancellation', '1'),
             'booking_banner_image'     => Setting::get('booking_banner_image', ''),
             // ─── إعدادات الدفع ───────────────────────────────────────────────
-            'payment_zaincash_enabled' => Setting::get('payment_zaincash_enabled', '0'),
+            'payment_zaincash_enabled' => Setting::get('payment_zaincash_enabled', '1'),
             'payment_zaincash_qr'      => Setting::get('payment_zaincash_qr', ''),
             'payment_zaincash_label'   => Setting::get('payment_zaincash_label', 'افتح تطبيق زين كاش وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال للدكتور.'),
-            'payment_superki_enabled'  => Setting::get('payment_superki_enabled', '0'),
+            'payment_superki_enabled'  => Setting::get('payment_superki_enabled', '1'),
             'payment_superki_qr'       => Setting::get('payment_superki_qr', ''),
             'payment_superki_label'    => Setting::get('payment_superki_label', 'افتح تطبيق SuperKi وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال للدكتور.'),
+            'payment_card_enabled'     => Setting::get('payment_card_enabled', '0'),
+            'payment_card_key'         => Setting::get('payment_card_key', ''),
+            'payment_card_link'        => Setting::get('payment_card_link', ''),
+            'payment_card_instructions'=> Setting::get('payment_card_instructions', 'يمكنك الدفع مباشرة باستخدام أي بطاقة فيزا أو ماستر كارد صادرة محلياً أو دولياً بأمان وسرية تامة.'),
             'payment_spaceremit_enabled' => Setting::get('payment_spaceremit_enabled', '0'),
             'payment_spaceremit_key'   => Setting::get('payment_spaceremit_key', ''),
             'payment_spaceremit_currency' => Setting::get('payment_spaceremit_currency', 'USD'),
@@ -1233,6 +1237,9 @@ class AdminDashboardController extends Controller
             'payment_superki_qr_file'      => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:3072',
             'payment_zaincash_label'       => 'nullable|string|max:500',
             'payment_superki_label'        => 'nullable|string|max:500',
+            'payment_card_key'             => 'nullable|string|max:255',
+            'payment_card_link'            => 'nullable|string|max:500',
+            'payment_card_instructions'    => 'nullable|string|max:500',
             'payment_spaceremit_key'       => 'nullable|string|max:255',
             'payment_spaceremit_currency'  => 'nullable|string|max:10',
         ]);
@@ -1301,6 +1308,12 @@ class AdminDashboardController extends Controller
         } elseif ($request->filled('payment_superki_qr')) {
             Setting::set('payment_superki_qr', $request->payment_superki_qr);
         }
+
+        // فيزا وماستر كارد
+        Setting::set('payment_card_enabled', $request->has('payment_card_enabled') ? '1' : '0');
+        if ($request->has('payment_card_key')) Setting::set('payment_card_key', $request->payment_card_key ?? '');
+        if ($request->has('payment_card_link')) Setting::set('payment_card_link', $request->payment_card_link ?? '');
+        if ($request->has('payment_card_instructions')) Setting::set('payment_card_instructions', $request->payment_card_instructions ?? '');
 
         // SpaceRemit
         Setting::set('payment_spaceremit_enabled', $request->has('payment_spaceremit_enabled') ? '1' : '0');
