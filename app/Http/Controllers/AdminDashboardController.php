@@ -843,20 +843,20 @@ class AdminDashboardController extends Controller
         // Hero Image Upload
         $heroImage = $profile->hero_image;
         if ($request->hasFile('hero_image_file')) {
-            $path = $request->file('hero_image_file')->store('branding', 'public');
+            $path = $this->storePublicUpload($request->file('hero_image_file'), 'branding');
             $heroImage = asset('storage/' . $path);
         }
 
         // About Image Upload
         $aboutImage = $profile->about_image;
         if ($request->hasFile('about_image_file')) {
-            $path = $request->file('about_image_file')->store('branding', 'public');
+            $path = $this->storePublicUpload($request->file('about_image_file'), 'branding');
             $aboutImage = asset('storage/' . $path);
         }
 
         // Site Logo Upload
         if ($request->hasFile('site_logo_file')) {
-            $path = $request->file('site_logo_file')->store('branding', 'public');
+            $path = $this->storePublicUpload($request->file('site_logo_file'), 'branding');
             Setting::set('site_logo', asset('storage/' . $path));
         }
 
@@ -864,7 +864,7 @@ class AdminDashboardController extends Controller
         $gallery = $profile->gallery ?? [];
         if ($request->hasFile('gallery_images')) {
             foreach ($request->file('gallery_images') as $file) {
-                $path = $file->store('gallery', 'public');
+                $path = $this->storePublicUpload($file, 'gallery');
                 $gallery[] = asset('storage/' . $path);
             }
         }
@@ -1680,5 +1680,34 @@ class AdminDashboardController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Store an uploaded file safely in public storage without relying on PHP ext-fileinfo.
+     */
+    protected function storePublicUpload($file, string $directory = 'uploads'): string
+    {
+        $extension = $file->getClientOriginalExtension() ?: 'bin';
+        $filename = Str::random(40) . '.' . strtolower($extension);
+        $cleanDir = trim($directory, '/\\');
+
+        $storageDir = storage_path('app/public/' . $cleanDir);
+        if (!file_exists($storageDir)) {
+            @mkdir($storageDir, 0755, true);
+        }
+
+        $targetPath = $storageDir . DIRECTORY_SEPARATOR . $filename;
+        $file->move($storageDir, $filename);
+
+        // If public/storage is a real folder (common on cPanel without symlinks), mirror file there
+        $publicDir = public_path('storage/' . $cleanDir);
+        if (file_exists(public_path('storage')) && !is_link(public_path('storage'))) {
+            if (!file_exists($publicDir)) {
+                @mkdir($publicDir, 0755, true);
+            }
+            @copy($targetPath, $publicDir . DIRECTORY_SEPARATOR . $filename);
+        }
+
+        return $cleanDir . '/' . $filename;
     }
 }
