@@ -316,21 +316,21 @@
                             <button type="button" class="btn pay-tab-btn flex-fill active"
                                     id="pay-tab-zaincash" onclick="switchPayTab('zaincash')"
                                     style="background:linear-gradient(135deg,#7c3aed,#4c1d95);color:#fff;border:none;border-radius:14px;padding:10px 6px;font-weight:700;font-size:.82rem;">
-                                💜 زين كاش
+                                 زين كاش
                             </button>
                             @endif
                             @if($paySuperkiEnabled)
-                            <button type="button" class="btn pay-tab-btn flex-fill @if(!$payZainEnabled) active @endif"
+                            <button type="button" class="btn pay-tab-btn flex-fill {{ !$payZainEnabled ? 'active' : '' }}"
                                     id="pay-tab-superki" onclick="switchPayTab('superki')"
-                                    style="background:@if(!$payZainEnabled)linear-gradient(135deg,#0284c7,#075985)@else#e2e8f0@endif;color:@if(!$payZainEnabled)#fff@else#475569@endif;border:none;border-radius:14px;padding:10px 6px;font-weight:700;font-size:.82rem;">
-                                🔵 SuperKi
+                                    style="{{ !$payZainEnabled ? 'background:linear-gradient(135deg,#0284c7,#075985);color:#fff;' : 'background:#e2e8f0;color:#475569;' }}border:none;border-radius:14px;padding:10px 6px;font-weight:700;font-size:.82rem;">
+                                 SuperKi
                             </button>
                             @endif
                             @if($payCardEnabled)
-                            <button type="button" class="btn pay-tab-btn flex-fill @if(!$payZainEnabled && !$paySuperkiEnabled) active @endif"
+                            <button type="button" class="btn pay-tab-btn flex-fill {{ (!$payZainEnabled && !$paySuperkiEnabled) ? 'active' : '' }}"
                                     id="pay-tab-card" onclick="switchPayTab('card')"
-                                    style="background:@if(!$payZainEnabled && !$paySuperkiEnabled)linear-gradient(135deg,#1e3a8a,#2563eb)@else#e2e8f0@endif;color:@if(!$payZainEnabled && !$paySuperkiEnabled)#fff@else#475569@endif;border:none;border-radius:14px;padding:10px 6px;font-weight:700;font-size:.82rem;">
-                                💳 فيزا وماستر كارد
+                                    style="{{ (!$payZainEnabled && !$paySuperkiEnabled) ? 'background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;' : 'background:#e2e8f0;color:#475569;' }}border:none;border-radius:14px;padding:10px 6px;font-weight:700;font-size:.82rem;">
+                                 فيزا وماستر كارد
                             </button>
                             @endif
                         </div>
