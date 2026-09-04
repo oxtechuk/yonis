@@ -382,6 +382,7 @@ class ApiController extends Controller
         $paySuperkiEnabled = Setting::get('payment_superki_enabled', '1') === '1';
         $payCardEnabled = Setting::get('payment_card_enabled', '0') === '1';
         $defaultPaymentMethod = $payZainEnabled ? 'zaincash' : ($paySuperkiEnabled ? 'superki' : ($payCardEnabled ? 'card' : 'zaincash'));
+        $doctorProfile = DoctorProfile::first();
 
         return response()->json([
             'success' => true,
@@ -399,6 +400,16 @@ class ApiController extends Controller
                 'default_payment_url' => Setting::get('default_payment_url', 'https://younisalmurshed.gumroad.com/l/srjlvw?wanted=true'),
                 'max_reschedule_allowed' => (int) Setting::get('max_reschedule_allowed', '2'),
                 'min_reschedule_notice_hours' => (int) Setting::get('min_reschedule_notice_hours', '24'),
+                'hero_images' => [
+                    'web' => $doctorProfile?->hero_image,
+                    'mobile' => $doctorProfile?->mobile_hero_image,
+                ],
+                'whatsapp_widget' => [
+                    'enabled' => Setting::get('whatsapp_widget_enabled', '1') === '1',
+                    'number' => Setting::get('whatsapp_number', '+9647800000000'),
+                    'default_message' => Setting::get('whatsapp_default_message', 'مرحباً دكتور يونس، أود الاستفسار عن حجز موعد استشارة.'),
+                    'greeting' => Setting::get('whatsapp_widget_greeting', 'أهلاً بك! 👋 معك عيادة الدكتور يونس المرشد. كيف يمكننا مساعدتك اليوم؟'),
+                ],
                 'payment' => [
                     'default_method' => $defaultPaymentMethod,
                     'zaincash' => [
@@ -416,7 +427,7 @@ class ApiController extends Controller
                         'link'         => Setting::get('payment_card_link', ''),
                         'instructions' => Setting::get('payment_card_instructions', 'يمكنك الدفع مباشرة باستخدام أي بطاقة فيزا أو ماستر كارد بأمان وسرية تامة.'),
                     ],
-                    'whatsapp_number' => Setting::get('whatsapp_number', '+9647700000000'),
+                    'whatsapp_number' => Setting::get('whatsapp_number', '+9647800000000'),
                 ]
             ]
         ]);
