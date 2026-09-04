@@ -957,7 +957,7 @@ class AdminDashboardController extends Controller
 
         $videoUrl = $request->video_url;
         if ($request->hasFile('video_file')) {
-            $path = $request->file('video_file')->store('reels', 'public');
+            $path = $this->storePublicUpload($request->file('video_file'), 'reels');
             $videoUrl = asset('storage/' . $path);
         }
 
@@ -971,7 +971,7 @@ class AdminDashboardController extends Controller
         $thumbnailUrl = null;
         $thumbnailFile = $request->file('thumbnail') ?: $request->file('thumbnail_file');
         if ($thumbnailFile) {
-            $path = $thumbnailFile->store('reels/thumbnails', 'public');
+            $path = $this->storePublicUpload($thumbnailFile, 'reels/thumbnails');
             $thumbnailUrl = asset('storage/' . $path);
         } elseif ($request->filled('thumbnail_url')) {
             $thumbnailUrl = $request->thumbnail_url;
@@ -1024,7 +1024,7 @@ class AdminDashboardController extends Controller
                 $oldFile = 'reels/' . basename($reel->video_url);
                 Storage::disk('public')->delete($oldFile);
             }
-            $path = $request->file('video_file')->store('reels', 'public');
+            $path = $this->storePublicUpload($request->file('video_file'), 'reels');
             $videoUrl = asset('storage/' . $path);
         } elseif ($request->filled('video_url')) {
             $videoUrl = $request->video_url;
@@ -1042,7 +1042,7 @@ class AdminDashboardController extends Controller
                 $oldThumb = 'reels/thumbnails/' . basename($reel->thumbnail_url);
                 Storage::disk('public')->delete($oldThumb);
             }
-            $path = $thumbnailFile->store('reels/thumbnails', 'public');
+            $path = $this->storePublicUpload($thumbnailFile, 'reels/thumbnails');
             $thumbnailUrl = asset('storage/' . $path);
         } elseif ($request->filled('thumbnail_url')) {
             $thumbnailUrl = $request->thumbnail_url;
@@ -1100,7 +1100,7 @@ class AdminDashboardController extends Controller
 
         $avatarUrl = null;
         if ($request->hasFile('avatar_file')) {
-            $path = $request->file('avatar_file')->store('testimonials', 'public');
+            $path = $this->storePublicUpload($request->file('avatar_file'), 'testimonials');
             $avatarUrl = asset('storage/' . $path);
         }
 
@@ -1138,7 +1138,7 @@ class AdminDashboardController extends Controller
             if ($avatarUrl && str_contains($avatarUrl, '/storage/testimonials/')) {
                 Storage::disk('public')->delete('testimonials/' . basename($avatarUrl));
             }
-            $path = $request->file('avatar_file')->store('testimonials', 'public');
+            $path = $this->storePublicUpload($request->file('avatar_file'), 'testimonials');
             $avatarUrl = asset('storage/' . $path);
         }
 
@@ -1246,7 +1246,7 @@ class AdminDashboardController extends Controller
 
         // Handle header logo file upload
         if ($request->hasFile('logo_file')) {
-            $path = $request->file('logo_file')->store('branding', 'public');
+            $path = $this->storePublicUpload($request->file('logo_file'), 'branding');
             Setting::set('site_logo', asset('storage/' . $path));
         } elseif ($request->filled('site_logo')) {
             Setting::set('site_logo', $request->site_logo);
@@ -1254,7 +1254,7 @@ class AdminDashboardController extends Controller
 
         // Handle footer logo file upload
         if ($request->hasFile('footer_logo_file')) {
-            $path = $request->file('footer_logo_file')->store('branding', 'public');
+            $path = $this->storePublicUpload($request->file('footer_logo_file'), 'branding');
             Setting::set('footer_logo', asset('storage/' . $path));
         } elseif ($request->has('footer_logo')) {
             Setting::set('footer_logo', $request->footer_logo);
@@ -1262,7 +1262,7 @@ class AdminDashboardController extends Controller
 
         // Handle booking banner image file upload
         if ($request->hasFile('booking_banner_file')) {
-            $path = $request->file('booking_banner_file')->store('branding', 'public');
+            $path = $this->storePublicUpload($request->file('booking_banner_file'), 'branding');
             Setting::set('booking_banner_image', asset('storage/' . $path));
         } elseif ($request->has('booking_banner_image')) {
             Setting::set('booking_banner_image', $request->booking_banner_image);
@@ -1270,7 +1270,7 @@ class AdminDashboardController extends Controller
 
         // Handle OG image file upload
         if ($request->hasFile('og_image_file')) {
-            $path = $request->file('og_image_file')->store('branding', 'public');
+            $path = $this->storePublicUpload($request->file('og_image_file'), 'branding');
             Setting::set('og_image', asset('storage/' . $path));
         } elseif ($request->filled('og_image')) {
             Setting::set('og_image', $request->og_image);
@@ -1293,7 +1293,7 @@ class AdminDashboardController extends Controller
         Setting::set('payment_zaincash_enabled', $request->has('payment_zaincash_enabled') ? '1' : '0');
         Setting::set('payment_zaincash_label', $request->payment_zaincash_label ?? '');
         if ($request->hasFile('payment_zaincash_qr_file')) {
-            $path = $request->file('payment_zaincash_qr_file')->store('payments', 'public');
+            $path = $this->storePublicUpload($request->file('payment_zaincash_qr_file'), 'payments');
             Setting::set('payment_zaincash_qr', asset('storage/' . $path));
         } elseif ($request->filled('payment_zaincash_qr')) {
             Setting::set('payment_zaincash_qr', $request->payment_zaincash_qr);
@@ -1303,7 +1303,7 @@ class AdminDashboardController extends Controller
         Setting::set('payment_superki_enabled', $request->has('payment_superki_enabled') ? '1' : '0');
         Setting::set('payment_superki_label', $request->payment_superki_label ?? '');
         if ($request->hasFile('payment_superki_qr_file')) {
-            $path = $request->file('payment_superki_qr_file')->store('payments', 'public');
+            $path = $this->storePublicUpload($request->file('payment_superki_qr_file'), 'payments');
             Setting::set('payment_superki_qr', asset('storage/' . $path));
         } elseif ($request->filled('payment_superki_qr')) {
             Setting::set('payment_superki_qr', $request->payment_superki_qr);
