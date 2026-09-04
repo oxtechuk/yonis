@@ -15,6 +15,8 @@ Route::middleware('throttle:60,1')->group(function () {
     Route::get('/config', [ApiController::class, 'getApiConfig']);
     Route::get('/doctor/profile', [ApiController::class, 'getDoctorProfile']);
     Route::get('/services', [ApiController::class, 'getServices']);
+    Route::get('/services/clinic', [ApiController::class, 'getClinicServices']);
+    Route::get('/services/online', [ApiController::class, 'getOnlineServices']);
     Route::get('/slots', [ApiController::class, 'getSlots']);
     Route::get('/available-slots', [ApiController::class, 'getAvailableSlots']);
     Route::get('/slots/available', [ApiController::class, 'getAvailableSlots']);

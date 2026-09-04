@@ -148,16 +148,148 @@ class ApiController extends Controller
     }
 
     /**
-     * Get all active services
+     * Get all active services with clear separation between Clinic and Online channel pricing
      */
-    public function getServices()
+    public function getServices(Request $request)
     {
-        $services = Service::where('is_active', true)->get();
+        $clinicEnabled = Setting::get('clinic_booking_enabled', '1') === '1';
+        $onlineEnabled = Setting::get('online_booking_enabled', '1') === '1';
+        $chatEnabled = Setting::get('chat_enabled', '1') === '1';
+        $voiceEnabled = Setting::get('voice_enabled', '1') === '1';
+        $videoEnabled = Setting::get('video_enabled', '1') === '1';
+
+        $allRaw = Service::where('is_active', true)->get();
+
+        // Format Clinic Services
+        $clinicServices = $allRaw->filter(function ($s) {
+            return in_array($s->type, ['clinic', 'both'], true);
+        })->map(function ($s) {
+            $clinicPrice = (float) ($s->clinic_price ?? $s->price);
+            return [
+                'id' => $s->id,
+                'title' => $s->title,
+                'description' => $s->description,
+                'duration' => $s->duration,
+                'price' => $clinicPrice,
+                'clinic_price' => $clinicPrice,
+                'booking_type' => 'clinic',
+                'currency' => 'USD',
+                'type' => $s->type,
+                'location' => Setting::get('clinic_address', 'مقر العيادة - د. يونس المرشد'),
+            ];
+        })->values();
+
+        // Format Online Services with distinct channel prices (Voice, Chat, Video)
+        $onlineServices = $allRaw->filter(function ($s) {
+            return in_array($s->type, ['online', 'both'], true);
+        })->map(function ($s) use ($chatEnabled, $voiceEnabled, $videoEnabled) {
+            $basePrice = (float) $s->price;
+            $videoPrice = (float) ($s->video_price ?? $basePrice);
+            $voicePrice = (float) ($s->voice_price ?? round($basePrice * 0.9, 2));
+            $chatPrice = (float) ($s->chat_price ?? round($basePrice * 0.75, 2));
+
+            return [
+                'id' => $s->id,
+                'title' => $s->title,
+                'description' => $s->description,
+                'duration' => $s->duration,
+                'booking_type' => 'online',
+                'currency' => 'USD',
+                'type' => $s->type,
+                'price' => $videoPrice, // default base online
+                // Distinct direct prices as requested
+                'video_price' => $videoPrice,
+                'voice_price' => $voicePrice,
+                'chat_price' => $chatPrice,
+                // Channels breakdown array
+                'channels' => [
+                    [
+                        'channel' => 'video',
+                        'name' => 'مكالمة فيديو أونلاين',
+                        'price' => $videoPrice,
+                        'currency' => 'USD',
+                        'duration' => $s->duration,
+                        'is_enabled' => $videoEnabled,
+                    ],
+                    [
+                        'channel' => 'voice',
+                        'name' => 'استشارة صوتية',
+                        'price' => $voicePrice,
+                        'currency' => 'USD',
+                        'duration' => $s->duration,
+                        'is_enabled' => $voiceEnabled,
+                    ],
+                    [
+                        'channel' => 'chat',
+                        'name' => 'محادثة نصية (شات)',
+                        'price' => $chatPrice,
+                        'currency' => 'USD',
+                        'duration' => $s->duration,
+                        'is_enabled' => $chatEnabled,
+                    ],
+                ]
+            ];
+        })->values();
+
+        // Filter by requested type if passed
+        $requestedType = strtolower((string) $request->query('type', ''));
+        if ($requestedType === 'clinic') {
+            return response()->json([
+                'success' => true,
+                'type' => 'clinic',
+                'is_enabled' => $clinicEnabled,
+                'total' => $clinicServices->count(),
+                'services' => $clinicServices,
+            ]);
+        }
+
+        if ($requestedType === 'online') {
+            return response()->json([
+                'success' => true,
+                'type' => 'online',
+                'is_enabled' => $onlineEnabled,
+                'channels_enabled' => [
+                    'video' => $videoEnabled,
+                    'voice' => $voiceEnabled,
+                    'chat' => $chatEnabled,
+                ],
+                'total' => $onlineServices->count(),
+                'services' => $onlineServices,
+            ]);
+        }
 
         return response()->json([
             'success' => true,
-            'services' => $services
+            'channels_enabled' => [
+                'clinic' => $clinicEnabled,
+                'online' => $onlineEnabled,
+                'video' => $videoEnabled,
+                'voice' => $voiceEnabled,
+                'chat' => $chatEnabled,
+            ],
+            'clinic_services' => $clinicServices,
+            'online_services' => $onlineServices,
+            // Full raw list for backward compatibility
+            'services' => $allRaw,
         ]);
+    }
+
+    /**
+     * Dedicated Clinic Services endpoint
+     */
+    public function getClinicServices(Request $request)
+    {
+        $request->merge(['type' => 'clinic']);
+        return $this->getServices($request);
+    }
+
+    /**
+     * Dedicated Online Services endpoint with Voice/Chat/Video breakdown
+     */
+    public function getOnlineServices(Request $request)
+    {
+        $request->merge(['type' => 'online']);
+        return $this->getServices($request);
     }
 
     /**

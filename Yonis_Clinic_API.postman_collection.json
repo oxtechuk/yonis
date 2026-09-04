@@ -312,7 +312,7 @@
                     }
                 },
                 {
-                    "name": "GET قائمة الخدمات الطبية والأسعار المحدثة (Services)",
+                    "name": "GET قائمة جميع الخدمات المتاحة (العيادة والأونلاين مفصلة) (Services)",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -331,7 +331,55 @@
                                 "services"
                             ]
                         },
-                        "description": "يعيد قائمة الخدمات:\n- خدمات العيادة (سعر كشف العيادة clinic_price)\n- خدمات الأونلاين بأسعار القنوات المخصصة (chat_price، voice_price، video_price)"
+                        "description": "يعيد كائناً منظماً وشاملاً:\n- clinic_services: قائمة خدمات العيادة بسعر الكشف الخاص بالعيادة (clinic_price)\n- online_services: قائمة خدمات الأونلاين مع تحديد سعر كل قناة بشكل منفصل (video_price، voice_price، chat_price) ومصفوفة channels كاملة.\n- channels_enabled: حالة تفعيل كل نوع من لوحة التحكم."
+                    }
+                },
+                {
+                    "name": "GET خدمات العيادة فقط بسعر العيادة (Clinic Services Only)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/services/clinic",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "services",
+                                "clinic"
+                            ]
+                        },
+                        "description": "يعيد فقط الخدمات المتاحة في مقر العيادة مع سعر كشف العيادة الخاص بكل خدمة (clinic_price) وعنوان العيادة."
+                    }
+                },
+                {
+                    "name": "GET خدمات الأونلاين مفصلة (صوت - شات - فيديو) (Online Services Only)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/services/online",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "services",
+                                "online"
+                            ]
+                        },
+                        "description": "يعيد فقط الخدمات الاستشارية عن بعد (أونلاين) بحيث تحتوي كل خدمة على:\n- video_price (سعر استشارة الفيديو)\n- voice_price (سعر الاستشارة الصوتية)\n- chat_price (سعر استشارة الشات)\n- مصفوفة channels المنظمة والمجهزة مباشرة لبرمجة شاشات التطبيق (Flutter / React Native)."
                     }
                 },
                 {

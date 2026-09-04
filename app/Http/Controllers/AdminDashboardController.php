@@ -1261,6 +1261,9 @@ class AdminDashboardController extends Controller
             'payment_spaceremit_enabled' => Setting::get('payment_spaceremit_enabled', '0'),
             'payment_spaceremit_key'   => Setting::get('payment_spaceremit_key', ''),
             'payment_spaceremit_currency' => Setting::get('payment_spaceremit_currency', 'USD'),
+            // ─── إعدادات العملة للمنصة ──────────────────────────────────────
+            'currency_code'            => Setting::currencyCode(),
+            'currency_symbol'          => Setting::currencySymbol(),
         ];
         return view('admin.settings', compact('settings'));
     }
@@ -1380,6 +1383,16 @@ class AdminDashboardController extends Controller
         Setting::set('email_notifications_enabled', $request->has('email_notifications_enabled') ? '1' : '0');
         if ($request->filled('notification_email')) {
             Setting::set('notification_email', $request->notification_email);
+        }
+
+        // إعدادات العملة الرسمية للمنصة
+        if ($request->filled('currency_code')) {
+            $cCode = strtoupper(trim($request->currency_code));
+            Setting::set('currency_code', $cCode);
+            Setting::set('currency', $cCode);
+        }
+        if ($request->filled('currency_symbol')) {
+            Setting::set('currency_symbol', trim($request->currency_symbol));
         }
 
         return redirect()->back()->with('success', 'تم حفظ جميع الإعدادات بنجاح!');

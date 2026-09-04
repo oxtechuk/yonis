@@ -74,4 +74,30 @@ class Setting extends Model
         static::$settingsCache = null;
         Cache::forget('global_app_settings_keyval');
     }
+
+    /**
+     * Get active system currency code (e.g. IQD, USD, SAR, AED). Default: IQD (الدينار العراقي)
+     */
+    public static function currencyCode(): string
+    {
+        return static::get('currency_code', static::get('currency', 'IQD'));
+    }
+
+    /**
+     * Get active system currency display symbol (e.g. د.ع, $, ر.س). Default: د.ع
+     */
+    public static function currencySymbol(): string
+    {
+        return static::get('currency_symbol', 'د.ع');
+    }
+
+    /**
+     * Format a price with the active currency symbol
+     */
+    public static function formatPrice($amount): string
+    {
+        $sym = static::currencySymbol();
+        $formatted = number_format((float)$amount, 0);
+        return "{$formatted} {$sym}";
+    }
 }
