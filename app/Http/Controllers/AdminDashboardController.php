@@ -592,6 +592,7 @@ class AdminDashboardController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'type' => 'required|in:clinic,online',
+            'channel' => 'nullable|string|in:all,video,voice,chat',
             'duration' => 'required|integer|min:5',
             'clinic_price' => 'nullable|numeric|min:0',
             'chat_price' => 'nullable|numeric|min:0',
@@ -601,6 +602,8 @@ class AdminDashboardController extends Controller
         ]);
 
         $type = $request->type;
+        $channel = $request->channel ?? 'all';
+
         if ($type === 'clinic') {
             $clinicPrice = $request->clinic_price ?? ($request->price ?? 0);
             $price = $clinicPrice;
@@ -609,10 +612,27 @@ class AdminDashboardController extends Controller
             $videoPrice = null;
         } else {
             $clinicPrice = null;
-            $chatPrice = $request->chat_price ?? 0;
-            $voicePrice = $request->voice_price ?? 0;
-            $videoPrice = $request->video_price ?? 0;
-            $price = $videoPrice ?: ($chatPrice ?: ($voicePrice ?: 0));
+            if ($channel === 'video') {
+                $videoPrice = $request->video_price ?? ($request->price ?? 0);
+                $chatPrice = null;
+                $voicePrice = null;
+                $price = $videoPrice;
+            } elseif ($channel === 'voice') {
+                $voicePrice = $request->voice_price ?? ($request->price ?? 0);
+                $chatPrice = null;
+                $videoPrice = null;
+                $price = $voicePrice;
+            } elseif ($channel === 'chat') {
+                $chatPrice = $request->chat_price ?? ($request->price ?? 0);
+                $voicePrice = null;
+                $videoPrice = null;
+                $price = $chatPrice;
+            } else {
+                $chatPrice = $request->filled('chat_price') ? (float)$request->chat_price : null;
+                $voicePrice = $request->filled('voice_price') ? (float)$request->voice_price : null;
+                $videoPrice = $request->filled('video_price') ? (float)$request->video_price : null;
+                $price = $videoPrice ?? ($voicePrice ?? ($chatPrice ?? 0));
+            }
         }
 
         Service::create([
@@ -641,6 +661,7 @@ class AdminDashboardController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'type' => 'required|in:clinic,online',
+            'channel' => 'nullable|string|in:all,video,voice,chat',
             'duration' => 'required|integer|min:5',
             'clinic_price' => 'nullable|numeric|min:0',
             'chat_price' => 'nullable|numeric|min:0',
@@ -652,6 +673,8 @@ class AdminDashboardController extends Controller
         $service = Service::findOrFail($id);
 
         $type = $request->type;
+        $channel = $request->channel ?? 'all';
+
         if ($type === 'clinic') {
             $clinicPrice = $request->clinic_price ?? ($request->price ?? 0);
             $price = $clinicPrice;
@@ -660,10 +683,27 @@ class AdminDashboardController extends Controller
             $videoPrice = null;
         } else {
             $clinicPrice = null;
-            $chatPrice = $request->chat_price ?? 0;
-            $voicePrice = $request->voice_price ?? 0;
-            $videoPrice = $request->video_price ?? 0;
-            $price = $videoPrice ?: ($chatPrice ?: ($voicePrice ?: 0));
+            if ($channel === 'video') {
+                $videoPrice = $request->video_price ?? ($request->price ?? 0);
+                $chatPrice = null;
+                $voicePrice = null;
+                $price = $videoPrice;
+            } elseif ($channel === 'voice') {
+                $voicePrice = $request->voice_price ?? ($request->price ?? 0);
+                $chatPrice = null;
+                $videoPrice = null;
+                $price = $voicePrice;
+            } elseif ($channel === 'chat') {
+                $chatPrice = $request->chat_price ?? ($request->price ?? 0);
+                $voicePrice = null;
+                $videoPrice = null;
+                $price = $chatPrice;
+            } else {
+                $chatPrice = $request->filled('chat_price') ? (float)$request->chat_price : null;
+                $voicePrice = $request->filled('voice_price') ? (float)$request->voice_price : null;
+                $videoPrice = $request->filled('video_price') ? (float)$request->video_price : null;
+                $price = $videoPrice ?? ($voicePrice ?? ($chatPrice ?? 0));
+            }
         }
 
         $service->update([

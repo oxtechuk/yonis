@@ -59,11 +59,14 @@
                                 <option value="{{ $s->id }}" 
                                         data-title="{{ $s->title }}" 
                                         data-duration="{{ $s->duration }}" 
-                                        data-price="{{ $s->price }}"
-                                        data-video="{{ $s->video_price ?? $s->price }}"
+                                        data-price="{{ $s->getDisplayPrice() }}"
+                                        data-video="{{ $s->video_price }}"
+                                        data-voice="{{ $s->voice_price }}"
+                                        data-chat="{{ $s->chat_price }}"
                                         data-clinic="{{ $s->clinic_price ?? $s->price }}"
+                                        data-channel="{{ $s->getChannelType() }}"
                                         data-type="{{ $s->type }}">
-                                    {{ $s->title }}
+                                    {{ $s->title }} • {{ $s->getChannelLabel() }}
                                 </option>
                             @endforeach
                         </select>
@@ -483,7 +486,9 @@ function onModalServiceChanged(selectEl) {
     if (badge) badge.textContent = dur + ' ' + '{{ __("messages.minutes") }}';
     if (text) text.textContent = dur + ' ' + '{{ __("messages.minutes") }}';
     
-    const p = appState.bookingType === 'clinic' ? (opt.getAttribute('data-clinic') || opt.getAttribute('data-price')) : (opt.getAttribute('data-video') || opt.getAttribute('data-price'));
+    const p = appState.bookingType === 'clinic'
+        ? (opt.getAttribute('data-clinic') || opt.getAttribute('data-price'))
+        : (opt.getAttribute('data-price') || opt.getAttribute('data-video') || opt.getAttribute('data-voice') || opt.getAttribute('data-chat'));
     if (p) updateModalPrice(parseFloat(p));
     
     const titleInput = document.getElementById('app_consultation_title');
@@ -899,10 +904,14 @@ function executeAppBooking() {
 
     const fullPhone = rawPhone.startsWith('+') ? rawPhone : (countryCode + rawPhone);
 
+    const selServiceOpt = document.getElementById('app_service_select') ? document.getElementById('app_service_select').selectedOptions[0] : null;
+    const serviceChannel = selServiceOpt ? (selServiceOpt.getAttribute('data-channel') || 'video') : 'video';
+    const consultationChannel = (serviceChannel === 'clinic') ? 'clinic' : (serviceChannel === 'all' ? 'video' : serviceChannel);
+
     const payload = {
         service_id: appState.serviceId || 1,
         booking_type: appState.bookingType || 'online',
-        consultation_type: 'video',
+        consultation_type: consultationChannel,
         date: appState.date,
         start_time: appState.slot,
         name: name,

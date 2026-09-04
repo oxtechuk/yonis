@@ -198,24 +198,39 @@
                             <tr>
                                 <th class="ps-4">اسم الخدمة والتصنيف</th>
                                 <th>المدة</th>
-                                <th>الأسعار والتسعير ($)</th>
+                                <th>الأسعار والتسعير ({{ \App\Models\Setting::currencySymbol() }})</th>
                                 <th>الحالة</th>
                                 <th class="pe-4 text-end">الإجراءات</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($services as $service)
+                                @php
+                                    $chType = $service->getChannelType();
+                                @endphp
                                 <tr class="service-row" data-type="{{ $service->type }}">
                                     <td class="ps-4">
-                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
                                             <span class="fw-bold text-dark fs-6">{{ $service->title }}</span>
                                             @if($service->type === 'clinic')
                                                 <span class="badge-service-type clinic">
                                                     <i class="bi bi-hospital"></i> كشف في العيادة
                                                 </span>
+                                            @elseif($chType === 'video')
+                                                <span class="badge-service-type" style="background:#f5f3ff;color:#6d28d9;border:1px solid #ddd6fe;">
+                                                    <i class="bi bi-camera-video-fill"></i> فيديو فقط
+                                                </span>
+                                            @elseif($chType === 'voice')
+                                                <span class="badge-service-type" style="background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;">
+                                                    <i class="bi bi-telephone-fill"></i> صوت فقط
+                                                </span>
+                                            @elseif($chType === 'chat')
+                                                <span class="badge-service-type" style="background:#fffbeb;color:#b45309;border:1px solid #fde68a;">
+                                                    <i class="bi bi-chat-dots-fill"></i> شات فقط
+                                                </span>
                                             @else
                                                 <span class="badge-service-type online">
-                                                    <i class="bi bi-laptop"></i> استشارة أونلاين
+                                                    <i class="bi bi-laptop"></i> أونلاين (متعدد القنوات)
                                                 </span>
                                             @endif
                                         </div>
@@ -227,27 +242,31 @@
                                         </span>
                                     </td>
                                     <td>
-                                        @if($service->type === 'clinic')
-                                            {{-- كشف العيادة بسعر واحد فقط --}}
-                                            <div class="d-flex align-items-center">
+                                        <div class="d-flex flex-wrap gap-1.5 align-items-center">
+                                            @if($service->type === 'clinic' || (!is_null($service->clinic_price) && (float)$service->clinic_price > 0))
                                                 <span class="price-chip clinic">
-                                                    <i class="bi bi-hospital"></i> كشف العيادة: <strong>${{ number_format($service->clinic_price ?? $service->price, 2) }}</strong>
+                                                    <i class="bi bi-hospital"></i> كشف العيادة: <strong>{{ number_format($service->clinic_price ?? $service->price, 2) }} {{ \App\Models\Setting::currencySymbol() }}</strong>
                                                 </span>
-                                            </div>
-                                        @else
-                                            {{-- استشارة أونلاين: 3 قنوات بأسعار منفصلة ومميزة --}}
-                                            <div class="d-flex flex-wrap gap-1.5 align-items-center">
-                                                <span class="price-chip chat" title="سعر استشارة الشات">
-                                                    <i class="bi bi-chat-dots"></i> شات: <strong>${{ number_format($service->chat_price ?? $service->price, 2) }}</strong>
-                                                </span>
-                                                <span class="price-chip voice" title="سعر استشارة الصوت">
-                                                    <i class="bi bi-telephone"></i> صوت: <strong>${{ number_format($service->voice_price ?? $service->price, 2) }}</strong>
-                                                </span>
-                                                <span class="price-chip video" title="سعر استشارة الفيديو">
-                                                    <i class="bi bi-camera-video"></i> فيديو: <strong>${{ number_format($service->video_price ?? $service->price, 2) }}</strong>
-                                                </span>
-                                            </div>
-                                        @endif
+                                            @endif
+
+                                            @if($service->type !== 'clinic')
+                                                @if($chType === 'video' || (!is_null($service->video_price) && (float)$service->video_price > 0))
+                                                    <span class="price-chip video" title="استشارة فيديو">
+                                                        <i class="bi bi-camera-video"></i> فيديو: <strong>{{ number_format($service->video_price ?? $service->price, 2) }} {{ \App\Models\Setting::currencySymbol() }}</strong>
+                                                    </span>
+                                                @endif
+                                                @if($chType === 'voice' || (!is_null($service->voice_price) && (float)$service->voice_price > 0))
+                                                    <span class="price-chip voice" title="استشارة صوت">
+                                                        <i class="bi bi-telephone"></i> صوت: <strong>{{ number_format($service->voice_price ?? $service->price, 2) }} {{ \App\Models\Setting::currencySymbol() }}</strong>
+                                                    </span>
+                                                @endif
+                                                @if($chType === 'chat' || (!is_null($service->chat_price) && (float)$service->chat_price > 0))
+                                                    <span class="price-chip chat" title="استشارة شات">
+                                                        <i class="bi bi-chat-dots"></i> شات: <strong>{{ number_format($service->chat_price ?? $service->price, 2) }} {{ \App\Models\Setting::currencySymbol() }}</strong>
+                                                    </span>
+                                                @endif
+                                            @endif
+                                        </div>
                                     </td>
                                     <td>
                                         @if($service->is_active)
@@ -282,13 +301,20 @@
                                             </div>
                                             <form action="{{ route('admin.services.update', $service->id) }}" method="POST">
                                                 @csrf
+                                                @php
+                                                    $currCh = $service->type === 'clinic' ? 'clinic' : $service->getChannelType();
+                                                @endphp
                                                 <div class="modal-body p-4">
-                                                    {{-- Service Category Selection (Only 2 types) --}}
+                                                    {{-- Service Channel Selection --}}
                                                     <div class="mb-3">
-                                                        <label class="form-label small fw-bold text-primary"><i class="bi bi-tags-fill me-1"></i> تصنيف ونوع الخدمة</label>
-                                                        <select name="type" class="form-select rounded-3 fw-bold" id="editServiceType{{ $service->id }}" onchange="toggleEditServiceFields({{ $service->id }})" required>
-                                                            <option value="online" @if($service->type !== 'clinic') selected @endif>💻 استشارة أونلاين</option>
-                                                            <option value="clinic" @if($service->type === 'clinic') selected @endif>🏥 كشف في العيادة</option>
+                                                        <label class="form-label small fw-bold text-primary"><i class="bi bi-tags-fill me-1"></i> قناة / وسيلة تقديم الخدمة</label>
+                                                        <input type="hidden" name="type" id="editServiceType{{ $service->id }}" value="{{ $service->type === 'clinic' ? 'clinic' : 'online' }}">
+                                                        <select name="channel" class="form-select rounded-3 fw-bold" id="editServiceChannel{{ $service->id }}" onchange="toggleEditServiceFields({{ $service->id }})" required>
+                                                            <option value="video" @if($currCh === 'video') selected @endif>🎥 استشارة أونلاين - فيديو فقط (Video Call)</option>
+                                                            <option value="voice" @if($currCh === 'voice') selected @endif>📞 استشارة أونلاين - مكالمة صوتية فقط (Voice Call)</option>
+                                                            <option value="chat" @if($currCh === 'chat') selected @endif>💬 استشارة أونلاين - محادثة شات فقط (Chat Only)</option>
+                                                            <option value="all" @if($currCh === 'all') selected @endif>🌐 استشارة أونلاين - متعددة القنوات (شات + صوت + فيديو)</option>
+                                                            <option value="clinic" @if($currCh === 'clinic') selected @endif>🏥 كشف في مقر العيادة (In-Clinic)</option>
                                                         </select>
                                                     </div>
 
@@ -307,35 +333,37 @@
                                                         <textarea name="description" class="form-control rounded-3" rows="2">{{ $service->description }}</textarea>
                                                     </div>
 
-                                                    {{-- Clinic Price Box (Only 1 price) --}}
-                                                    <div class="p-3 rounded-4 border mb-3" id="editClinicPriceBox{{ $service->id }}" style="background: #fff1f2; border-color: #fecdd3 !important; display: {{ $service->type === 'clinic' ? 'block' : 'none' }};">
+                                                    {{-- Clinic Price Box --}}
+                                                    <div class="p-3 rounded-4 border mb-3" id="editClinicPriceBox{{ $service->id }}" style="background: #fff1f2; border-color: #fecdd3 !important; display: {{ $currCh === 'clinic' ? 'block' : 'none' }};">
                                                         <h6 class="fw-bold small mb-2 text-danger">
-                                                            <i class="bi bi-hospital me-1"></i> سعر كشف العيادة ($)
+                                                            <i class="bi bi-hospital me-1"></i> سعر كشف العيادة ({{ \App\Models\Setting::currencySymbol() }})
                                                         </h6>
                                                         <p class="text-secondary small mb-2">كشف العيادة له سعر موحد للكشف والفحص المباشر في مقر العيادة.</p>
                                                         <input type="number" step="0.01" name="clinic_price" class="form-control rounded-3 bg-white" value="{{ $service->clinic_price ?? $service->price }}" placeholder="50.00">
                                                     </div>
 
-                                                    {{-- Online Channels Pricing Box (3 distinct channel prices) --}}
-                                                    <div class="p-3 rounded-4 border mb-3 bg-light" id="editOnlineChannelsBox{{ $service->id }}" style="display: {{ $service->type !== 'clinic' ? 'block' : 'none' }};">
-                                                        <h6 class="fw-bold text-primary small mb-2">
-                                                            <i class="bi bi-cash-coin me-1"></i> أسعار قنوات الاستشارة الأونلاين ($)
+                                                    {{-- Video Price Box --}}
+                                                    <div class="p-3 rounded-4 border mb-3" id="editVideoPriceBox{{ $service->id }}" style="background: #f5f3ff; border-color: #ddd6fe !important; display: {{ in_array($currCh, ['video', 'all']) ? 'block' : 'none' }};">
+                                                        <h6 class="fw-bold small mb-2" style="color:#6d28d9;">
+                                                            <i class="bi bi-camera-video me-1"></i> سعر استشارة الفيديو ({{ \App\Models\Setting::currencySymbol() }})
                                                         </h6>
-                                                        <p class="text-secondary small mb-3">حدد سعر كل قناة تواصل بحسب وسيلة الاستشارة المختارة.</p>
-                                                        <div class="row g-3">
-                                                            <div class="col-md-4">
-                                                                <label class="form-label small fw-bold" style="color: #b45309;"><i class="bi bi-chat-dots me-1"></i> استشارة شات ($)</label>
-                                                                <input type="number" step="0.01" name="chat_price" class="form-control rounded-3 bg-white" value="{{ $service->chat_price ?? $service->price }}" placeholder="30.00">
-                                                            </div>
-                                                            <div class="col-md-4">
-                                                                <label class="form-label small fw-bold" style="color: #047857;"><i class="bi bi-telephone me-1"></i> استشارة صوت ($)</label>
-                                                                <input type="number" step="0.01" name="voice_price" class="form-control rounded-3 bg-white" value="{{ $service->voice_price ?? $service->price }}" placeholder="40.00">
-                                                            </div>
-                                                            <div class="col-md-4">
-                                                                <label class="form-label small fw-bold" style="color: #6d28d9;"><i class="bi bi-camera-video me-1"></i> استشارة فيديو ($)</label>
-                                                                <input type="number" step="0.01" name="video_price" class="form-control rounded-3 bg-white" value="{{ $service->video_price ?? $service->price }}" placeholder="50.00">
-                                                            </div>
-                                                        </div>
+                                                        <input type="number" step="0.01" name="video_price" class="form-control rounded-3 bg-white" value="{{ $service->video_price ?? $service->price }}" placeholder="40.00">
+                                                    </div>
+
+                                                    {{-- Voice Price Box --}}
+                                                    <div class="p-3 rounded-4 border mb-3" id="editVoicePriceBox{{ $service->id }}" style="background: #ecfdf5; border-color: #a7f3d0 !important; display: {{ in_array($currCh, ['voice', 'all']) ? 'block' : 'none' }};">
+                                                        <h6 class="fw-bold small mb-2 text-success">
+                                                            <i class="bi bi-telephone me-1"></i> سعر استشارة الصوت ({{ \App\Models\Setting::currencySymbol() }})
+                                                        </h6>
+                                                        <input type="number" step="0.01" name="voice_price" class="form-control rounded-3 bg-white" value="{{ $service->voice_price ?? $service->price }}" placeholder="30.00">
+                                                    </div>
+
+                                                    {{-- Chat Price Box --}}
+                                                    <div class="p-3 rounded-4 border mb-3" id="editChatPriceBox{{ $service->id }}" style="background: #fffbeb; border-color: #fde68a !important; display: {{ in_array($currCh, ['chat', 'all']) ? 'block' : 'none' }};">
+                                                        <h6 class="fw-bold small mb-2" style="color:#b45309;">
+                                                            <i class="bi bi-chat-dots me-1"></i> سعر استشارة الشات ({{ \App\Models\Setting::currencySymbol() }})
+                                                        </h6>
+                                                        <input type="number" step="0.01" name="chat_price" class="form-control rounded-3 bg-white" value="{{ $service->chat_price ?? $service->price }}" placeholder="20.00">
                                                     </div>
 
                                                     <div class="form-check form-switch text-start">
@@ -405,18 +433,22 @@
                 <form action="{{ route('admin.services.store') }}" method="POST">
                     @csrf
                     
-                    {{-- Category Selection (2 Types Only) --}}
+                    {{-- Channel / Type Selection --}}
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-primary"><i class="bi bi-tags-fill me-1"></i> تصنيف ونوع الخدمة</label>
-                        <select name="type" class="form-select rounded-3 fw-bold" id="addServiceType" onchange="toggleAddServiceFields()" required>
-                            <option value="online" selected>💻 استشارة أونلاين</option>
-                            <option value="clinic">🏥 كشف في العيادة</option>
+                        <label class="form-label small fw-bold text-primary"><i class="bi bi-tags-fill me-1"></i> قناة / وسيلة تقديم الخدمة</label>
+                        <input type="hidden" name="type" id="addServiceType" value="online">
+                        <select name="channel" class="form-select rounded-3 fw-bold" id="addServiceChannel" onchange="toggleAddServiceFields()" required>
+                            <option value="video" selected>🎥 استشارة أونلاين - فيديو فقط (Video Call)</option>
+                            <option value="voice">📞 استشارة أونلاين - مكالمة صوتية فقط (Voice Call)</option>
+                            <option value="chat">💬 استشارة أونلاين - محادثة شات فقط (Chat Only)</option>
+                            <option value="all">🌐 استشارة أونلاين - متعددة القنوات (شات + صوت + فيديو)</option>
+                            <option value="clinic">🏥 كشف في مقر العيادة (In-Clinic)</option>
                         </select>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label small fw-bold">اسم الخدمة</label>
-                        <input type="text" name="title" class="form-control rounded-3" placeholder="مثال: استشارة نفسية - 45 دقيقة" required>
+                        <input type="text" name="title" class="form-control rounded-3" placeholder="مثال: استشارة مرئية أونلاين - فيديو" required>
                     </div>
 
                     <div class="mb-3">
@@ -429,42 +461,40 @@
                         <textarea name="description" class="form-control rounded-3" rows="2" placeholder="اكتب هنا تفاصيل الجلسة ومميزاتها..."></textarea>
                     </div>
 
-                    {{-- Clinic Pricing (Single Price) --}}
+                    {{-- Clinic Pricing Box --}}
                     <div class="p-3 rounded-4 border mb-3" id="addClinicPriceBox" style="background: #fff1f2; border-color: #fecdd3 !important; display: none;">
                         <h6 class="fw-bold small mb-2 text-danger">
-                            <i class="bi bi-hospital me-1"></i> سعر كشف العيادة ($)
+                            <i class="bi bi-hospital me-1"></i> سعر كشف العيادة ({{ \App\Models\Setting::currencySymbol() }})
                         </h6>
                         <p class="text-secondary small mb-2">سعر موحد للكشف والفحص المباشر في مقر العيادة.</p>
                         <input type="number" step="0.01" name="clinic_price" class="form-control rounded-3 bg-white" placeholder="مثال: 50.00">
                     </div>
 
-                    {{-- Online Channels Pricing (3 Distinct Channel Prices) --}}
-                    <div class="p-3 rounded-4 border mb-3 bg-light" id="addOnlineChannelsBox" style="display: block;">
-                        <h6 class="fw-bold text-primary small mb-2">
-                            <i class="bi bi-cash-coin me-1"></i> أسعار قنوات الاستشارة الأونلاين ($)
+                    {{-- Video Price Box --}}
+                    <div class="p-3 rounded-4 border mb-3" id="addVideoPriceBox" style="background: #f5f3ff; border-color: #ddd6fe !important; display: block;">
+                        <h6 class="fw-bold small mb-2" style="color:#6d28d9;">
+                            <i class="bi bi-camera-video me-1"></i> سعر استشارة الفيديو ({{ \App\Models\Setting::currencySymbol() }})
                         </h6>
-                        <p class="text-secondary small mb-3">حدد سعر كل قناة تواصل بحسب وسيلة الاستشارة:</p>
+                        <p class="text-secondary small mb-2">سعر جلسة الاستشارة المرئية بالفيديو أونلاين.</p>
+                        <input type="number" step="0.01" name="video_price" class="form-control rounded-3 bg-white" placeholder="مثال: 40.00">
+                    </div>
 
-                        <div class="mb-2.5">
-                            <label class="form-label small fw-bold mb-1" style="color: #b45309;">
-                                <i class="bi bi-chat-dots me-1"></i> سعر استشارة الشات ($)
-                            </label>
-                            <input type="number" step="0.01" name="chat_price" class="form-control form-control-sm rounded-3 bg-white" placeholder="مثال: 30.00">
-                        </div>
+                    {{-- Voice Price Box --}}
+                    <div class="p-3 rounded-4 border mb-3" id="addVoicePriceBox" style="background: #ecfdf5; border-color: #a7f3d0 !important; display: none;">
+                        <h6 class="fw-bold small mb-2 text-success">
+                            <i class="bi bi-telephone me-1"></i> سعر استشارة الصوت ({{ \App\Models\Setting::currencySymbol() }})
+                        </h6>
+                        <p class="text-secondary small mb-2">سعر المكالمة الصوتية الاستشارية عبر المنصة.</p>
+                        <input type="number" step="0.01" name="voice_price" class="form-control rounded-3 bg-white" placeholder="مثال: 30.00">
+                    </div>
 
-                        <div class="mb-2.5">
-                            <label class="form-label small fw-bold mb-1" style="color: #047857;">
-                                <i class="bi bi-telephone me-1"></i> سعر استشارة الصوت ($)
-                            </label>
-                            <input type="number" step="0.01" name="voice_price" class="form-control form-control-sm rounded-3 bg-white" placeholder="مثال: 40.00">
-                        </div>
-
-                        <div class="mb-2">
-                            <label class="form-label small fw-bold mb-1" style="color: #6d28d9;">
-                                <i class="bi bi-camera-video me-1"></i> سعر استشارة الفيديو ($)
-                            </label>
-                            <input type="number" step="0.01" name="video_price" class="form-control form-control-sm rounded-3 bg-white" placeholder="مثال: 50.00">
-                        </div>
+                    {{-- Chat Price Box --}}
+                    <div class="p-3 rounded-4 border mb-3" id="addChatPriceBox" style="background: #fffbeb; border-color: #fde68a !important; display: none;">
+                        <h6 class="fw-bold small mb-2" style="color:#b45309;">
+                            <i class="bi bi-chat-dots me-1"></i> سعر استشارة الشات ({{ \App\Models\Setting::currencySymbol() }})
+                        </h6>
+                        <p class="text-secondary small mb-2">سعر المحادثة والاستشارة النصية عبر الشات.</p>
+                        <input type="number" step="0.01" name="chat_price" class="form-control rounded-3 bg-white" placeholder="مثال: 20.00">
                     </div>
 
                     <div class="form-check form-switch mb-4 text-start">
@@ -503,34 +533,40 @@ function filterServicesTable(category, btn) {
     });
 }
 
-// Toggle Add Form Fields between Clinic vs Online
+// Toggle Add Form Fields between Channels
 function toggleAddServiceFields() {
-    const type = document.getElementById('addServiceType').value;
-    const clinicBox = document.getElementById('addClinicPriceBox');
-    const onlineBox = document.getElementById('addOnlineChannelsBox');
+    const ch = document.getElementById('addServiceChannel').value;
+    const typeInput = document.getElementById('addServiceType');
+    
+    typeInput.value = (ch === 'clinic') ? 'clinic' : 'online';
 
-    if (type === 'clinic') {
-        clinicBox.style.display = 'block';
-        onlineBox.style.display = 'none';
-    } else {
-        clinicBox.style.display = 'none';
-        onlineBox.style.display = 'block';
-    }
+    const clinicBox = document.getElementById('addClinicPriceBox');
+    const videoBox  = document.getElementById('addVideoPriceBox');
+    const voiceBox  = document.getElementById('addVoicePriceBox');
+    const chatBox   = document.getElementById('addChatPriceBox');
+
+    clinicBox.style.display = (ch === 'clinic') ? 'block' : 'none';
+    videoBox.style.display  = (ch === 'video' || ch === 'all') ? 'block' : 'none';
+    voiceBox.style.display  = (ch === 'voice' || ch === 'all') ? 'block' : 'none';
+    chatBox.style.display   = (ch === 'chat'  || ch === 'all') ? 'block' : 'none';
 }
 
-// Toggle Edit Modal Fields between Clinic vs Online
+// Toggle Edit Modal Fields between Channels
 function toggleEditServiceFields(id) {
-    const type = document.getElementById('editServiceType' + id).value;
-    const clinicBox = document.getElementById('editClinicPriceBox' + id);
-    const onlineBox = document.getElementById('editOnlineChannelsBox' + id);
+    const ch = document.getElementById('editServiceChannel' + id).value;
+    const typeInput = document.getElementById('editServiceType' + id);
 
-    if (type === 'clinic') {
-        clinicBox.style.display = 'block';
-        onlineBox.style.display = 'none';
-    } else {
-        clinicBox.style.display = 'none';
-        onlineBox.style.display = 'block';
-    }
+    typeInput.value = (ch === 'clinic') ? 'clinic' : 'online';
+
+    const clinicBox = document.getElementById('editClinicPriceBox' + id);
+    const videoBox  = document.getElementById('editVideoPriceBox' + id);
+    const voiceBox  = document.getElementById('editVoicePriceBox' + id);
+    const chatBox   = document.getElementById('editChatPriceBox' + id);
+
+    clinicBox.style.display = (ch === 'clinic') ? 'block' : 'none';
+    videoBox.style.display  = (ch === 'video' || ch === 'all') ? 'block' : 'none';
+    voiceBox.style.display  = (ch === 'voice' || ch === 'all') ? 'block' : 'none';
+    chatBox.style.display   = (ch === 'chat'  || ch === 'all') ? 'block' : 'none';
 }
 </script>
 @endsection

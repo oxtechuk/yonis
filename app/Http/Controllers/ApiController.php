@@ -9,6 +9,7 @@ use App\Models\Service;
 use App\Models\Booking;
 use App\Models\Payment;
 use App\Models\Reel;
+use App\Models\Testimonial;
 use App\Models\Setting;
 use App\Services\AvailabilityService;
 use App\Services\BookingCheckoutService;
@@ -187,10 +188,60 @@ class ApiController extends Controller
         $onlineServices = $allRaw->filter(function ($s) {
             return in_array($s->type, ['online', 'both'], true);
         })->map(function ($s) use ($chatEnabled, $voiceEnabled, $videoEnabled, $currencyCode, $currencySymbol) {
-            $basePrice = (float) $s->price;
-            $videoPrice = (float) ($s->video_price ?? $basePrice);
-            $voicePrice = (float) ($s->voice_price ?? round($basePrice * 0.9, 2));
-            $chatPrice = (float) ($s->chat_price ?? round($basePrice * 0.75, 2));
+            $channels = [];
+
+            $hasVideo = !is_null($s->video_price) && (float)$s->video_price > 0;
+            $hasVoice = !is_null($s->voice_price) && (float)$s->voice_price > 0;
+            $hasChat  = !is_null($s->chat_price) && (float)$s->chat_price > 0;
+
+            // If none explicitly set, enable channels based on base price
+            if (!$hasVideo && !$hasVoice && !$hasChat) {
+                $hasVideo = true;
+                $hasVoice = true;
+                $hasChat = true;
+            }
+
+            if ($hasVideo && $videoEnabled) {
+                $p = (float)($s->video_price ?: $s->price);
+                $channels[] = [
+                    'channel' => 'video',
+                    'name' => 'مكالمة فيديو أونلاين',
+                    'price' => $p,
+                    'currency' => $currencyCode,
+                    'currency_symbol' => $currencySymbol,
+                    'duration' => $s->duration,
+                    'is_enabled' => true,
+                ];
+            }
+
+            if ($hasVoice && $voiceEnabled) {
+                $p = (float)($s->voice_price ?: $s->price);
+                $channels[] = [
+                    'channel' => 'voice',
+                    'name' => 'استشارة صوتية',
+                    'price' => $p,
+                    'currency' => $currencyCode,
+                    'currency_symbol' => $currencySymbol,
+                    'duration' => $s->duration,
+                    'is_enabled' => true,
+                ];
+            }
+
+            if ($hasChat && $chatEnabled) {
+                $p = (float)($s->chat_price ?: $s->price);
+                $channels[] = [
+                    'channel' => 'chat',
+                    'name' => 'محادثة نصية (شات)',
+                    'price' => $p,
+                    'currency' => $currencyCode,
+                    'currency_symbol' => $currencySymbol,
+                    'duration' => $s->duration,
+                    'is_enabled' => true,
+                ];
+            }
+
+            $primaryPrice = !empty($channels) ? $channels[0]['price'] : (float)$s->price;
+            $channelType = count($channels) === 1 ? $channels[0]['channel'] : 'all';
 
             return [
                 'id' => $s->id,
@@ -198,44 +249,15 @@ class ApiController extends Controller
                 'description' => $s->description,
                 'duration' => $s->duration,
                 'booking_type' => 'online',
+                'channel_type' => $channelType,
                 'currency' => $currencyCode,
                 'currency_symbol' => $currencySymbol,
                 'type' => $s->type,
-                'price' => $videoPrice, // default base online
-                // Distinct direct prices as requested
-                'video_price' => $videoPrice,
-                'voice_price' => $voicePrice,
-                'chat_price' => $chatPrice,
-                // Channels breakdown array
-                'channels' => [
-                    [
-                        'channel' => 'video',
-                        'name' => 'مكالمة فيديو أونلاين',
-                        'price' => $videoPrice,
-                        'currency' => $currencyCode,
-                        'currency_symbol' => $currencySymbol,
-                        'duration' => $s->duration,
-                        'is_enabled' => $videoEnabled,
-                    ],
-                    [
-                        'channel' => 'voice',
-                        'name' => 'استشارة صوتية',
-                        'price' => $voicePrice,
-                        'currency' => $currencyCode,
-                        'currency_symbol' => $currencySymbol,
-                        'duration' => $s->duration,
-                        'is_enabled' => $voiceEnabled,
-                    ],
-                    [
-                        'channel' => 'chat',
-                        'name' => 'محادثة نصية (شات)',
-                        'price' => $chatPrice,
-                        'currency' => $currencyCode,
-                        'currency_symbol' => $currencySymbol,
-                        'duration' => $s->duration,
-                        'is_enabled' => $chatEnabled,
-                    ],
-                ]
+                'price' => $primaryPrice,
+                'video_price' => $s->video_price !== null ? (float)$s->video_price : null,
+                'voice_price' => $s->voice_price !== null ? (float)$s->voice_price : null,
+                'chat_price' => $s->chat_price !== null ? (float)$s->chat_price : null,
+                'channels' => $channels,
             ];
         })->values();
 
@@ -992,4 +1014,79 @@ class ApiController extends Controller
             'booking' => $booking->fresh(['service'])
         ]);
     }
+
+    /**
+     * Get client reviews & testimonials
+     */
+    public function getTestimonials(Request $request)
+    {
+        $limit = (int) $request->query('limit', 20);
+        $rating = $request->query('rating');
+
+        $query = Testimonial::where('is_active', true);
+
+        if ($rating) {
+            $query->where('rating', '>=', (int) $rating);
+        }
+
+        $testimonials = $query->orderBy('created_at', 'desc')
+            ->limit($limit)
+            ->get()
+            ->map(function ($t) {
+                return [
+                    'id' => $t->id,
+                    'name' => $t->client_name_ar,
+                    'name_ar' => $t->client_name_ar,
+                    'name_en' => $t->client_name_en,
+                    'avatar' => $t->client_avatar,
+                    'rating' => (int) $t->rating,
+                    'review' => $t->content_ar,
+                    'content_ar' => $t->content_ar,
+                    'content_en' => $t->content_en,
+                    'created_at' => $t->created_at ? $t->created_at->toIso8601String() : null,
+                ];
+            });
+
+        $totalCount = Testimonial::where('is_active', true)->count();
+        $avgRating = round((float) Testimonial::where('is_active', true)->avg('rating'), 1);
+
+        return response()->json([
+            'success' => true,
+            'total' => $testimonials->count(),
+            'total_reviews' => $totalCount,
+            'average_rating' => $avgRating ?: 5.0,
+            'testimonials' => $testimonials,
+            'reviews' => $testimonials, // alias
+        ]);
+    }
+
+    /**
+     * Submit a new client review
+     */
+    public function storeTestimonial(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'rating' => 'required|integer|min:1|max:5',
+            'review' => 'required|string|max:1000',
+            'avatar' => 'nullable|string|url',
+        ]);
+
+        $review = Testimonial::create([
+            'client_name_ar' => $request->name,
+            'client_name_en' => $request->name_en ?? $request->name,
+            'client_avatar' => $request->avatar ?? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+            'rating' => (int) $request->rating,
+            'content_ar' => $request->review,
+            'content_en' => $request->review_en ?? $request->review,
+            'is_active' => true,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم إرسال تقييمك بنجاح، شكراً لثقتك بنا!',
+            'review' => $review,
+        ], 201);
+    }
 }
+

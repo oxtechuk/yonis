@@ -575,8 +575,12 @@
                     @endphp
                     @foreach($onlineServices as $index => $service)
                         <div class="swiper-slide h-auto">
+                            @php
+                                $srvChannel = $service->getChannelType();
+                                $displayPrice = $service->getDisplayPrice();
+                            @endphp
                             <div class="service-card-new h-100 d-flex flex-column justify-content-between {{ $index === 1 ? 'popular' : '' }}"
-                                 onclick="selectServiceAndOpenModal({{ $service->id }}, '{{ $service->title }}', {{ $service->video_price ?? $service->price }}, {{ $service->duration }}, 'online')">
+                                 onclick="selectServiceAndOpenModal({{ $service->id }}, '{{ $service->title }}', {{ $displayPrice }}, {{ $service->duration }}, 'online')">
                                 
                                 @if($index === 1)
                                     <div class="luxury-popular-tag">
@@ -588,11 +592,22 @@
                                     {{-- Header: Icon + Badges --}}
                                     <div class="d-flex justify-content-between align-items-start mb-2 pt-2">
                                         <div class="pricing-icon-bubble">
-                                            @if($index == 0) <i class="bi bi-camera-video-fill"></i> @elseif($index == 1) <i class="bi bi-chat-dots-fill"></i> @else <i class="bi bi-telephone-fill"></i> @endif
+                                            @if($srvChannel === 'video')
+                                                <i class="bi bi-camera-video-fill"></i>
+                                            @elseif($srvChannel === 'voice')
+                                                <i class="bi bi-telephone-fill"></i>
+                                            @elseif($srvChannel === 'chat')
+                                                <i class="bi bi-chat-dots-fill"></i>
+                                            @else
+                                                <i class="bi bi-laptop"></i>
+                                            @endif
                                         </div>
                                         <div class="d-flex flex-column align-items-end gap-1">
                                             <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1" style="font-size: 0.74rem;">
                                                 <i class="bi bi-clock me-1 text-primary"></i> {{ $service->duration }} دقيقة
+                                                @if($srvChannel !== 'all')
+                                                    • {{ $service->getChannelLabel() }}
+                                                @endif
                                             </span>
                                         </div>
                                     </div>
@@ -604,9 +619,9 @@
                                     {{-- Main Price Box --}}
                                     <div class="pricing-amount-box">
                                         <div>
-                                            <span class="text-secondary small fw-bold d-block mb-1">الرسوم تبدأ من</span>
+                                            <span class="text-secondary small fw-bold d-block mb-1">الرسوم</span>
                                             <div class="pricing-main-price">
-                                                {{ number_format($service->chat_price ?? $service->price, 0) }} {{ \App\Models\Setting::currencySymbol() }}
+                                                {{ number_format($displayPrice, 0) }} {{ \App\Models\Setting::currencySymbol() }}
                                                 <small>/ للجلسة</small>
                                             </div>
                                         </div>

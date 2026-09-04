@@ -21,6 +21,10 @@ Route::middleware('throttle:60,1')->group(function () {
     Route::get('/available-slots', [ApiController::class, 'getAvailableSlots']);
     Route::get('/slots/available', [ApiController::class, 'getAvailableSlots']);
     Route::get('/reels', [ApiController::class, 'getReels']);
+    Route::get('/testimonials', [ApiController::class, 'getTestimonials']);
+    Route::get('/reviews', [ApiController::class, 'getTestimonials']);
+    Route::post('/testimonials', [ApiController::class, 'storeTestimonial']);
+    Route::post('/reviews', [ApiController::class, 'storeTestimonial']);
 });
 
 // 2. Sensitive Public Auth & Checkout Routes (Strict Rate limited to 15 req/min)

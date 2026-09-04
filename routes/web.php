@@ -29,6 +29,11 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/api/services', [ApiController::class, 'getServices']);
 Route::get('/api/availabilities', [ApiController::class, 'getAvailabilities']);
 Route::get('/api/slots', [ApiController::class, 'getSlots']);
+Route::get('/api/reels', [ApiController::class, 'getReels']);
+Route::get('/api/testimonials', [ApiController::class, 'getTestimonials']);
+Route::get('/api/reviews', [ApiController::class, 'getTestimonials']);
+Route::post('/api/testimonials', [ApiController::class, 'storeTestimonial']);
+Route::post('/api/reviews', [ApiController::class, 'storeTestimonial']);
 
 // Guest & Patient Booking Flow
 Route::post('/api/bookings/checkout', [BookingController::class, 'createCheckoutSession']);
