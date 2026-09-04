@@ -421,7 +421,7 @@
 
                     <div class="mb-3">
                         <label class="form-label small fw-bold">المدة (بالدقائق)</label>
-                        <input type="number" name="duration" class="form-control rounded-3" placeholder="30" required min="5" value="30">
+                        <input type="number" name="duration" class="form-control rounded-3" placeholder="45" required min="5" value="{{ \App\Models\Setting::get('default_consultation_duration', '45') }}">
                     </div>
 
                     <div class="mb-3">

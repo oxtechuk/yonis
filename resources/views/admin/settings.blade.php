@@ -192,6 +192,40 @@
                             </div>
                         </div>
 
+                        <!-- Consultation Duration & Currency Settings -->
+                        <div class="col-12 mt-3">
+                            <div class="p-3 bg-white rounded-4 border shadow-sm">
+                                <h6 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                                    <i class="bi bi-clock-history text-primary"></i>
+                                    <span>مدة الاستشارة الافتراضية والعملة</span>
+                                </h6>
+                                <p class="text-secondary small mb-3">التحكم في المدة الافتراضية للجلسات والاستشارات والعملة المعتمدة للمنصة.</p>
+                                
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold text-dark small">مدة الاستشارة الافتراضية (بالدقائق)</label>
+                                        <div class="input-group">
+                                            <input type="number" name="default_consultation_duration" class="form-control form-control-lg rounded-start-3 fw-bold" min="5" max="300" step="5" value="{{ $settings['default_consultation_duration'] ?? 45 }}" placeholder="45">
+                                            <span class="input-group-text bg-light fw-bold text-secondary">دقيقة</span>
+                                        </div>
+                                        <div class="form-text text-muted small">المدة المعتمدة افتراضياً في نافذة الحجز وعند إضافة خدمات جديدة.</div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold text-dark small">كود العملة (ISO Code)</label>
+                                        <input type="text" name="currency_code" class="form-control form-control-lg rounded-3 fw-bold text-uppercase" value="{{ $settings['currency_code'] ?? 'IQD' }}" placeholder="IQD">
+                                        <div class="form-text text-muted small">مثال: IQD أو USD أو SAR</div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold text-dark small">رمز / مسمى العملة الظاهر للمستخدم</label>
+                                        <input type="text" name="currency_symbol" class="form-control form-control-lg rounded-3 fw-bold" value="{{ $settings['currency_symbol'] ?? 'د.ع' }}" placeholder="د.ع">
+                                        <div class="form-text text-muted small">مثال: د.ع أو $ أو ر.س</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 

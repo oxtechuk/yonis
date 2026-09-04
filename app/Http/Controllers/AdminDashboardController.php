@@ -1261,9 +1261,10 @@ class AdminDashboardController extends Controller
             'payment_spaceremit_enabled' => Setting::get('payment_spaceremit_enabled', '0'),
             'payment_spaceremit_key'   => Setting::get('payment_spaceremit_key', ''),
             'payment_spaceremit_currency' => Setting::get('payment_spaceremit_currency', 'USD'),
-            // ─── إعدادات العملة للمنصة ──────────────────────────────────────
-            'currency_code'            => Setting::currencyCode(),
-            'currency_symbol'          => Setting::currencySymbol(),
+            // ─── إعدادات العملة والمدة للمنصة ──────────────────────────────────────
+            'currency_code'                 => Setting::currencyCode(),
+            'currency_symbol'               => Setting::currencySymbol(),
+            'default_consultation_duration' => Setting::get('default_consultation_duration', '45'),
         ];
         return view('admin.settings', compact('settings'));
     }
@@ -1393,6 +1394,11 @@ class AdminDashboardController extends Controller
         }
         if ($request->filled('currency_symbol')) {
             Setting::set('currency_symbol', trim($request->currency_symbol));
+        }
+
+        // مدة الاستشارة الافتراضية
+        if ($request->filled('default_consultation_duration')) {
+            Setting::set('default_consultation_duration', max(5, (int) $request->default_consultation_duration));
         }
 
         return redirect()->back()->with('success', 'تم حفظ جميع الإعدادات بنجاح!');

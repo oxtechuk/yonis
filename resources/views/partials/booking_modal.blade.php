@@ -69,30 +69,31 @@
                         </select>
                     </div>
 
-                    {{-- 3. Duration Selection --}}
+                    {{-- 3. Consultation Duration Display --}}
                     <div class="mb-4">
-                        <div class="app-section-title">{{ __('messages.duration_title') }}</div>
-                        <div class="app-duration-grid">
-                            <div class="app-duration-item" onclick="selectAppDuration(15, 30, this)">
-                                <div class="app-duration-icon"><i class="bi bi-hourglass-split"></i></div>
-                                <div class="app-duration-time">15 {{ __('messages.minutes') }}</div>
-                                <div class="app-duration-price">30 {{ \App\Models\Setting::currencySymbol() }}</div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="app-section-title mb-0">
+                                <i class="bi bi-clock-history text-primary me-1"></i> {{ __('messages.duration_title') }}
                             </div>
-                            <div class="app-duration-item selected" onclick="selectAppDuration(30, 50, this)">
-                                <div class="app-duration-icon"><i class="bi bi-hourglass-split"></i></div>
-                                <div class="app-duration-time">30 {{ __('messages.minutes') }}</div>
-                                <div class="app-duration-price">50 {{ \App\Models\Setting::currencySymbol() }}</div>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 fw-bold" id="app_modal_duration_badge" style="font-size: 0.85rem;">
+                                {{ $modalServices->first()->duration ?? 45 }} {{ __('messages.minutes') }}
+                            </span>
+                        </div>
+                        <div class="p-3 bg-light rounded-4 border d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-3 d-flex align-items-center justify-content-center text-primary bg-white shadow-sm border" style="width: 44px; height: 44px; font-size: 1.3rem;">
+                                    <i class="bi bi-hourglass-split"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark fs-6" id="app_modal_duration_text">
+                                        {{ $modalServices->first()->duration ?? 45 }} {{ __('messages.minutes') }}
+                                    </div>
+                                    <div class="text-secondary small">المدة المحددة والمعتمدة لهذه الاستشارة من قبل الطبيب</div>
+                                </div>
                             </div>
-                            <div class="app-duration-item" onclick="selectAppDuration(45, 75, this)">
-                                <div class="app-duration-icon"><i class="bi bi-hourglass-split"></i></div>
-                                <div class="app-duration-time">45 {{ __('messages.minutes') }}</div>
-                                <div class="app-duration-price">75 {{ \App\Models\Setting::currencySymbol() }}</div>
-                            </div>
-                            <div class="app-duration-item" onclick="selectAppDuration(60, 100, this)">
-                                <div class="app-duration-icon"><i class="bi bi-hourglass-split"></i></div>
-                                <div class="app-duration-time">60 {{ __('messages.minutes') }}</div>
-                                <div class="app-duration-price">100 {{ \App\Models\Setting::currencySymbol() }}</div>
-                            </div>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small fw-bold">
+                                <i class="bi bi-check2-circle me-1"></i> وقت معتمد
+                            </span>
                         </div>
                     </div>
 
@@ -343,27 +344,36 @@
 
                 </div>{{-- End Screen 2 --}}
 
-                {{-- ═══ SCREEN 3: تأكيد الحجز والواتساب ═══ --}}
+                {{-- ═══ SCREEN 3: تأكيد تسجيل الحجز ═══ --}}
                 <div id="app-screen-3" class="d-none">
-                    <div class="text-center py-4">
+                    <div class="text-center py-3">
                         <div class="mx-auto mb-3 d-flex align-items-center justify-content-center"
-                             style="width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-size:2.2rem;box-shadow:0 12px 28px rgba(245,158,11,.35);">
+                             style="width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-size:2.2rem;box-shadow:0 12px 28px rgba(245,158,11,.25);">
                             <i class="bi bi-hourglass-split"></i>
                         </div>
                         <span class="badge bg-warning text-dark px-3 py-1.5 rounded-pill fw-bold mb-2" style="font-size:0.85rem;">
                             <i class="bi bi-clock-history me-1"></i> الحجز قيد المراجعة والتدقيق
                         </span>
-                        <h4 class="fw-black text-dark mb-2">تم تسجيل طلب الحجز بنجاح!</h4>
-                        <div class="alert alert-warning border-0 rounded-4 p-3 mb-3 text-start small" style="background:#fffbeb;color:#92400e;line-height:1.7;">
-                            <i class="bi bi-info-circle-fill text-warning fs-5 me-1 align-middle"></i>
-                            <strong>تنبيه هام:</strong> حجزك الآن <u>قيد المراجعة</u> من قبل الإدارة. بعد إتمام التحقق من عملية الدفع، سيصلك <strong>رقم تأكيد الحجز النهائي</strong> وتفاصيل الموعد مباشرة. يرجى إرسال إشعار التحويل لتسريع التأكيد.
+                        <h4 class="fw-black text-dark mb-3">تم تسجيل طلب الحجز بنجاح!</h4>
+                        
+                        {{-- إشعار المراجعة والتأكيد بشكل منسق وأنيق --}}
+                        <div class="rounded-4 p-3 mb-3 text-start border" style="background:#fffbeb;border-color:#fde68a !important;color:#92400e;display:block !important;">
+                            <div class="d-flex align-items-start gap-2.5">
+                                <i class="bi bi-info-circle-fill text-warning fs-5 flex-shrink-0 mt-0.5"></i>
+                                <div style="line-height:1.75;font-size:0.9rem;flex-grow:1;display:block;">
+                                    <div class="fw-bold mb-1" style="color:#b45309;">تنبيه هام:</div>
+                                    <div style="color:#78350f;">
+                                        حجزك الآن <strong>قيد المراجعة</strong> من قبل الإدارة. بعد إتمام التحقق من عملية الدفع، سيصلك <strong>رقم تأكيد الحجز النهائي</strong> وتفاصيل الموعد مباشرة.
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        {{-- معلومات الحجز (summary) --}}
-                        <div class="rounded-4 p-3 mb-4 text-start" style="background:linear-gradient(135deg,rgba(59,82,164,.07),rgba(59,82,164,.02));border:1.5px solid rgba(59,82,164,.12);">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="text-secondary small">رقم المرجع:</span>
-                                <span class="fw-black text-primary font-monospace" id="app-res-ref">#REF-8492</span>
+                        {{-- معلومات وملخص الحجز --}}
+                        <div class="rounded-4 p-3 mb-3 text-start bg-white shadow-sm border" style="border-color:#e2e8f0 !important;">
+                            <div class="d-flex justify-content-between align-items-center mb-2.5 pb-2 border-bottom">
+                                <span class="text-secondary small fw-bold">رقم المرجع:</span>
+                                <span class="fw-black text-primary font-monospace fs-6" id="app-res-ref">#REF-8492</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <span class="text-secondary small">الخدمة:</span>
@@ -383,16 +393,11 @@
                             </div>
                         </div>
 
-                        <a id="app-start-consultation-link" href="#" target="_blank"
-                           class="btn btn-success w-100 py-3 rounded-pill fw-bold d-flex align-items-center justify-content-center gap-2 mb-3 shadow"
-                           style="background:linear-gradient(135deg,#25d366,#128c7e);border:none;font-size:1rem;">
-                            <i class="bi bi-whatsapp fs-5"></i>
-                            <span>إرسال إيصال الدفع عبر واتسآب</span>
-                        </a>
-
-                        <button type="button" class="btn btn-light w-100 rounded-pill py-2.5 fw-bold text-secondary border"
-                                data-bs-dismiss="modal" onclick="window.location.reload()">
-                            <i class="bi bi-check2 me-1"></i> إغلاق
+                        {{-- زر الإغلاق والعودة (بدون زر واتساب) --}}
+                        <button type="button" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2"
+                                data-bs-dismiss="modal" onclick="window.location.reload()" style="background:var(--primary-color);border:none;font-size:1rem;">
+                            <i class="bi bi-check-circle-fill fs-5"></i>
+                            <span>تم، إغلاق والعودة للرئيسية</span>
                         </button>
                     </div>
                 </div>{{-- End Screen 3 --}}
@@ -412,8 +417,8 @@ const _initDateStr = `${_initYear}-${String(_initMonth + 1).padStart(2, '0')}-${
 
 let appState = {
     serviceId: {{ $modalServices->first()->id ?? 1 }},
-    duration: 30,
-    price: 50,
+    duration: {{ $modalServices->first()->duration ?? 45 }},
+    price: {{ $modalServices->first()->price ?? 50 }},
     bookingType: 'online',
     paymentMethod: '{{ $defaultPayMethod }}',
     title: '{{ $modalServices->first()->title ?? "استشارة نفسية متخصصة" }}',
@@ -469,20 +474,20 @@ function onModalServiceChanged(selectEl) {
     
     appState.serviceId = selectEl.value;
     appState.title = opt.getAttribute('data-title') || opt.text;
-    const dur = parseInt(opt.getAttribute('data-duration')) || 30;
+    const dur = parseInt(opt.getAttribute('data-duration')) || 45;
     appState.duration = dur;
+
+    // Update dynamic duration badge & display text
+    const badge = document.getElementById('app_modal_duration_badge');
+    const text = document.getElementById('app_modal_duration_text');
+    if (badge) badge.textContent = dur + ' ' + '{{ __("messages.minutes") }}';
+    if (text) text.textContent = dur + ' ' + '{{ __("messages.minutes") }}';
     
     const p = appState.bookingType === 'clinic' ? (opt.getAttribute('data-clinic') || opt.getAttribute('data-price')) : (opt.getAttribute('data-video') || opt.getAttribute('data-price'));
     if (p) updateModalPrice(parseFloat(p));
     
     const titleInput = document.getElementById('app_consultation_title');
     if (titleInput) titleInput.value = appState.title;
-    
-    // Update duration pills
-    document.querySelectorAll('.app-duration-item').forEach(item => {
-        const text = item.querySelector('.app-duration-time').textContent;
-        item.classList.toggle('selected', text.includes(dur.toString()));
-    });
 
     // Refresh slots if screen 2 is visible
     if (!document.getElementById('app-screen-2').classList.contains('d-none')) {
@@ -492,9 +497,11 @@ function onModalServiceChanged(selectEl) {
 
 function selectAppDuration(duration, price, el) {
     appState.duration = duration;
-    updateModalPrice(price);
-    document.querySelectorAll('.app-duration-item').forEach(i => i.classList.remove('selected'));
-    if (el) el.classList.add('selected');
+    const badge = document.getElementById('app_modal_duration_badge');
+    const text = document.getElementById('app_modal_duration_text');
+    if (badge) badge.textContent = duration + ' ' + '{{ __("messages.minutes") }}';
+    if (text) text.textContent = duration + ' ' + '{{ __("messages.minutes") }}';
+    if (price) updateModalPrice(price);
 }
 
 const appCurrencySymbol = '{{ \App\Models\Setting::currencySymbol() }}';
@@ -618,8 +625,14 @@ function selectServiceAndOpenModal(id, title, price, duration, categoryType) {
     setModalBookingType(selectedType);
     
     appState.serviceId = id;
-    appState.duration = duration || 30;
+    const dur = duration || 45;
+    appState.duration = dur;
     appState.title = title || (selectedType === 'clinic' ? 'كشف واستشارة بالعيادة' : 'استشارة نفسية أونلاين');
+
+    const badge = document.getElementById('app_modal_duration_badge');
+    const text = document.getElementById('app_modal_duration_text');
+    if (badge) badge.textContent = dur + ' ' + '{{ __("messages.minutes") }}';
+    if (text) text.textContent = dur + ' ' + '{{ __("messages.minutes") }}';
     
     const select = document.getElementById('app_service_select');
     if (select) {
