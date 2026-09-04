@@ -128,6 +128,13 @@
             --bs-primary: {{ $primaryColor }};
             --bs-primary-rgb: 64, 85, 165;
             --primary-gradient: linear-gradient(135deg, {{ $primaryColor }}, {{ $secondaryColor }});
+        }
+
+        html, body {
+            overflow-x: hidden;
+            max-width: 100%;
+        }
+
         /* ═══ Interactive WhatsApp Floating Widget Styles ═══ */
         .whatsapp-widget-container {
             position: fixed;

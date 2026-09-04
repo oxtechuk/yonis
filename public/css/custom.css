@@ -3391,3 +3391,20 @@ section {
     color: #1e293b !important;
     border-color: #cbd5e1;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   PATIENT DASHBOARD LUXURY MOBILE & COMPACT STYLING
+   ═══════════════════════════════════════════════════════════════ */
+.patient-booking-card-mobile {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 1rem;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+    margin-bottom: 0.85rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.patient-booking-card-mobile:hover {
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
