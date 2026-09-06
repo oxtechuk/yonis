@@ -152,8 +152,8 @@
                 </a>
                 <form action="{{ route('logout') }}" method="POST" class="mt-2">
                     @csrf
-                    <button type="submit" class="w-100 btn btn-outline-danger btn-sm rounded-pill py-2">
-                        <i class="bi bi-box-arrow-right me-1"></i> <span>تسجيل الخروج</span>
+                    <button type="submit" class="w-100 btn btn-outline-danger btn-sm rounded-3 py-2 fw-bold d-flex align-items-center justify-content-center gap-1.5">
+                        <i class="bi bi-box-arrow-right"></i> <span>تسجيل الخروج</span>
                     </button>
                 </form>
             </nav>
@@ -170,7 +170,7 @@
 
                         {{-- Luxury Minimal Doctor Profile Capsule Dropdown --}}
                         <div class="dropdown">
-                            <button class="btn btn-sm border rounded-pill px-2.5 py-1 d-flex align-items-center gap-2 shadow-sm text-dark admin-profile-pill" 
+                            <button class="btn btn-sm border rounded-3 px-2.5 py-1 d-flex align-items-center gap-2 shadow-sm text-dark admin-profile-pill" 
                                     type="button" 
                                     data-bs-toggle="dropdown" 
                                     aria-expanded="false" 
@@ -226,13 +226,13 @@
 
                     {{-- Quick Action Buttons --}}
                     <div class="d-flex align-items-center gap-1.5">
-                        <button type="button" class="btn btn-sm btn-royal-primary rounded-pill px-3 py-1.5 fw-bold shadow-sm d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#manualBookingModal">
+                        <button type="button" class="btn btn-sm btn-royal-primary rounded-3 px-3 py-1.5 fw-bold shadow-sm d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#manualBookingModal">
                             <i class="bi bi-plus-circle-fill"></i> حجز جلسة جديدة
                         </button>
-                        <a href="{{ route('admin.calendar') }}" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 fw-bold text-dark">
+                        <a href="{{ route('admin.calendar') }}" class="btn btn-sm btn-light border rounded-3 px-3 py-1.5 fw-bold text-dark">
                             <i class="bi bi-calendar-range text-primary"></i> التقويم
                         </a>
-                        <a href="{{ route('admin.reports') }}" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 fw-bold text-dark">
+                        <a href="{{ route('admin.reports') }}" class="btn btn-sm btn-light border rounded-3 px-3 py-1.5 fw-bold text-dark">
                             <i class="bi bi-bar-chart-line text-primary"></i> التقارير
                         </a>
                     </div>

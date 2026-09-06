@@ -368,24 +368,6 @@
                     </a>
                 </div>
 
-                <div class="hero-stats-grid">
-                    <div class="hero-stat-card">
-                        <div class="hero-stat-num">+1200</div>
-                        <div class="hero-stat-label">جلسة ناجحة</div>
-                    </div>
-                    <div class="hero-stat-card">
-                        <div class="hero-stat-num">+10</div>
-                        <div class="hero-stat-label">سنوات خبرة</div>
-                    </div>
-                    <div class="hero-stat-card">
-                        <div class="hero-stat-num">98%</div>
-                        <div class="hero-stat-label">رضا المراجعين</div>
-                    </div>
-                    <div class="hero-stat-card">
-                        <div class="hero-stat-num">4</div>
-                        <div class="hero-stat-label">قنوات تواصل</div>
-                    </div>
-                </div>
             </div>
 
             {{-- Photo Column --}}
@@ -637,21 +619,6 @@
                                         </div>
                                     </div>
 
-                                    {{-- Features Included List --}}
-                                    <ul class="pricing-features-list">
-                                        <li>
-                                            <i class="bi bi-check2-circle text-success me-2"></i>
-                                            <span>جلسة خاصة وآمنة عبر المنصة</span>
-                                        </li>
-                                        <li>
-                                            <i class="bi bi-check2-circle text-success me-2"></i>
-                                            <span>تقييم سريري وإرشادي للحالة</span>
-                                        </li>
-                                        <li>
-                                            <i class="bi bi-check2-circle text-success me-2"></i>
-                                            <span>خطة علاجية معرفية سلوكية مخصصة</span>
-                                        </li>
-                                    </ul>
                                 </div>
 
                                 {{-- Action CTA Button --}}
@@ -728,21 +695,6 @@
                                         </div>
                                     </div>
 
-                                    {{-- Features Included List --}}
-                                    <ul class="pricing-features-list">
-                                        <li>
-                                            <i class="bi bi-check2-circle text-danger me-2"></i>
-                                            <span>جلسة كشف وتشخيص سريري مباشر مع المعالج</span>
-                                        </li>
-                                        <li>
-                                            <i class="bi bi-check2-circle text-danger me-2"></i>
-                                            <span>وضع الخطة العلاجية السلوكية والدوائية</span>
-                                        </li>
-                                        <li>
-                                            <i class="bi bi-check2-circle text-danger me-2"></i>
-                                            <span>خصوصية تامة وغرفة استشارة هادئة ومجهزة</span>
-                                        </li>
-                                    </ul>
                                 </div>
 
                                 {{-- Action CTA Button --}}

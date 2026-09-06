@@ -82,22 +82,7 @@
                                 {{ $modalServices->first()->duration ?? 45 }} {{ __('messages.minutes') }}
                             </span>
                         </div>
-                        <div class="p-2.5 bg-light rounded-4 border d-flex align-items-center justify-content-between">
-                            <div class="d-flex align-items-center gap-2.5">
-                                <div class="rounded-3 d-flex align-items-center justify-content-center text-primary bg-white shadow-sm border" style="width: 38px; height: 38px; font-size: 1.15rem; flex-shrink: 0;">
-                                    <i class="bi bi-hourglass-split"></i>
-                                </div>
-                                <div>
-                                    <div class="fw-bold text-dark fs-6" id="app_modal_duration_text">
-                                        {{ $modalServices->first()->duration ?? 45 }} {{ __('messages.minutes') }}
-                                    </div>
-                                    <div class="text-secondary small" style="font-size: 0.78rem;">المدة المحددة والمعتمدة لهذه الاستشارة</div>
-                                </div>
-                            </div>
-                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1 small fw-bold" style="font-size: 0.75rem;">
-                                <i class="bi bi-check2-circle me-1"></i> وقت معتمد
-                            </span>
-                        </div>
+                      
                     </div>
 
                     {{-- 4. Consultation Title / Notes --}}
@@ -256,9 +241,7 @@
                             <div class="app-section-title fs-6 fw-black text-dark mb-0">
                                 <i class="bi bi-wallet2 text-primary me-1"></i> طريقة الدفع
                             </div>
-                            <span class="badge bg-success-subtle text-success border border-success-subtle small px-2 py-1">
-                                مسح QR Code
-                            </span>
+                          
                         </div>
                         
                         {{-- تبويبات طرق الدفع --}}
@@ -343,7 +326,7 @@
                                 </div>
                                 <p class="text-secondary small mb-2">{{ $payCardInstructions }}</p>
                                 @if(!empty($payCardLink))
-                                <a href="{{ $payCardLink }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill fw-bold w-100 py-2">
+                                <a href="{{ $payCardLink }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-3 fw-bold w-100 py-2">
                                     <i class="bi bi-box-arrow-up-right me-1"></i> فتح رابط الدفع الإلكتروني المباشر
                                 </a>
                                 @endif
@@ -360,7 +343,7 @@
 
                     {{-- Bottom Action Bar for Screen 2 --}}
                     <div class="mobile-app-bottom-bar">
-                        <button type="button" class="btn btn-outline-secondary rounded-pill px-3" onclick="goToAppScreen1()">
+                        <button type="button" class="btn btn-outline-secondary rounded-3 px-3" onclick="goToAppScreen1()">
                             <i class="bi bi-arrow-right me-1"></i> {{ __('messages.back') }}
                         </button>
                         <button type="button" class="btn-app-primary flex-fill" id="app-submit-pay-btn" onclick="executeAppBooking()">
@@ -445,13 +428,6 @@
 
                         {{-- أزرار الإجراءات المتناسقة الفاخرة --}}
                         <div class="d-flex flex-column gap-2">
-                            {{-- زر إرسال الإيصال والتواصل واتساب --}}
-                            <a id="app-start-consultation-link" href="#" target="_blank" class="btn-voucher-whatsapp">
-                                <i class="bi bi-whatsapp fs-5"></i>
-                                <span>إرسال إيصال الدفع للطبيب عبر واتساب</span>
-                                <i class="bi bi-arrow-left me-auto"></i>
-                            </a>
-
                             {{-- زر الانتقال المباشر للداشبورد --}}
                             <a id="app-dashboard-link" href="{{ route('patient.dashboard') }}" class="btn-voucher-primary">
                                 <i class="bi bi-speedometer2 fs-5"></i>

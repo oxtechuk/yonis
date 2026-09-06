@@ -210,30 +210,7 @@
                                 @endphp
                                 <tr class="service-row" data-type="{{ $service->type }}">
                                     <td class="ps-4">
-                                        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-                                            <span class="fw-bold text-dark fs-6">{{ $service->title }}</span>
-                                            @if($service->type === 'clinic')
-                                                <span class="badge-service-type clinic">
-                                                    <i class="bi bi-hospital"></i> كشف في العيادة
-                                                </span>
-                                            @elseif($chType === 'video')
-                                                <span class="badge-service-type" style="background:#f5f3ff;color:#6d28d9;border:1px solid #ddd6fe;">
-                                                    <i class="bi bi-camera-video-fill"></i> فيديو فقط
-                                                </span>
-                                            @elseif($chType === 'voice')
-                                                <span class="badge-service-type" style="background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;">
-                                                    <i class="bi bi-telephone-fill"></i> صوت فقط
-                                                </span>
-                                            @elseif($chType === 'chat')
-                                                <span class="badge-service-type" style="background:#fffbeb;color:#b45309;border:1px solid #fde68a;">
-                                                    <i class="bi bi-chat-dots-fill"></i> شات فقط
-                                                </span>
-                                            @else
-                                                <span class="badge-service-type online">
-                                                    <i class="bi bi-laptop"></i> أونلاين (متعدد القنوات)
-                                                </span>
-                                            @endif
-                                        </div>
+                                       
                                         <div class="text-secondary small">{{ Str::limit($service->description, 75) }}</div>
                                     </td>
                                     <td>

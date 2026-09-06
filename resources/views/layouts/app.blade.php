@@ -135,193 +135,7 @@
             max-width: 100%;
         }
 
-        /* ═══ Interactive WhatsApp Floating Widget Styles ═══ */
-        .whatsapp-widget-container {
-            position: fixed;
-            bottom: 26px;
-            left: 26px;
-            z-index: 9999;
-            direction: rtl;
-            font-family: 'Tajawal', 'Cairo', sans-serif;
-        }
-        .whatsapp-popup-card {
-            width: 320px;
-            max-width: calc(100vw - 40px);
-            background: #ffffff;
-            border-radius: 20px;
-            box-shadow: 0 16px 40px rgba(0,0,0,0.18), 0 4px 12px rgba(0,0,0,0.08);
-            overflow: hidden;
-            margin-bottom: 14px;
-            animation: waPopIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-            border: 1px solid rgba(0,0,0,0.06);
-        }
-        @keyframes waPopIn {
-            from { opacity: 0; transform: translateY(20px) scale(0.92); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        .wa-card-header {
-            background: linear-gradient(135deg, #075e54 0%, #128c7e 100%);
-            padding: 14px 16px;
-            color: #ffffff;
-        }
-        .wa-avatar-wrap {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            position: relative;
-        }
-        .wa-avatar-img {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #ffffff;
-        }
-        .wa-avatar-placeholder {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.2);
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.4rem;
-            border: 2px solid #fff;
-        }
-        .wa-online-badge {
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            width: 12px;
-            height: 12px;
-            background: #25d366;
-            border: 2px solid #fff;
-            border-radius: 50%;
-        }
-        .wa-status-text {
-            font-size: 0.72rem;
-            opacity: 0.9;
-        }
-        .wa-close-btn {
-            background: rgba(255,255,255,0.15);
-            border: none;
-            color: #ffffff;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .wa-close-btn:hover {
-            background: rgba(255,255,255,0.3);
-            transform: rotate(90deg);
-        }
-        .wa-card-body {
-            background: #efeae2;
-            padding: 16px;
-            background-image: radial-gradient(rgba(0,0,0,0.04) 1px, transparent 0);
-            background-size: 12px 12px;
-        }
-        .wa-message-bubble {
-            background: #ffffff;
-            padding: 12px 14px;
-            border-radius: 14px 14px 2px 14px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            font-size: 0.88rem;
-            line-height: 1.5;
-            color: #1f2937;
-        }
-        .wa-message-time {
-            display: block;
-            text-align: left;
-            font-size: 0.68rem;
-            color: #8696a0;
-            margin-top: 4px;
-        }
-        .wa-card-footer {
-            padding: 12px 14px;
-            background: #ffffff;
-            text-align: center;
-        }
-        .wa-action-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            background: linear-gradient(135deg, #25d366, #128c7e);
-            color: #ffffff !important;
-            padding: 11px 18px;
-            border-radius: 25px;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 0.92rem;
-            box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);
-            transition: all 0.25s ease;
-        }
-        .wa-action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5);
-            color: #ffffff !important;
-        }
-        .wa-security-note {
-            font-size: 0.7rem;
-            color: #9ca3af;
-            margin-top: 8px;
-        }
-        .whatsapp-float-btn {
-            position: relative;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #25d366, #128c7e);
-            color: #ffffff;
-            border: none;
-            box-shadow: 0 8px 24px rgba(37, 211, 102, 0.45);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            padding: 0;
-        }
-        .whatsapp-float-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 12px 30px rgba(37, 211, 102, 0.6);
-        }
-        .wa-pulse-ring {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            border: 2px solid #25d366;
-            animation: waPulse 2s ease-out infinite;
-            pointer-events: none;
-        }
-        @keyframes waPulse {
-            0% { transform: scale(1); opacity: 0.8; }
-            100% { transform: scale(1.5); opacity: 0; }
-        }
-        .wa-unread-badge {
-            position: absolute;
-            top: -3px;
-            right: -3px;
-            width: 20px;
-            height: 20px;
-            background: #ef4444;
-            color: #ffffff;
-            border: 2px solid #ffffff;
-            border-radius: 50%;
-            font-size: 0.72rem;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+
     </style>
 
     {{-- ── Sitemap ──────────────────────────────────────────────── --}}
@@ -453,12 +267,12 @@
                             </div>
                         </div>
                         <div class="d-flex gap-2">
-                            <a href="{{ Auth::user()->isAdmin() ? route('admin.dashboard') : route('patient.dashboard') }}" class="btn btn-sm btn-primary rounded-pill flex-fill fw-bold py-1.5 small" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); border: none;">
+                            <a href="{{ Auth::user()->isAdmin() ? route('admin.dashboard') : route('patient.dashboard') }}" class="btn btn-sm btn-primary rounded-3 flex-fill fw-bold py-1.5 small" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); border: none;">
                                 <i class="bi bi-speedometer2 me-1"></i> {{ Auth::user()->isAdmin() ? 'لوحة الإدارة' : 'ملفي ومواعيدي' }}
                             </a>
                             <form action="{{ route('logout') }}" method="POST" class="m-0">
                                 @csrf
-                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1.5 fw-bold" title="تسجيل الخروج">
+                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-3 px-2.5 py-1.5 fw-bold" title="تسجيل الخروج">
                                     <i class="bi bi-box-arrow-right"></i>
                                 </button>
                             </form>
@@ -469,10 +283,10 @@
                         <div class="small fw-bold text-dark mb-1">أهلاً بك في منصة د. يونس المرشد</div>
                         <div class="text-secondary small mb-2.5" style="font-size: 0.78rem;">سجّل دخولك لمتابعة استشاراتك ومواعيدك الطبية</div>
                         <div class="d-flex gap-2">
-                            <a href="{{ route('login') }}" class="btn btn-sm btn-outline-primary rounded-pill flex-fill fw-bold py-1.5">
+                            <a href="{{ route('login') }}" class="btn btn-sm btn-outline-primary rounded-3 flex-fill fw-bold py-1.5">
                                 <i class="bi bi-box-arrow-in-right me-1"></i> تسجيل الدخول
                             </a>
-                            <a href="{{ route('register') }}" class="btn btn-sm btn-primary rounded-pill flex-fill fw-bold py-1.5" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); border: none;">
+                            <a href="{{ route('register') }}" class="btn btn-sm btn-primary rounded-3 flex-fill fw-bold py-1.5" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); border: none;">
                                 <i class="bi bi-person-plus me-1"></i> حساب جديد
                             </a>
                         </div>
@@ -524,7 +338,7 @@
             {{-- Drawer Footer Actions --}}
             <div class="drawer-footer-actions pt-3 border-top mt-3">
                 {{-- Book Now Button --}}
-                <button type="button" class="btn btn-primary rounded-pill w-100 py-2.5 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2 mb-2.5"
+                <button type="button" class="btn btn-primary rounded-3 w-100 py-2.5 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2 mb-2.5"
                         data-bs-dismiss="offcanvas" data-bs-toggle="modal" data-bs-target="#bookingModal"
                         style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); border: none; font-size: 0.95rem;">
                     <i class="bi bi-calendar-check-fill"></i>
@@ -533,14 +347,14 @@
 
                 {{-- Language Switcher & WhatsApp Contact Row --}}
                 <div class="d-flex align-items-center justify-content-between gap-2">
-                    <a href="{{ route('lang.switch', $isAr ? 'en' : 'ar') }}" class="btn btn-light border rounded-pill flex-fill py-1.5 fw-bold small text-secondary d-flex align-items-center justify-content-center gap-1.5">
+                    <a href="{{ route('lang.switch', $isAr ? 'en' : 'ar') }}" class="btn btn-light border rounded-3 flex-fill py-1.5 fw-bold small text-secondary d-flex align-items-center justify-content-center gap-1.5">
                         <i class="bi bi-globe2 text-primary"></i>
                         <span>{{ $isAr ? 'English' : 'العربية' }}</span>
                     </a>
                     @php
                         $drWa = preg_replace('/[^0-9]/', '', \App\Models\Setting::get('whatsapp_number', '+9647700000000'));
                     @endphp
-                    <a href="https://wa.me/{{ $drWa }}" target="_blank" class="btn btn-outline-success rounded-pill flex-fill py-1.5 fw-bold small d-flex align-items-center justify-content-center gap-1.5">
+                    <a href="https://wa.me/{{ $drWa }}" target="_blank" class="btn btn-outline-success rounded-3 flex-fill py-1.5 fw-bold small d-flex align-items-center justify-content-center gap-1.5">
                         <i class="bi bi-whatsapp"></i>
                         <span>تواصل واتساب</span>
                     </a>
@@ -674,10 +488,6 @@
                 <div class="col-lg-4 col-md-6 text-center text-lg-start">
                     <h6 class="footer-heading">{{ $isAr ? 'تواصل معنا' : 'Contact Us' }}</h6>
                     <div class="footer-contact-item">
-                        <i class="bi bi-whatsapp text-success fs-5"></i>
-                        <span>{{ \App\Models\Setting::get('whatsapp_number', '+964xxxxxxxxx') }}</span>
-                    </div>
-                    <div class="footer-contact-item">
                         <i class="bi bi-clock text-info fs-5"></i>
                         <span>{{ $isAr ? 'السبت - الخميس: 9:00 ص إلى 11:00 م' : 'Sat - Thu: 9:00 AM to 11:00 PM' }}</span>
                     </div>
@@ -706,76 +516,7 @@
         </div>
     </footer>
 
-    {{-- ═══ WhatsApp Interactive Floating Widget ════════════════════════════ --}}
-    @php
-        $waEnabled = \App\Models\Setting::get('whatsapp_widget_enabled', '1') === '1';
-        $waNum = \App\Models\Setting::get('whatsapp_number', '+9647800000000');
-        $waClean = preg_replace('/\D/', '', $waNum);
-        $waMsg = \App\Models\Setting::get('whatsapp_default_message', 'مرحباً دكتور يونس، أود الاستفسار عن حجز موعد استشارة.');
-        $waGreeting = \App\Models\Setting::get('whatsapp_widget_greeting', 'أهلاً بك! 👋 معك عيادة الدكتور يونس المرشد. كيف يمكننا مساعدتك اليوم؟');
-        $doctorName = \App\Models\Setting::get('doctor_name', 'يونس المرشد');
-        $doctorProfileModel = \App\Models\DoctorProfile::first();
-        $profHero = $doctorProfileModel?->hero_image_mobile ?: $doctorProfileModel?->hero_image;
-    @endphp
 
-    @if($waEnabled && !empty($waClean))
-        <div class="whatsapp-widget-container" id="whatsappWidgetContainer">
-            {{-- Popup Chat Card --}}
-            <div class="whatsapp-popup-card" id="whatsappPopupCard" style="display: none;">
-                <div class="wa-card-header d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="wa-avatar-wrap">
-                            @if(!empty($profHero))
-                                <img src="{{ $profHero }}" alt="{{ $doctorName }}" class="wa-avatar-img">
-                            @else
-                                <div class="wa-avatar-placeholder"><i class="bi bi-person-fill"></i></div>
-                            @endif
-                            <span class="wa-online-badge"></span>
-                        </div>
-                        <div class="text-white">
-                            <h6 class="m-0 fw-bold fs-6 lh-sm">د. {{ $doctorName }}</h6>
-                            <span class="wa-status-text"><i class="bi bi-circle-fill text-success me-1"></i> {{ $isAr ? 'متصل الآن (استجابة سريعة)' : 'Online (Quick Reply)' }}</span>
-                        </div>
-                    </div>
-                    <button type="button" class="wa-close-btn" onclick="toggleWhatsAppWidget()" aria-label="إغلاق">
-                        <i class="bi bi-x-lg"></i>
-                    </button>
-                </div>
-
-                <div class="wa-card-body">
-                    <div class="wa-message-bubble">
-                        <p class="m-0">{{ $waGreeting }}</p>
-                        <span class="wa-message-time">{{ date('H:i') }} <i class="bi bi-check2-all text-primary"></i></span>
-                    </div>
-                </div>
-
-                <div class="wa-card-footer">
-                    <a href="https://wa.me/{{ $waClean }}?text={{ urlencode($waMsg) }}"
-                       target="_blank"
-                       rel="noopener noreferrer"
-                       class="wa-action-btn">
-                        <i class="bi bi-whatsapp fs-5"></i>
-                        <span>{{ $isAr ? 'بدء المحادثة عبر واتساب' : 'Start WhatsApp Chat' }}</span>
-                    </a>
-                    <div class="wa-security-note">
-                        <i class="bi bi-shield-lock-fill me-1"></i> {{ $isAr ? 'محادثة مشفرة وسرية تامة' : 'End-to-end encrypted & confidential' }}
-                    </div>
-                </div>
-            </div>
-
-            {{-- Floating Launcher Button --}}
-            <button type="button"
-                    class="whatsapp-float-btn"
-                    id="whatsappFloatBtn"
-                    onclick="toggleWhatsAppWidget()"
-                    title="{{ $isAr ? 'تواصل معنا عبر واتساب' : 'Chat with us on WhatsApp' }}">
-                <span class="wa-pulse-ring"></span>
-                <i class="bi bi-whatsapp wa-icon-main" id="waIconMain"></i>
-                <i class="bi bi-x-lg wa-icon-close" id="waIconClose" style="display: none;"></i>
-                <span class="wa-unread-badge" id="waUnreadBadge">1</span>
-            </button>
-        </div>
-    @endif
 
     {{-- ── Bootstrap JS ────────────────────────────────────────── --}}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -843,27 +584,7 @@
             setTimeout(() => el.remove(), 350);
         }
 
-        // WhatsApp Interactive Widget Toggle
-        function toggleWhatsAppWidget() {
-            const card = document.getElementById('whatsappPopupCard');
-            const iconMain = document.getElementById('waIconMain');
-            const iconClose = document.getElementById('waIconClose');
-            const badge = document.getElementById('waUnreadBadge');
 
-            if (!card) return;
-
-            const isHidden = card.style.display === 'none' || !card.style.display;
-            if (isHidden) {
-                card.style.display = 'block';
-                if (iconMain) iconMain.style.display = 'none';
-                if (iconClose) iconClose.style.display = 'inline-block';
-                if (badge) badge.style.display = 'none';
-            } else {
-                card.style.display = 'none';
-                if (iconMain) iconMain.style.display = 'inline-block';
-                if (iconClose) iconClose.style.display = 'none';
-            }
-        }
 
         document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.luxury-toast').forEach(toast => {

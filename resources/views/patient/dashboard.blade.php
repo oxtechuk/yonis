@@ -24,7 +24,7 @@
                 </div>
             </div>
             <div class="d-flex flex-wrap align-items-center gap-2">
-                <button type="button" class="btn btn-primary rounded-pill px-3.5 py-2 fw-bold shadow-sm d-flex align-items-center gap-2"
+                <button type="button" class="btn btn-primary rounded-3 px-3.5 py-2 fw-bold shadow-sm d-flex align-items-center gap-2"
                         data-bs-toggle="modal" data-bs-target="#bookingModal"
                         style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); border: none;">
                     <i class="bi bi-plus-circle-fill"></i>
@@ -32,7 +32,7 @@
                 </button>
                 <form action="{{ route('logout') }}" method="POST" class="d-inline m-0">
                     @csrf
-                    <button type="submit" class="btn btn-outline-danger rounded-pill px-3 py-2 fw-bold d-flex align-items-center gap-1.5 shadow-sm" title="تسجيل الخروج">
+                    <button type="submit" class="btn btn-outline-danger rounded-3 px-3 py-2 fw-bold d-flex align-items-center gap-1.5 shadow-sm" title="تسجيل الخروج">
                         <i class="bi bi-box-arrow-right"></i>
                         <span>تسجيل الخروج</span>
                     </button>
@@ -114,7 +114,7 @@
                 </div>
                 <h6 class="fw-bold text-dark mb-1">لا توجد حجوزات مسجلة حتى الآن</h6>
                 <p class="small text-muted mb-3">اختر إحدى الاستشارات المتاحة لبدء جلستك العلاجية مع د. يونس المرشدي.</p>
-                <button type="button" class="btn btn-primary rounded-pill px-4 py-2.5 fw-bold shadow-sm"
+                <button type="button" class="btn btn-primary rounded-3 px-4 py-2.5 fw-bold shadow-sm"
                         data-bs-toggle="modal" data-bs-target="#bookingModal"
                         style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); border: none;">
                     <i class="bi bi-calendar-plus me-1"></i> حجز جلسة استشارية الآن
@@ -223,7 +223,7 @@
                                             $waText = urlencode("مرحباً دكتور يونس، أستفسر بخصوص حجز الموعد رقم #{$b->booking_reference}");
                                         @endphp
                                         <a href="https://wa.me/{{ $waNum }}?text={{ $waText }}" target="_blank"
-                                           class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-1 fw-bold shadow-sm d-inline-flex align-items-center gap-1"
+                                           class="btn btn-sm btn-outline-success rounded-3 px-2.5 py-1 fw-bold shadow-sm d-inline-flex align-items-center gap-1"
                                            title="تواصل مع الطبيب عبر واتساب">
                                             <i class="bi bi-whatsapp"></i>
                                             <span>تواصل</span>
@@ -233,7 +233,7 @@
                                             <form action="{{ route('patient.bookings.cancel', $b->id) }}" method="POST" class="d-inline m-0"
                                                   onsubmit="return confirm('هل أنت متأكد من رغبتك في إلغاء هذا الموعد؟')">
                                                 @csrf
-                                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1 fw-bold shadow-sm d-inline-flex align-items-center gap-1"
+                                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-3 px-2.5 py-1 fw-bold shadow-sm d-inline-flex align-items-center gap-1"
                                                         title="إلغاء هذا الموعد">
                                                     <i class="bi bi-x-circle"></i>
                                                     <span>إلغاء</span>
@@ -327,7 +327,7 @@
                                 $waText = urlencode("مرحباً دكتور يونس، أستفسر بخصوص حجز الموعد رقم #{$b->booking_reference}");
                             @endphp
                             <a href="https://wa.me/{{ $waNum }}?text={{ $waText }}" target="_blank"
-                               class="btn btn-sm btn-outline-success rounded-pill py-1.5 px-3 flex-fill fw-bold shadow-sm d-flex align-items-center justify-content-center gap-1.5">
+                               class="btn btn-sm btn-outline-success rounded-3 py-1.5 px-3 flex-fill fw-bold shadow-sm d-flex align-items-center justify-content-center gap-1.5">
                                 <i class="bi bi-whatsapp"></i>
                                 <span>تواصل عبر واتساب</span>
                             </a>
@@ -336,7 +336,7 @@
                                 <form action="{{ route('patient.bookings.cancel', $b->id) }}" method="POST" class="d-inline m-0"
                                       onsubmit="return confirm('هل أنت متأكد من رغبتك في إلغاء هذا الموعد؟')">
                                     @csrf
-                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill py-1.5 px-3 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-1"
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-3 py-1.5 px-3 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-1"
                                             title="إلغاء هذا الموعد">
                                         <i class="bi bi-x-circle"></i>
                                         <span>إلغاء</span>

@@ -591,8 +591,8 @@ class AdminDashboardController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'type' => 'required|in:clinic,online',
-            'channel' => 'nullable|string|in:all,video,voice,chat',
+            'type' => 'nullable|in:clinic,online',
+            'channel' => 'nullable|string|in:all,video,voice,chat,clinic',
             'duration' => 'required|integer|min:5',
             'clinic_price' => 'nullable|numeric|min:0',
             'chat_price' => 'nullable|numeric|min:0',
@@ -601,8 +601,8 @@ class AdminDashboardController extends Controller
             'price' => 'nullable|numeric|min:0',
         ]);
 
-        $type = $request->type;
         $channel = $request->channel ?? 'all';
+        $type = ($channel === 'clinic' || $request->type === 'clinic') ? 'clinic' : 'online';
 
         if ($type === 'clinic') {
             $clinicPrice = $request->clinic_price ?? ($request->price ?? 0);
@@ -660,8 +660,8 @@ class AdminDashboardController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'type' => 'required|in:clinic,online',
-            'channel' => 'nullable|string|in:all,video,voice,chat',
+            'type' => 'nullable|in:clinic,online',
+            'channel' => 'nullable|string|in:all,video,voice,chat,clinic',
             'duration' => 'required|integer|min:5',
             'clinic_price' => 'nullable|numeric|min:0',
             'chat_price' => 'nullable|numeric|min:0',
@@ -672,8 +672,8 @@ class AdminDashboardController extends Controller
 
         $service = Service::findOrFail($id);
 
-        $type = $request->type;
         $channel = $request->channel ?? 'all';
+        $type = ($channel === 'clinic' || $request->type === 'clinic') ? 'clinic' : 'online';
 
         if ($type === 'clinic') {
             $clinicPrice = $request->clinic_price ?? ($request->price ?? 0);
