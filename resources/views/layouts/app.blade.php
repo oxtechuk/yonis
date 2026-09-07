@@ -477,12 +477,13 @@
                     </div>
                     <p class="footer-text mb-4">{{ $isAr ? 'معالج نفسي متخصص في الاستشارات النفسية الفردية والزوجية والأسرية. نساعدك على العيش بتوازن وراحة بال وصحة نفسية أفضل في بيئة آمنة وسرية 100%.' : 'Licensed psychological therapist specializing in individual, marital, and family counseling. Helping you achieve emotional balance in a 100% confidential environment.' }}</p>
                     <div class="d-flex justify-content-center justify-content-lg-start gap-3">
-                        @php $whatsappFooter = \App\Models\Setting::get('whatsapp_number', '#'); @endphp
-                        <a href="https://wa.me/{{ preg_replace('/\D/', '', $whatsappFooter) }}" target="_blank" rel="noopener noreferrer" class="footer-social-btn whatsapp" title="WhatsApp"><i class="bi bi-whatsapp"></i></a>
-                        <a href="#" target="_blank" rel="noopener noreferrer" class="footer-social-btn tiktok" title="TikTok"><i class="bi bi-tiktok"></i></a>
-                        <a href="#" target="_blank" rel="noopener noreferrer" class="footer-social-btn youtube" title="YouTube"><i class="bi bi-youtube"></i></a>
-                        <a href="#" target="_blank" rel="noopener noreferrer" class="footer-social-btn instagram" title="Instagram"><i class="bi bi-instagram"></i></a>
-                    </div>
+                        @php $tiktokFooter = \App\Models\Setting::get('tiktok_number', '#'); @endphp
+                        <a href="{{ $tiktokFooter }}" target="_blank" rel="noopener noreferrer" class="footer-social-btn tiktok" title="TikTok"><i class="bi bi-tiktok"></i></a>
+                        @php $youtubeFooter = \App\Models\Setting::get('youtube_number', '#'); @endphp
+                        <a href="{{ $youtubeFooter }}" target="_blank" rel="noopener noreferrer" class="footer-social-btn youtube" title="YouTube"><i class="bi bi-youtube"></i></a>
+                        @php $instagramFooter = \App\Models\Setting::get('instagram_number', '#'); @endphp
+                        <a href="{{ $instagramFooter }}" target="_blank" rel="noopener noreferrer" class="footer-social-btn instagram" title="Instagram"><i class="bi bi-instagram"></i></a>
+                    </div>  
                 </div>
 
                 {{-- Column 2: Quick Links --}}
