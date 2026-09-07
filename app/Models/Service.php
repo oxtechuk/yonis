@@ -10,6 +10,7 @@ class Service extends Model
     protected $fillable = [
         'title',
         'description',
+        'icon',
         'type',
         'price',
         'clinic_price',
@@ -19,6 +20,11 @@ class Service extends Model
         'payment_url',
         'duration',
         'is_active',
+    ];
+
+    protected $appends = [
+        'icon_url',
+        'icon_name',
     ];
 
     protected $casts = [
@@ -121,5 +127,51 @@ class Service extends Model
     {
         return $this->hasMany(Booking::class);
     }
+
+    /**
+     * Get resolved Icon URL if an image was uploaded or full URL provided
+     */
+    public function getIconUrlAttribute(): ?string
+    {
+        if (empty($this->icon)) {
+            return null;
+        }
+
+        if (preg_match('/^https?:\/\//i', $this->icon)) {
+            return $this->icon;
+        }
+
+        if (str_starts_with($this->icon, 'services/') || str_starts_with($this->icon, 'uploads/') || str_starts_with($this->icon, 'icons/')) {
+            return asset('storage/' . $this->icon);
+        }
+
+        return null;
+    }
+
+    /**
+     * Get icon name / bootstrap icon class / icon identifier
+     */
+    public function getIconNameAttribute(): string
+    {
+        if (!empty($this->icon) && !preg_match('/^https?:\/\//i', $this->icon) && !str_starts_with($this->icon, 'services/') && !str_starts_with($this->icon, 'uploads/')) {
+            return $this->icon;
+        }
+
+        // Default icon by channel
+        $channel = $this->getChannelType();
+        switch ($channel) {
+            case 'clinic':
+                return 'bi-hospital';
+            case 'video':
+                return 'bi-camera-video';
+            case 'voice':
+                return 'bi-telephone';
+            case 'chat':
+                return 'bi-chat-dots';
+            default:
+                return 'bi-heart-pulse';
+        }
+    }
 }
+
 

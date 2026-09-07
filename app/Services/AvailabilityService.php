@@ -121,14 +121,168 @@ class AvailabilityService
                 ];
             }
 
-            // Slide the window by 15 minutes to allow flexible booking slots, or by service duration.
-            // Using 15 or 30 minutes increments is standard. Let's use 30 minutes or $duration.
-            // Sliding by 30 minutes or $duration avoids overlap within the generated list.
-            // If we slide by 15 minutes, the client can choose 14:00 or 14:15. Once they choose 14:00, 14:15 becomes unavailable due to overlap.
-            // This is actually extremely premium and dynamic! Let's slide by 15 minutes so the user has maximum choice.
             $currentSlot->addMinutes(15);
         }
 
         return $slots;
     }
+
+    /**
+     * Generate full slots schedule with clear separation of Available and Booked/Unavailable slots.
+     *
+     * @param int $serviceId
+     * @param string $dateStr (YYYY-MM-DD)
+     * @return array
+     */
+    public function getSlotsDetailed(int $serviceId, string $dateStr): array
+    {
+        $service = Service::find($serviceId);
+        if (!$service || !$service->is_active) {
+            return [
+                'date' => $dateStr,
+                'is_day_available' => false,
+                'available_slots' => [],
+                'unavailable_slots' => [],
+                'all_slots' => [],
+            ];
+        }
+
+        $date = Carbon::parse($dateStr);
+        $today = Carbon::today();
+
+        if ($date->lt($today)) {
+            return [
+                'date' => $dateStr,
+                'is_day_available' => false,
+                'message' => 'التاريخ في الماضي',
+                'available_slots' => [],
+                'unavailable_slots' => [],
+                'all_slots' => [],
+            ];
+        }
+
+        // Full day blocked check
+        $blockedDay = BlockedTime::where('date', $dateStr)
+            ->whereNull('start_time')
+            ->first();
+        if ($blockedDay) {
+            return [
+                'date' => $dateStr,
+                'is_day_available' => false,
+                'message' => 'اليوم محظور بالكامل من الطبيب',
+                'available_slots' => [],
+                'unavailable_slots' => [],
+                'all_slots' => [],
+            ];
+        }
+
+        $dayOfWeek = $date->dayOfWeek;
+        $generalAvailability = Availability::where('day_of_week', $dayOfWeek)->first();
+
+        $workStart = $generalAvailability ? Carbon::parse($generalAvailability->start_time) : Carbon::parse('09:00');
+        $workEnd = $generalAvailability ? Carbon::parse($generalAvailability->end_time) : Carbon::parse('23:00');
+
+        $partialBlocks = BlockedTime::where('date', $dateStr)
+            ->whereNotNull('start_time')
+            ->whereNotNull('end_time')
+            ->get();
+
+        $existingBookings = Booking::where('date', $dateStr)
+            ->whereIn('status', ['AwaitingPayment', 'Confirmed', 'Completed'])
+            ->get();
+
+        $duration = max((int)$service->duration, 15);
+        $availableSlots = [];
+        $unavailableSlots = [];
+        $allSlots = [];
+
+        $currentSlot = $workStart->copy();
+        $now = Carbon::now();
+
+        while ($currentSlot->copy()->addMinutes($duration)->lte($workEnd)) {
+            $slotStart = $currentSlot->copy();
+            $slotEnd = $currentSlot->copy()->addMinutes($duration);
+
+            $slotStartStr = $slotStart->format('H:i');
+            $slotEndStr = $slotEnd->format('H:i');
+            $slotDateTime = Carbon::parse($dateStr . ' ' . $slotStartStr);
+
+            $isAvailable = true;
+            $status = 'available';
+            $statusLabel = 'متاح للحجز';
+
+            // 1. Past check
+            if ($date->isToday() && $slotDateTime->lte($now)) {
+                $isAvailable = false;
+                $status = 'past';
+                $statusLabel = 'وقت مضى';
+            }
+
+            // 2. Block check
+            if ($isAvailable) {
+                foreach ($partialBlocks as $block) {
+                    $blockStart = Carbon::parse($block->start_time);
+                    $blockEnd = Carbon::parse($block->end_time);
+                    if ($slotStart->lt($blockEnd) && $slotEnd->gt($blockStart)) {
+                        $isAvailable = false;
+                        $status = 'blocked';
+                        $statusLabel = 'غير متاح (محظور)';
+                        break;
+                    }
+                }
+            }
+
+            // 3. Booking check
+            if ($isAvailable) {
+                foreach ($existingBookings as $booking) {
+                    $bookingStart = Carbon::parse($booking->start_time);
+                    $bookingEnd = Carbon::parse($booking->end_time);
+                    if ($slotStart->lt($bookingEnd) && $slotEnd->gt($bookingStart)) {
+                        $isAvailable = false;
+                        $status = 'booked';
+                        $statusLabel = 'محجوز';
+                        break;
+                    }
+                }
+            }
+
+            $slotItem = [
+                'start' => $slotStartStr,
+                'end' => $slotEndStr,
+                'time_formatted' => Carbon::createFromFormat('H:i', $slotStartStr)->translatedFormat('g:i A'),
+                'is_available' => $isAvailable,
+                'status' => $status,
+                'status_label' => $statusLabel,
+            ];
+
+            $allSlots[] = $slotItem;
+
+            if ($isAvailable) {
+                $availableSlots[] = $slotItem;
+            } else {
+                $unavailableSlots[] = $slotItem;
+            }
+
+            $currentSlot->addMinutes(15);
+        }
+
+        return [
+            'date' => $dateStr,
+            'day_name' => $date->translatedFormat('l'),
+            'is_day_available' => count($availableSlots) > 0,
+            'service_id' => $service->id,
+            'service_title' => $service->title,
+            'duration' => $duration,
+            'summary' => [
+                'total_slots' => count($allSlots),
+                'available_count' => count($availableSlots),
+                'booked_or_unavailable_count' => count($unavailableSlots),
+            ],
+            'available_slots' => $availableSlots,
+            'unavailable_slots' => $unavailableSlots,
+            'booked_slots' => array_values(array_filter($unavailableSlots, fn($s) => $s['status'] === 'booked')),
+            'all_slots' => $allSlots,
+        ];
+    }
 }
+

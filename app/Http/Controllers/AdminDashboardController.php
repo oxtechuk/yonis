@@ -594,6 +594,8 @@ class AdminDashboardController extends Controller
             'type' => 'nullable|in:clinic,online',
             'channel' => 'nullable|string|in:all,video,voice,chat,clinic',
             'duration' => 'required|integer|min:5',
+            'icon' => 'nullable|string|max:255',
+            'icon_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'clinic_price' => 'nullable|numeric|min:0',
             'chat_price' => 'nullable|numeric|min:0',
             'voice_price' => 'nullable|numeric|min:0',
@@ -635,9 +637,15 @@ class AdminDashboardController extends Controller
             }
         }
 
+        $icon = $request->input('icon', 'bi-heart-pulse');
+        if ($request->hasFile('icon_file')) {
+            $icon = $this->storePublicUpload($request->file('icon_file'), 'services');
+        }
+
         Service::create([
             'title' => $request->title,
             'description' => $request->description,
+            'icon' => $icon,
             'type' => $type,
             'price' => $price,
             'clinic_price' => $clinicPrice,
@@ -649,7 +657,7 @@ class AdminDashboardController extends Controller
             'is_active' => $request->has('is_active'),
         ]);
 
-        return redirect()->back()->with('success', 'تم إضافة الخدمة وتحديد أسعارها بنجاح.');
+        return redirect()->back()->with('success', 'تم إضافة الخدمة وتحديد أيقونتها وأسعارها بنجاح.');
     }
 
     /**
@@ -663,6 +671,8 @@ class AdminDashboardController extends Controller
             'type' => 'nullable|in:clinic,online',
             'channel' => 'nullable|string|in:all,video,voice,chat,clinic',
             'duration' => 'required|integer|min:5',
+            'icon' => 'nullable|string|max:255',
+            'icon_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'clinic_price' => 'nullable|numeric|min:0',
             'chat_price' => 'nullable|numeric|min:0',
             'voice_price' => 'nullable|numeric|min:0',
@@ -706,9 +716,15 @@ class AdminDashboardController extends Controller
             }
         }
 
+        $icon = $request->input('icon', $service->icon ?? 'bi-heart-pulse');
+        if ($request->hasFile('icon_file')) {
+            $icon = $this->storePublicUpload($request->file('icon_file'), 'services');
+        }
+
         $service->update([
             'title' => $request->title,
             'description' => $request->description,
+            'icon' => $icon,
             'type' => $type,
             'price' => $price,
             'clinic_price' => $clinicPrice,
@@ -720,7 +736,7 @@ class AdminDashboardController extends Controller
             'is_active' => $request->has('is_active'),
         ]);
 
-        return redirect()->back()->with('success', 'تم تحديث بيانات الخدمة وتحديد أسعارها بنجاح.');
+        return redirect()->back()->with('success', 'تم تحديث بيانات الخدمة وتحديد أيقونتها وأسعارها بنجاح.');
     }
 
     /**

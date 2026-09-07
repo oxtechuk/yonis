@@ -12,6 +12,7 @@ use App\Http\Controllers\ApiController;
 
 // 1. Public Info Routes (Rate limited to 60 req/min)
 Route::middleware('throttle:60,1')->group(function () {
+    Route::get('/home', [ApiController::class, 'getHome']);
     Route::get('/config', [ApiController::class, 'getApiConfig']);
     Route::get('/doctor/profile', [ApiController::class, 'getDoctorProfile']);
     Route::get('/services', [ApiController::class, 'getServices']);

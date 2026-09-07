@@ -173,6 +173,8 @@ class ApiController extends Controller
                 'id' => $s->id,
                 'title' => $s->title,
                 'description' => $s->description,
+                'icon' => $s->icon_name,
+                'icon_url' => $s->icon_url,
                 'duration' => $s->duration,
                 'price' => $clinicPrice,
                 'clinic_price' => $clinicPrice,
@@ -247,6 +249,8 @@ class ApiController extends Controller
                 'id' => $s->id,
                 'title' => $s->title,
                 'description' => $s->description,
+                'icon' => $s->icon_name,
+                'icon_url' => $s->icon_url,
                 'duration' => $s->duration,
                 'booking_type' => 'online',
                 'channel_type' => $channelType,
@@ -305,7 +309,7 @@ class ApiController extends Controller
             ],
             'clinic_services' => $clinicServices,
             'online_services' => $onlineServices,
-            // Full raw list for backward compatibility
+            // Full list with icons
             'services' => $allRaw,
         ]);
     }
@@ -329,7 +333,7 @@ class ApiController extends Controller
     }
 
     /**
-     * Get available slots
+     * Get slots (Available and Booked/Unavailable slots with rich status)
      */
     public function getSlots(Request $request)
     {
@@ -345,7 +349,18 @@ class ApiController extends Controller
         if (!$service) {
             return response()->json([
                 'success' => true,
-                'slots' => []
+                'date' => date('Y-m-d'),
+                'is_day_available' => false,
+                'slots' => [],
+                'available_slots' => [],
+                'unavailable_slots' => [],
+                'booked_slots' => [],
+                'all_slots' => [],
+                'summary' => [
+                    'total_slots' => 0,
+                    'available_count' => 0,
+                    'booked_or_unavailable_count' => 0,
+                ],
             ]);
         }
 
@@ -354,14 +369,36 @@ class ApiController extends Controller
             $dateStr = date('Y-m-d');
         }
 
-        $slots = $this->availabilityService->getAvailableSlots(
+        $detailed = $this->availabilityService->getSlotsDetailed(
             $service->id,
             $dateStr
         );
 
+        $simpleSlots = array_map(function ($s) {
+            return [
+                'start' => $s['start'],
+                'end' => $s['end'],
+            ];
+        }, $detailed['available_slots']);
+
         return response()->json([
             'success' => true,
-            'slots' => $slots
+            'date' => $detailed['date'],
+            'day_name' => $detailed['day_name'],
+            'is_day_available' => $detailed['is_day_available'],
+            'service' => [
+                'id' => $service->id,
+                'title' => $service->title,
+                'icon' => $service->icon_name,
+                'icon_url' => $service->icon_url,
+                'duration' => $service->duration,
+            ],
+            'summary' => $detailed['summary'],
+            'available_slots' => $detailed['available_slots'],     // الحجوزات والمواعيد المتاحة فقط
+            'unavailable_slots' => $detailed['unavailable_slots'], // الحجوزات والمواعيد غير المتاحة مع سببها
+            'booked_slots' => $detailed['booked_slots'],           // الحجوزات المحجوزة مسبقاً
+            'all_slots' => $detailed['all_slots'],                 // كامل الجدول الزمني لليوم مع حالة كل موعد
+            'slots' => $simpleSlots,                               // متوافق مع الكود السابق
         ]);
     }
 
@@ -371,6 +408,164 @@ class ApiController extends Controller
     public function getAvailableSlots(Request $request)
     {
         return $this->getSlots($request);
+    }
+
+    /**
+     * Mobile App Homepage Master API
+     * Returns doctor info, banners, statistics, services with icons, featured reels, testimonials, and active channels
+     */
+    public function getHome(Request $request)
+    {
+        $currencyCode = Setting::currencyCode();
+        $currencySymbol = Setting::currencySymbol();
+        $doctorProfile = DoctorProfile::with('user')->first();
+
+        $servicesRaw = Service::where('is_active', true)->get();
+        $services = $servicesRaw->map(function ($s) use ($currencyCode, $currencySymbol) {
+            return [
+                'id' => $s->id,
+                'title' => $s->title,
+                'description' => $s->description,
+                'icon' => $s->icon_name,
+                'icon_url' => $s->icon_url,
+                'type' => $s->type,
+                'channel_type' => $s->getChannelType(),
+                'channel_label' => $s->getChannelLabel(),
+                'duration' => $s->duration,
+                'price' => (float) $s->getDisplayPrice(),
+                'clinic_price' => $s->clinic_price !== null ? (float)$s->clinic_price : null,
+                'video_price' => $s->video_price !== null ? (float)$s->video_price : null,
+                'voice_price' => $s->voice_price !== null ? (float)$s->voice_price : null,
+                'chat_price' => $s->chat_price !== null ? (float)$s->chat_price : null,
+                'currency' => $currencyCode,
+                'currency_symbol' => $currencySymbol,
+            ];
+        });
+
+        // Reels
+        $reels = Reel::where('is_active', true)
+            ->orderBy('sort_order', 'asc')
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+
+        // Testimonials
+        $testimonials = Testimonial::where('is_active', true)
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function ($t) {
+                return [
+                    'id' => $t->id,
+                    'name' => $t->client_name_ar,
+                    'avatar' => $t->client_avatar,
+                    'rating' => (int) $t->rating,
+                    'review' => $t->content_ar,
+                    'created_at' => $t->created_at ? $t->created_at->toIso8601String() : null,
+                ];
+            });
+
+        $avgRating = round((float) Testimonial::where('is_active', true)->avg('rating'), 1) ?: 5.0;
+        $totalReviews = Testimonial::where('is_active', true)->count();
+
+        // Active Channels
+        $clinicEnabled = Setting::get('clinic_booking_enabled', '1') === '1';
+        $onlineEnabled = Setting::get('online_booking_enabled', '1') === '1';
+        $chatEnabled = Setting::get('chat_enabled', '1') === '1';
+        $voiceEnabled = Setting::get('voice_enabled', '1') === '1';
+        $videoEnabled = Setting::get('video_enabled', '1') === '1';
+
+        // Payment info
+        $payZainEnabled = Setting::get('payment_zaincash_enabled', '1') === '1';
+        $paySuperkiEnabled = Setting::get('payment_superki_enabled', '1') === '1';
+        $payCardEnabled = Setting::get('payment_card_enabled', '0') === '1';
+
+        return response()->json([
+            'success' => true,
+            'doctor' => [
+                'name' => Setting::get('doctor_name', $doctorProfile?->user?->name ?? 'د. يونس المرشد'),
+                'title' => $doctorProfile?->title ?? 'أخصائي واستشاري العلاج النفسي والسلوكي',
+                'bio' => $doctorProfile?->bio ?? 'أخصائي علاج نفسي مرخص بخبرة تزيد عن 10 سنوات في تقديم الاستشارات الفردية والأسرية والزوجية.',
+                'experience_years' => (int) ($doctorProfile?->experience_years ?? 10),
+                'avatar_url' => $doctorProfile?->avatar ? asset('storage/' . $doctorProfile->avatar) : asset('storage/' . Setting::get('site_logo', '')),
+                'hero_image' => $doctorProfile?->hero_image,
+                'hero_image_mobile' => $doctorProfile?->mobile_hero_image ?? $doctorProfile?->hero_image,
+                'whatsapp' => Setting::get('whatsapp_number', '+9647800000000'),
+                'phone' => Setting::get('clinic_phone', '+9647800000000'),
+                'clinic_address' => Setting::get('clinic_address', 'مقر العيادة - د. يونس المرشد'),
+            ],
+            'statistics' => [
+                'experience_years' => (int) ($doctorProfile?->experience_years ?? 10),
+                'total_consultations' => 1500 + Booking::where('status', 'Completed')->count(),
+                'rating' => $avgRating,
+                'total_reviews' => $totalReviews,
+                'satisfaction_rate' => '98%',
+            ],
+            'channels' => [
+                [
+                    'key' => 'clinic',
+                    'name' => 'كشف في العيادة',
+                    'icon' => 'bi-hospital',
+                    'is_enabled' => $clinicEnabled,
+                    'badge' => 'حضوري',
+                ],
+                [
+                    'key' => 'video',
+                    'name' => 'استشارة فيديو',
+                    'icon' => 'bi-camera-video',
+                    'is_enabled' => $videoEnabled && $onlineEnabled,
+                    'badge' => 'أونلاين',
+                ],
+                [
+                    'key' => 'voice',
+                    'name' => 'مكالمة صوتية',
+                    'icon' => 'bi-telephone',
+                    'is_enabled' => $voiceEnabled && $onlineEnabled,
+                    'badge' => 'أونلاين',
+                ],
+                [
+                    'key' => 'chat',
+                    'name' => 'محادثة نصية (شات)',
+                    'icon' => 'bi-chat-dots',
+                    'is_enabled' => $chatEnabled && $onlineEnabled,
+                    'badge' => 'أونلاين',
+                ],
+            ],
+            'services' => $services,
+            'reels' => $reels,
+            'testimonials' => $testimonials,
+            'config' => [
+                'currency' => $currencyCode,
+                'currency_symbol' => $currencySymbol,
+                'whatsapp_widget' => [
+                    'enabled' => Setting::get('whatsapp_widget_enabled', '1') === '1',
+                    'number' => Setting::get('whatsapp_number', '+9647800000000'),
+                    'default_message' => Setting::get('whatsapp_default_message', 'مرحباً دكتور يونس، أود الاستفسار عن حجز موعد.'),
+                ],
+                'payment_methods' => [
+                    'zaincash' => $payZainEnabled,
+                    'superki' => $paySuperkiEnabled,
+                    'card' => $payCardEnabled,
+                ]
+            ]
+        ]);
+    }
+
+    /**
+     * Get Reels
+     */
+    public function getReels(Request $request)
+    {
+        $reels = Reel::where('is_active', true)
+            ->orderBy('sort_order', 'asc')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'total' => $reels->count(),
+            'reels' => $reels,
+        ]);
     }
 
     /**
@@ -789,8 +984,27 @@ class ApiController extends Controller
             \App\Services\NotificationMailService::notifyDoctorNewBooking($booking, 'حجز جديد عبر التطبيق');
             \App\Services\NotificationMailService::notifyPatientBookingReceived($booking);
 
+            // Generate Auth token so mobile client logs in immediately
+            $authToken = null;
+            if ($patient) {
+                try {
+                    $authToken = $patient->createToken('mobile-token')->plainTextToken;
+                } catch (\Throwable $e) {
+                    $authToken = null;
+                }
+            }
+
             return response()->json([
                 'success' => true,
+                'token' => $authToken,
+                'token_type' => 'Bearer',
+                'user' => $patient ? [
+                    'id' => $patient->id,
+                    'name' => $patient->name,
+                    'email' => $patient->email,
+                    'phone' => $patient->phone,
+                    'role' => $patient->role,
+                ] : null,
                 'booking_reference' => $bookingRef,
                 'stripe_enabled' => $stripeEnabled,
                 'client_secret' => $clientSecret,
@@ -802,10 +1016,10 @@ class ApiController extends Controller
                 'payment_instructions' => $instructions,
                 'whatsapp_url' => $waUrl,
                 'payment_url' => ($paymentMethod === 'card' && !empty($cardLink)) ? $cardLink : $paymentUrl,
-                'is_registered' => $isRegistered,
-                'requires_account' => !$isRegistered,
-                'requires_password' => !$isRegistered,
-                'account_prompt' => $isRegistered ? null : 'يرجى إضافة كلمة المرور لإنشاء حسابك ومتابعة الحجز',
+                'is_registered' => true,
+                'requires_account' => false,
+                'requires_password' => false,
+                'account_prompt' => null,
                 'redirect_url' => route('booking.view-dashboard', ['bookingRef' => $bookingRef]),
                 'booking' => $booking->fresh(['service', 'patient'])
             ], 201);

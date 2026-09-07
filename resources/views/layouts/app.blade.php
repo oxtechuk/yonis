@@ -135,8 +135,21 @@
             max-width: 100%;
         }
 
-
+        /* Layout shift prevention for navbar wrapper */
+        .navbar-floating-wrapper {
+            position: sticky;
+            top: 0;
+            z-index: 1050;
+            min-height: 68px;
+            contain: layout style;
+        }
+        .navbar-floating-capsule {
+            min-height: 52px;
+        }
     </style>
+
+    {{-- ── Preload / Critical Resources ──────────────────────────── --}}
+    @yield('head_preload')
 
     {{-- ── Sitemap ──────────────────────────────────────────────── --}}
     <link rel="sitemap" type="application/xml" href="/sitemap.xml">
@@ -151,7 +164,7 @@
             <nav class="navbar navbar-expand-lg navbar-floating-capsule p-0">
                 <a class="navbar-brand d-flex align-items-center gap-2 me-0 me-lg-2" href="{{ route('home') }}">
                     @if(!empty($siteLogo))
-                        <img src="{{ $siteLogo }}" alt="Logo" style="max-height: 38px; border-radius: 6px;">
+                        <img src="{{ $siteLogo }}" alt="Logo" width="38" height="38" style="height: 38px; width: auto; max-width: 120px; object-fit: contain; border-radius: 6px;" fetchpriority="high">
                     @else
                         <div class="navbar-logo-circle" style="width:36px; height:36px; font-size:1rem;"><i class="bi bi-heart-pulse-fill"></i></div>
                     @endif

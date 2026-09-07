@@ -48,6 +48,29 @@
             "name": "⚙️ 1. الإعدادات وحالة النظام (Config & Health)",
             "item": [
                 {
+                    "name": "📱 GET واجهة الصفحة الرئيسية لتطبيق الموبايل (Mobile Home Master API)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/home",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "home"
+                            ]
+                        },
+                        "description": "نقطة انطلاق الشاشة الرئيسية لتطبيق الموبايل (Flutter / Mobile App):\n- doctor: بيانات الطبيب، النبذة، صور الهيرو والـ Avatar، الهاتف، ورقم الواتساب.\n- statistics: إحصائيات الخبرة وعدد الاستشارات ونسبة الرضا والتقييم.\n- channels: قنوات الاستشارة المتاحة (عيادة، فيديو، صوت، شات).\n- services: الخدمات بالأيقونات المخصصة والأسعار والمدد الزمنية.\n- reels: قائمة مقاطع الفيديو القصيرة والريلز مع الصور المصغرة.\n- testimonials: آراء وتقييمات المرضى.\n- config: إعدادات العملة وبوابات الدفع النشطة."
+                    }
+                },
+                {
                     "name": "GET إعدادات التطبيق وخيارات الحجز والدفع (Config)",
                     "request": {
                         "method": "GET",
@@ -395,7 +418,7 @@
                     }
                 },
                 {
-                    "name": "GET المواعيد والساعات المتاحة للحجز (Slots)",
+                    "name": "GET المواعيد والساعات المتاحة والمحجوزة (Slots & Bookings Availability)",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -405,7 +428,7 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/api/slots?service_id=1&date=2026-10-15",
+                            "raw": "{{base_url}}/api/slots?service_id=1&date=2026-09-08",
                             "host": [
                                 "{{base_url}}"
                             ],
@@ -417,16 +440,16 @@
                                 {
                                     "key": "service_id",
                                     "value": "1",
-                                    "description": "معرف الخدمة"
+                                    "description": "معرف الخدمة (اختياري)"
                                 },
                                 {
                                     "key": "date",
-                                    "value": "2026-10-15",
+                                    "value": "2026-09-08",
                                     "description": "التاريخ المطلوب فحصه (YYYY-MM-DD)"
                                 }
                             ]
                         },
-                        "description": "حساب وتصفية الساعات المتاحة للحجز بخصم المواعيد المحجوزة مسبقاً وفترات الاستراحة."
+                        "description": "يعيد جدول مواعيد اليوم مقسماً بدقة:\n- available_slots: المواعيد المتاحة فقط للحجز مع وقت البداية والنهاية والتنسيق العربي.\n- unavailable_slots: المواعيد غير المتاحة مع سبب عدم الإتاحة (محجوزة / محظورة / وقت مضى).\n- booked_slots: المواعيد المحجوزة مسبقاً.\n- all_slots: كامل الجدول لليوم مع حالة كل فترة (is_available: true/false).\n- summary: ملخص إحصائي (إجمالي المواعيد، المتاح، والمحجوز)."
                     }
                 },
                 {
@@ -502,6 +525,10 @@
                             "script": {
                                 "exec": [
                                     "const res = pm.response.json();",
+                                    "if (res.token) {",
+                                    "  pm.collectionVariables.set(\"token\", res.token);",
+                                    "  console.log(\"✅ Patient Token Updated:\", res.token);",
+                                    "}",
                                     "if (res.booking_reference) {",
                                     "  pm.collectionVariables.set(\"booking_ref\", res.booking_reference);",
                                     "  console.log(\"✅ Authenticated Booking Reference Saved:\", res.booking_reference);",
@@ -567,6 +594,10 @@
                             "script": {
                                 "exec": [
                                     "const res = pm.response.json();",
+                                    "if (res.token) {",
+                                    "  pm.collectionVariables.set(\"token\", res.token);",
+                                    "  console.log(\"✅ Auth Token Saved automatically:\", res.token);",
+                                    "}",
                                     "if (res.booking_reference) {",
                                     "  pm.collectionVariables.set(\"booking_ref\", res.booking_reference);",
                                     "  console.log(\"✅ Guest Booking Reference Saved:\", res.booking_reference);",

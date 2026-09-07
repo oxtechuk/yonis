@@ -8,6 +8,14 @@
 @section('meta_description', 'احجز استشارتك النفسية مع المعالج يونس المرشد - جلسات فردية وزوجية وأسرية. استشارات عبر شات أو صوت أو فيديو أو في العيادة. خبرة 10 سنوات في العلاج المعرفي السلوكي.')
 @section('meta_keywords', 'معالج نفسي, استشارة نفسية, يونس المرشد, حجز موعد نفسي, علاج اكتئاب, علاج قلق, استشارة زوجية, علاج أسري')
 
+@section('head_preload')
+    @if($profile && !empty($profile->hero_image))
+        <link rel="preload" as="image" href="{{ $profile->hero_image }}" fetchpriority="high">
+    @elseif($profile && !empty($profile->hero_image_mobile))
+        <link rel="preload" as="image" href="{{ $profile->hero_image_mobile }}" fetchpriority="high">
+    @endif
+@endsection
+
 @section('styles')
 <style>
 /* ═══ Hero Section ═══════════════════════════════════════════════ */
@@ -30,11 +38,14 @@
     border-radius: 50%;
     filter: blur(80px);
     opacity: 0.25;
+    pointer-events: none;
+    contain: strict;
+    will-change: transform;
     animation: floatOrb 8s ease-in-out infinite alternate;
 }
 .hero-orb-1 { width: 400px; height: 400px; background: #6D8FD6; top: -100px; right: -50px; }
 .hero-orb-2 { width: 300px; height: 300px; background: #D4AF37; bottom: -80px; left: 10%; animation-delay: -3s; }
-@keyframes floatOrb { from { transform: translateY(0) scale(1); } to { transform: translateY(-30px) scale(1.05); } }
+@keyframes floatOrb { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(0, -30px, 0) scale(1.05); } }
 
 .hero-badge {
     display: inline-flex; align-items: center; gap: 8px;
@@ -120,6 +131,8 @@
     box-shadow: none !important;
     border-radius: 0 !important;
     width: 100%;
+    min-height: 520px;
+    contain: layout;
 }
 .hero-photo-frame::before {
     content: '';
@@ -134,6 +147,7 @@
     filter: blur(55px);
     z-index: 1;
     pointer-events: none;
+    contain: strict;
 }
 .hero-photo-frame img {
     position: relative;
@@ -142,6 +156,7 @@
     max-width: 650px;
     max-height: 850px;
     height: auto;
+    aspect-ratio: 650 / 800;
     object-fit: contain;
     filter: drop-shadow(0 30px 60px rgba(15, 23, 42, 0.45));
     -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 75%, rgba(0,0,0,0) 99%);
@@ -171,6 +186,9 @@
     }
 }
 @media (max-width: 991px) {
+    .hero-photo-frame {
+        min-height: 420px;
+    }
     .hero-photo-frame img {
         max-width: 440px;
         max-height: 540px;
@@ -179,6 +197,9 @@
     }
 }
 @media (max-width: 576px) {
+    .hero-photo-frame {
+        min-height: 350px;
+    }
     .hero-photo-frame img {
         max-width: 340px;
         max-height: 420px;
@@ -378,12 +399,12 @@
                             @if(!empty($profile->hero_image_mobile))
                                 <source media="(max-width: 768px)" srcset="{{ $profile->hero_image_mobile }}">
                             @endif
-                            <img src="{{ $profile->hero_image ?: $profile->hero_image_mobile }}" alt="{{ $doctorName }}" loading="eager">
+                            <img src="{{ $profile->hero_image ?: $profile->hero_image_mobile }}" alt="{{ $doctorName }}" loading="eager" fetchpriority="high" decoding="async" width="650" height="800">
                         </picture>
                     @elseif($profile && $profile->gallery && count($profile->gallery) > 0)
-                        <img src="{{ $profile->gallery[0] }}" alt="{{ $doctorName }}" loading="eager">
+                        <img src="{{ $profile->gallery[0] }}" alt="{{ $doctorName }}" loading="eager" fetchpriority="high" decoding="async" width="650" height="800">
                     @else
-                        <img src="https://images.unsplash.com/photo-1614797136987-ab4b98843e29?auto=format&fit=crop&w=700&q=80" alt="{{ $doctorName }}" loading="eager">
+                        <img src="https://images.unsplash.com/photo-1614797136987-ab4b98843e29?auto=format&fit=crop&w=700&q=80" alt="{{ $doctorName }}" loading="eager" fetchpriority="high" decoding="async" width="650" height="800">
                     @endif
                 </div>
             </div>
@@ -401,11 +422,11 @@
             <div class="row gy-4 align-items-start">
                 <div class="col-lg-4 text-center">
                     @if($profile && !empty($profile->about_image))
-                        <img src="{{ $profile->about_image }}" alt="{{ $doctorName }}" class="about-doctor-img mb-3">
+                        <img src="{{ $profile->about_image }}" alt="{{ $doctorName }}" class="about-doctor-img mb-3" width="120" height="120" loading="lazy" decoding="async">
                     @elseif($profile && !empty($profile->hero_image))
-                        <img src="{{ $profile->hero_image }}" alt="{{ $doctorName }}" class="about-doctor-img mb-3">
+                        <img src="{{ $profile->hero_image }}" alt="{{ $doctorName }}" class="about-doctor-img mb-3" width="120" height="120" loading="lazy" decoding="async">
                     @elseif($profile && $profile->gallery && count($profile->gallery) > 0)
-                        <img src="{{ $profile->gallery[0] }}" alt="{{ $doctorName }}" class="about-doctor-img mb-3">
+                        <img src="{{ $profile->gallery[0] }}" alt="{{ $doctorName }}" class="about-doctor-img mb-3" width="120" height="120" loading="lazy" decoding="async">
                     @else
                         <div class="about-doctor-img d-flex align-items-center justify-content-center mx-auto mb-3" style="background: linear-gradient(135deg, var(--primary-color), #5b72c7); color:#fff; font-size:3rem;">Ψ</div>
                     @endif
@@ -569,11 +590,7 @@
                             <div class="service-card-new h-100 d-flex flex-column justify-content-between {{ $index === 1 ? 'popular' : '' }}"
                                  onclick="selectServiceAndOpenModal({{ $service->id }}, '{{ $service->title }}', {{ $displayPrice }}, {{ $service->duration }}, 'online')">
                                 
-                                @if($index === 1)
-                                    <div class="luxury-popular-tag">
-                                        <i class="bi bi-stars text-warning me-1"></i> {{ $isAr ? 'الأكثر طلباً واختياراً' : 'Most Popular' }}
-                                    </div>
-                                @endif
+                              
 
                                 <div>
                                     {{-- Header: Icon + Badges --}}

@@ -116,6 +116,42 @@
         color: #dc2626;
         border: 1px solid #fecaca;
     }
+
+    /* Icon Picker Grid & Items */
+    .icon-picker-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 6px;
+    }
+    .icon-picker-item {
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 8px 4px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+    }
+    .icon-picker-item:hover {
+        border-color: var(--primary-color, #3B52A4);
+        background: rgba(59, 82, 164, 0.08);
+        transform: translateY(-2px);
+    }
+    .icon-picker-item.active {
+        border-color: var(--primary-color, #3B52A4);
+        background: var(--primary-color, #3B52A4);
+        color: #fff !important;
+        box-shadow: 0 4px 10px rgba(59, 82, 164, 0.3);
+    }
+    .icon-picker-item.active i,
+    .icon-picker-item.active span {
+        color: #fff !important;
+    }
     .badge-status-pill .dot {
         width: 6px;
         height: 6px;
@@ -210,8 +246,19 @@
                                 @endphp
                                 <tr class="service-row" data-type="{{ $service->type }}">
                                     <td class="ps-4">
-                                       
-                                        <div class="text-secondary small">{{ Str::limit($service->description, 75) }}</div>
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <div class="rounded-3 d-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary" style="width:40px; height:40px; min-width:40px;">
+                                                @if($service->icon_url)
+                                                    <img src="{{ $service->icon_url }}" alt="icon" style="width:26px; height:26px; object-fit:contain; border-radius:6px;">
+                                                @else
+                                                    <i class="bi {{ $service->icon_name }} fs-5"></i>
+                                                @endif
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark fs-6">{{ $service->title }}</div>
+                                                <div class="text-secondary small">{{ Str::limit($service->description, 75) }}</div>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td>
                                         <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1">
@@ -276,10 +323,11 @@
                                                 </h5>
                                                 <button type="button" class="btn-close ms-0" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
-                                            <form action="{{ route('admin.services.update', $service->id) }}" method="POST">
+                                            <form action="{{ route('admin.services.update', $service->id) }}" method="POST" enctype="multipart/form-data">
                                                 @csrf
                                                 @php
                                                     $currCh = $service->type === 'clinic' ? 'clinic' : $service->getChannelType();
+                                                    $currIcon = $service->icon ?? 'bi-heart-pulse';
                                                 @endphp
                                                 <div class="modal-body p-4">
                                                     {{-- Service Channel Selection --}}
@@ -293,6 +341,50 @@
                                                             <option value="all" @if($currCh === 'all') selected @endif>🌐 استشارة أونلاين - متعددة القنوات (شات + صوت + فيديو)</option>
                                                             <option value="clinic" @if($currCh === 'clinic') selected @endif>🏥 كشف في مقر العيادة (In-Clinic)</option>
                                                         </select>
+                                                    </div>
+
+                                                    {{-- Icon Selection --}}
+                                                    <div class="mb-3">
+                                                        <label class="form-label small fw-bold text-dark d-flex align-items-center justify-content-between">
+                                                            <span><i class="bi bi-palette-fill me-1 text-primary"></i> أيقونة الخدمة (تظهر في التطبيق والموقع)</span>
+                                                        </label>
+                                                        <input type="hidden" name="icon" id="editServiceIcon{{ $service->id }}" value="{{ $currIcon }}">
+                                                        <div class="icon-picker-grid mb-2" id="editIconPicker{{ $service->id }}">
+                                                            @php
+                                                                $availableIcons = [
+                                                                    ['name' => 'bi-heart-pulse', 'label' => 'صحة نفسية'],
+                                                                    ['name' => 'bi-camera-video', 'label' => 'فيديو'],
+                                                                    ['name' => 'bi-telephone', 'label' => 'مكالمة'],
+                                                                    ['name' => 'bi-chat-dots', 'label' => 'شات'],
+                                                                    ['name' => 'bi-hospital', 'label' => 'عيادة'],
+                                                                    ['name' => 'bi-person-heart', 'label' => 'فردي'],
+                                                                    ['name' => 'bi-people', 'label' => 'زوجي/أسري'],
+                                                                    ['name' => 'bi-emoji-smile', 'label' => 'دعم نفسي'],
+                                                                    ['name' => 'bi-lightbulb', 'label' => 'تطوير'],
+                                                                    ['name' => 'bi-shield-check', 'label' => 'سرية'],
+                                                                    ['name' => 'bi-stars', 'label' => 'مميز'],
+                                                                    ['name' => 'bi-flower1', 'label' => 'استرخاء'],
+                                                                ];
+                                                            @endphp
+                                                            @foreach($availableIcons as $ico)
+                                                                <div class="icon-picker-item {{ $currIcon === $ico['name'] ? 'active' : '' }}" onclick="selectServiceIcon('{{ $ico['name'] }}', 'editServiceIcon{{ $service->id }}', this)">
+                                                                    <i class="bi {{ $ico['name'] }} fs-5"></i>
+                                                                    <span style="font-size:0.7rem;">{{ $ico['label'] }}</span>
+                                                                </div>
+                                                            @endforeach
+                                                        </div>
+                                                        <div class="row g-2 align-items-center mt-1">
+                                                            <div class="col-md-6">
+                                                                <label class="form-label small text-muted mb-1">أو ارفع صورة/أيقونة مخصصة (PNG/SVG):</label>
+                                                                <input type="file" name="icon_file" class="form-control form-control-sm rounded-3" accept="image/*">
+                                                            </div>
+                                                            @if($service->icon_url)
+                                                                <div class="col-md-6 d-flex align-items-center gap-2 mt-3 mt-md-0">
+                                                                    <img src="{{ $service->icon_url }}" alt="current icon" style="height:32px; width:32px; object-fit:contain; border-radius:6px; border:1px solid #ddd;">
+                                                                    <span class="small text-success fw-bold">أيقونة مخصصة مرفوعة</span>
+                                                                </div>
+                                                            @endif
+                                                        </div>
                                                     </div>
 
                                                     <div class="mb-3">
@@ -407,7 +499,7 @@
                 </h5>
             </div>
             <div class="card-body p-4">
-                <form action="{{ route('admin.services.store') }}" method="POST">
+                <form action="{{ route('admin.services.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     
                     {{-- Channel / Type Selection --}}
@@ -421,6 +513,68 @@
                             <option value="all">🌐 استشارة أونلاين - متعددة القنوات (شات + صوت + فيديو)</option>
                             <option value="clinic">🏥 كشف في مقر العيادة (In-Clinic)</option>
                         </select>
+                    </div>
+
+                    {{-- Icon Selection --}}
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark d-flex align-items-center justify-content-between">
+                            <span><i class="bi bi-palette-fill me-1 text-primary"></i> أيقونة الخدمة (تظهر في التطبيق والموقع)</span>
+                        </label>
+                        <input type="hidden" name="icon" id="addServiceIcon" value="bi-heart-pulse">
+                        <div class="icon-picker-grid mb-2" id="addIconPicker">
+                            <div class="icon-picker-item active" onclick="selectServiceIcon('bi-heart-pulse', 'addServiceIcon', this)">
+                                <i class="bi bi-heart-pulse fs-5"></i>
+                                <span style="font-size:0.7rem;">صحة نفسية</span>
+                            </div>
+                            <div class="icon-picker-item" onclick="selectServiceIcon('bi-camera-video', 'addServiceIcon', this)">
+                                <i class="bi bi-camera-video fs-5"></i>
+                                <span style="font-size:0.7rem;">فيديو</span>
+                            </div>
+                            <div class="icon-picker-item" onclick="selectServiceIcon('bi-telephone', 'addServiceIcon', this)">
+                                <i class="bi bi-telephone fs-5"></i>
+                                <span style="font-size:0.7rem;">مكالمة</span>
+                            </div>
+                            <div class="icon-picker-item" onclick="selectServiceIcon('bi-chat-dots', 'addServiceIcon', this)">
+                                <i class="bi bi-chat-dots fs-5"></i>
+                                <span style="font-size:0.7rem;">شات</span>
+                            </div>
+                            <div class="icon-picker-item" onclick="selectServiceIcon('bi-hospital', 'addServiceIcon', this)">
+                                <i class="bi bi-hospital fs-5"></i>
+                                <span style="font-size:0.7rem;">عيادة</span>
+                            </div>
+                            <div class="icon-picker-item" onclick="selectServiceIcon('bi-person-heart', 'addServiceIcon', this)">
+                                <i class="bi bi-person-heart fs-5"></i>
+                                <span style="font-size:0.7rem;">فردي</span>
+                            </div>
+                            <div class="icon-picker-item" onclick="selectServiceIcon('bi-people', 'addServiceIcon', this)">
+                                <i class="bi bi-people fs-5"></i>
+                                <span style="font-size:0.7rem;">زوجي/أسري</span>
+                            </div>
+                            <div class="icon-picker-item" onclick="selectServiceIcon('bi-emoji-smile', 'addServiceIcon', this)">
+                                <i class="bi bi-emoji-smile fs-5"></i>
+                                <span style="font-size:0.7rem;">دعم نفسي</span>
+                            </div>
+                            <div class="icon-picker-item" onclick="selectServiceIcon('bi-lightbulb', 'addServiceIcon', this)">
+                                <i class="bi bi-lightbulb fs-5"></i>
+                                <span style="font-size:0.7rem;">تطوير</span>
+                            </div>
+                            <div class="icon-picker-item" onclick="selectServiceIcon('bi-shield-check', 'addServiceIcon', this)">
+                                <i class="bi bi-shield-check fs-5"></i>
+                                <span style="font-size:0.7rem;">سرية</span>
+                            </div>
+                            <div class="icon-picker-item" onclick="selectServiceIcon('bi-stars', 'addServiceIcon', this)">
+                                <i class="bi bi-stars fs-5"></i>
+                                <span style="font-size:0.7rem;">مميز</span>
+                            </div>
+                            <div class="icon-picker-item" onclick="selectServiceIcon('bi-flower1', 'addServiceIcon', this)">
+                                <i class="bi bi-flower1 fs-5"></i>
+                                <span style="font-size:0.7rem;">استرخاء</span>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <label class="form-label small text-muted mb-1">أو رفع أيقونة/صورة مخصصة (PNG/SVG):</label>
+                            <input type="file" name="icon_file" class="form-control form-control-sm rounded-3" accept="image/*">
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -489,6 +643,21 @@
 </div>
 
 <script>
+// Select Icon in Add / Edit form
+function selectServiceIcon(iconName, inputId, element) {
+    const input = document.getElementById(inputId);
+    if (input) {
+        input.value = iconName;
+    }
+    const parent = element.parentElement;
+    if (parent) {
+        parent.querySelectorAll('.icon-picker-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        element.classList.add('active');
+    }
+}
+
 // Filter Services Table by Category
 function filterServicesTable(category, btn) {
     document.querySelectorAll('.service-filter-btn').forEach(b => {
