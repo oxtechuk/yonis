@@ -372,20 +372,20 @@
                 </div>
 
                 <h1 class="hero-title mb-3">
-                    غيّر طريقة تفكيرك<br>
-                    <span class="highlight">مع المعالج يونس المرشد</span>
+                    {{ __('messages.hero_title_1') }}<br>
+                    <span class="highlight">{{ __('messages.hero_title_2') }}</span>
                 </h1>
 
                 <p class="hero-subtitle mb-4 mx-auto mx-lg-0">
-                    استشارات نفسية متخصصة بخبرة أكثر من 10 سنوات. جلسات فردية وزوجية وأسرية عبر الأونلاين أو في العيادة.
+                    {{ __('messages.hero_subtitle') }}
                 </p>
 
                 <div class="d-flex flex-wrap justify-content-center justify-content-lg-start gap-3 mb-4">
                     <button type="button" class="btn btn-royal-primary py-3 px-4 fw-bold shadow-lg" data-bs-toggle="modal" data-bs-target="#bookingModal">
-                        <i class="bi bi-calendar-check-fill me-2"></i> احجز استشارتك الآن
+                        <i class="bi bi-calendar-check-fill me-2"></i> {{ __('messages.book_now') }}
                     </button>
                     <a href="#about" class="btn btn-hero-secondary py-3 px-4 fw-bold">
-                        <i class="bi bi-person-fill me-2"></i> تعرف على يونس
+                        <i class="bi bi-person-fill me-2"></i> {{ $isAr ? 'تعرف على يونس' : 'About Yonis' }}
                     </a>
                 </div>
 
@@ -555,8 +555,8 @@
 <section id="services" class="services-wrapper reveal-on-scroll">
     <div class="container">
         <div class="text-center mb-4">
-            <h2 class="section-title">اختر نوع الاستشارة المناسبة</h2>
-            <p class="section-subtitle">جلسات واستشارات متخصصة تضمن لك أقصى درجات الراحة والسرية التامة</p>
+            <h2 class="section-title">{{ __('messages.services_title') }}</h2>
+            <p class="section-subtitle">{{ __('messages.services_subtitle') }}</p>
         </div>
 
         {{-- ── Category Tabs: Online vs Clinic ─────────────────── --}}
@@ -590,13 +590,15 @@
                             <div class="service-card-new h-100 d-flex flex-column justify-content-between {{ $index === 1 ? 'popular' : '' }}"
                                  onclick="selectServiceAndOpenModal({{ $service->id }}, '{{ $service->title }}', {{ $displayPrice }}, {{ $service->duration }}, 'online')">
                                 
-                              
-
                                 <div>
                                     {{-- Header: Icon + Badges --}}
                                     <div class="d-flex justify-content-between align-items-start mb-2 pt-2">
                                         <div class="pricing-icon-bubble">
-                                            @if($srvChannel === 'video')
+                                            @if(!empty($service->icon_url))
+                                                <img src="{{ $service->icon_url }}" alt="{{ $service->title }}" style="width:28px; height:28px; object-fit:contain;">
+                                            @elseif(!empty($service->icon) && !str_contains($service->icon, '/') && !str_starts_with($service->icon, 'http'))
+                                                <i class="bi {{ str_starts_with($service->icon, 'bi-') ? $service->icon : 'bi-' . $service->icon }}"></i>
+                                            @elseif($srvChannel === 'video')
                                                 <i class="bi bi-camera-video-fill"></i>
                                             @elseif($srvChannel === 'voice')
                                                 <i class="bi bi-telephone-fill"></i>
@@ -608,7 +610,7 @@
                                         </div>
                                         <div class="d-flex flex-column align-items-end gap-1">
                                             <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1" style="font-size: 0.74rem;">
-                                                <i class="bi bi-clock me-1 text-primary"></i> {{ $service->duration }} دقيقة
+                                                <i class="bi bi-clock me-1 text-primary"></i> {{ $service->duration }} {{ $isAr ? 'دقيقة' : 'mins' }}
                                                 @if($srvChannel !== 'all')
                                                     • {{ $service->getChannelLabel() }}
                                                 @endif
@@ -623,15 +625,15 @@
                                     {{-- Main Price Box --}}
                                     <div class="pricing-amount-box">
                                         <div>
-                                            <span class="text-secondary small fw-bold d-block mb-1">الرسوم</span>
+                                            <span class="text-secondary small fw-bold d-block mb-1">{{ $isAr ? 'الرسوم' : 'Price' }}</span>
                                             <div class="pricing-main-price">
                                                 {{ number_format($displayPrice, 0) }} {{ \App\Models\Setting::currencySymbol() }}
-                                                <small>/ للجلسة</small>
+                                                <small>{{ $isAr ? '/ للجلسة' : '/ session' }}</small>
                                             </div>
                                         </div>
                                         <div class="text-end">
                                             <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small fw-bold">
-                                                <i class="bi bi-shield-check me-1"></i> سرية تامة 100%
+                                                <i class="bi bi-shield-check me-1"></i> {{ $isAr ? 'سرية تامة 100%' : '100% Confidential' }}
                                             </span>
                                         </div>
                                     </div>
@@ -641,8 +643,8 @@
                                 {{-- Action CTA Button --}}
                                 <div class="mt-2">
                                     <button type="button" class="btn {{ $index === 1 ? 'btn-royal-primary' : 'btn-outline-primary' }} w-100 py-3 rounded-pill fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#bookingModal">
-                                        <span>احجز استشارتك أونلاين الآن</span>
-                                        <i class="bi bi-arrow-left fs-6"></i>
+                                        <span>{{ $isAr ? 'احجز استشارتك أونلاين الآن' : 'Book Online Session Now' }}</span>
+                                        <i class="bi bi-arrow-{{ $isAr ? 'left' : 'right' }} fs-6"></i>
                                     </button>
                                 </div>
                             </div>
@@ -671,14 +673,20 @@
                                     {{-- Header: Icon + Badges --}}
                                     <div class="d-flex justify-content-between align-items-start mb-2 pt-2">
                                         <div class="pricing-icon-bubble">
-                                            <i class="bi bi-hospital-fill"></i>
+                                            @if(!empty($service->icon_url))
+                                                <img src="{{ $service->icon_url }}" alt="{{ $service->title }}" style="width:28px; height:28px; object-fit:contain;">
+                                            @elseif(!empty($service->icon) && !str_contains($service->icon, '/') && !str_starts_with($service->icon, 'http'))
+                                                <i class="bi {{ str_starts_with($service->icon, 'bi-') ? $service->icon : 'bi-' . $service->icon }}"></i>
+                                            @else
+                                                <i class="bi bi-hospital-fill"></i>
+                                            @endif
                                         </div>
                                         <div class="d-flex flex-column align-items-end gap-1">
                                             <span class="badge bg-danger bg-opacity-10 text-danger fw-bold rounded-pill px-3 py-1.5" style="font-size: 0.78rem;">
-                                                <i class="bi bi-geo-alt-fill me-1"></i> كشف وحضور بالعيادة
+                                                <i class="bi bi-geo-alt-fill me-1"></i> {{ $isAr ? 'كشف وحضور بالعيادة' : 'In-Clinic Visit' }}
                                             </span>
                                             <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1" style="font-size: 0.74rem;">
-                                                <i class="bi bi-clock me-1 text-danger"></i> {{ $service->duration }} دقيقة
+                                                <i class="bi bi-clock me-1 text-danger"></i> {{ $service->duration }} {{ $isAr ? 'دقيقة' : 'mins' }}
                                             </span>
                                         </div>
                                     </div>
@@ -690,15 +698,15 @@
                                     {{-- Main Price Box --}}
                                     <div class="pricing-amount-box">
                                         <div>
-                                            <span class="text-secondary small fw-bold d-block mb-1">رسوم الكشف السريري</span>
+                                            <span class="text-secondary small fw-bold d-block mb-1">{{ $isAr ? 'رسوم الكشف السريري' : 'In-Clinic Fee' }}</span>
                                             <div class="pricing-main-price" style="color: #881337;">
                                                 {{ number_format($service->clinic_price ?? $service->price, 0) }} {{ \App\Models\Setting::currencySymbol() }}
-                                                <small>/ للجلسة</small>
+                                                <small>{{ $isAr ? '/ للجلسة' : '/ session' }}</small>
                                             </div>
                                         </div>
                                         <div class="text-end">
                                             <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 small fw-bold">
-                                                <i class="bi bi-patch-check-fill me-1"></i> فحص مباشر
+                                                <i class="bi bi-patch-check-fill me-1"></i> {{ $isAr ? 'فحص مباشر' : 'Direct Exam' }}
                                             </span>
                                         </div>
                                     </div>
@@ -707,8 +715,8 @@
                                     <div class="clinic-location-pill">
                                         <i class="bi bi-geo-alt-fill text-danger fs-5 flex-shrink-0"></i>
                                         <div>
-                                            <div class="fw-bold">مقر عيادة د. يونس المرشد - بغداد</div>
-                                            <div class="text-secondary small fw-normal">جلسة تشخيص وكشف سريري متكامل في بيئة مريحة</div>
+                                            <div class="fw-bold">{{ $isAr ? 'مقر عيادة د. يونس المرشد - بغداد' : 'Dr. Yonis Clinic - Baghdad' }}</div>
+                                            <div class="text-secondary small fw-normal">{{ $isAr ? 'جلسة تشخيص وكشف سريري متكامل في بيئة مريحة' : 'Comprehensive clinical exam in a comfortable setting' }}</div>
                                         </div>
                                     </div>
 
@@ -717,8 +725,8 @@
                                 {{-- Action CTA Button --}}
                                 <div class="mt-2">
                                     <button type="button" class="btn btn-outline-danger w-100 py-3 rounded-pill fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#bookingModal">
-                                        <span>احجز موعدك بالعيادة الآن</span>
-                                        <i class="bi bi-arrow-left fs-6"></i>
+                                        <span>{{ $isAr ? 'احجز موعدك بالعيادة الآن' : 'Book In-Clinic Now' }}</span>
+                                        <i class="bi bi-arrow-{{ $isAr ? 'left' : 'right' }} fs-6"></i>
                                     </button>
                                 </div>
                             </div>
@@ -738,11 +746,11 @@
     <div class="container position-relative">
         <div class="d-flex justify-content-between align-items-end mb-4">
             <div>
-                <h2 class="section-title text-white">تابعنا عبر منصات التواصل</h2>
-                <p class="mb-0" style="color:rgba(255,255,255,0.65);">إرشادات نفسية ومقاطع توعوية قصيرة من أستاذ يونس</p>
+                <h2 class="section-title text-white">{{ $isAr ? 'تابعنا عبر منصات التواصل' : 'Follow Us on Social Media' }}</h2>
+                <p class="mb-0" style="color:rgba(255,255,255,0.65);">{{ $isAr ? 'إرشادات نفسية ومقاطع توعوية قصيرة من أستاذ يونس' : 'Psychological guidance and short awareness videos' }}</p>
             </div>
             <a href="#" target="_blank" class="btn btn-outline-light btn-sm rounded-pill px-4 d-none d-md-inline-flex align-items-center gap-2">
-                <i class="bi bi-tiktok"></i> متابعة TikTok
+                <i class="bi bi-tiktok"></i> {{ $isAr ? 'متابعة TikTok' : 'Follow TikTok' }}
             </a>
         </div>
 
@@ -777,7 +785,7 @@
                                 <div class="reel-title-text">{{ $reel->title }}</div>
                                 <div class="reel-views">
                                     <i class="bi bi-eye-fill"></i>
-                                    {{ number_format(rand(5000, 80000)) }} مشاهدة
+                                    {{ number_format(rand(5000, 80000)) }} {{ $isAr ? 'مشاهدة' : 'views' }}
                                 </div>
                             </div>
                         </div>
@@ -805,7 +813,7 @@
                                 <div class="reel-title-text">{{ $reel->title }}</div>
                                 <div class="reel-views">
                                     <i class="bi bi-eye-fill"></i>
-                                    {{ number_format(rand(5000, 80000)) }} مشاهدة
+                                    {{ number_format(rand(5000, 80000)) }} {{ $isAr ? 'مشاهدة' : 'views' }}
                                 </div>
                             </div>
                         </div>

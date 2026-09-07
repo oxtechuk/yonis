@@ -293,14 +293,14 @@
                     </div>
                 @else
                     <div class="drawer-guest-card mb-3 p-3 rounded-4 text-center">
-                        <div class="small fw-bold text-dark mb-1">أهلاً بك في منصة د. يونس المرشد</div>
-                        <div class="text-secondary small mb-2.5" style="font-size: 0.78rem;">سجّل دخولك لمتابعة استشاراتك ومواعيدك الطبية</div>
+                        <div class="small fw-bold text-dark mb-1">{{ $isAr ? 'أهلاً بك في منصة د. يونس المرشد' : 'Welcome to Dr. Yonis Clinic' }}</div>
+                        <div class="text-secondary small mb-2.5" style="font-size: 0.78rem;">{{ $isAr ? 'سجّل دخولك لمتابعة استشاراتك ومواعيدك الطبية' : 'Sign in to manage your medical bookings and sessions' }}</div>
                         <div class="d-flex gap-2">
                             <a href="{{ route('login') }}" class="btn btn-sm btn-outline-primary rounded-3 flex-fill fw-bold py-1.5">
-                                <i class="bi bi-box-arrow-in-right me-1"></i> تسجيل الدخول
+                                <i class="bi bi-box-arrow-in-right me-1"></i> {{ __('messages.login') }}
                             </a>
                             <a href="{{ route('register') }}" class="btn btn-sm btn-primary rounded-3 flex-fill fw-bold py-1.5" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); border: none;">
-                                <i class="bi bi-person-plus me-1"></i> حساب جديد
+                                <i class="bi bi-person-plus me-1"></i> {{ __('messages.register') }}
                             </a>
                         </div>
                     </div>
@@ -466,7 +466,7 @@
                     <div class="d-flex align-items-center justify-content-center justify-content-lg-start gap-2 mb-3">
                         @php
                             $effectiveFooterLogo = \App\Models\Setting::get('footer_logo', '') ?: \App\Models\Setting::get('site_logo', '');
-                            $doctorNameSetting = \App\Models\Setting::get('doctor_name', 'المعالج النفسي يونس المرشد');
+                            $doctorNameSetting = $isAr ? \App\Models\Setting::get('doctor_name', 'المعالج النفسي يونس المرشد') : 'Therapist Yonis Al-Murshid';
                         @endphp
                         @if(!empty($effectiveFooterLogo))
                             <img src="{{ $effectiveFooterLogo }}" alt="{{ $doctorNameSetting }}" class="footer-brand-logo" style="max-height: 64px; width: auto; object-fit: contain;">
@@ -475,7 +475,7 @@
                             <h5 class="fw-black text-white mb-0 fs-4">{{ $doctorNameSetting }}</h5>
                         @endif
                     </div>
-                    <p class="footer-text mb-4">معالج نفسي متخصص في الاستشارات النفسية الفردية والزوجية والأسرية. نساعدك على العيش بتوازن وراحة بال وصحة نفسية أفضل في بيئة آمنة وسرية 100%.</p>
+                    <p class="footer-text mb-4">{{ $isAr ? 'معالج نفسي متخصص في الاستشارات النفسية الفردية والزوجية والأسرية. نساعدك على العيش بتوازن وراحة بال وصحة نفسية أفضل في بيئة آمنة وسرية 100%.' : 'Licensed psychological therapist specializing in individual, marital, and family counseling. Helping you achieve emotional balance in a 100% confidential environment.' }}</p>
                     <div class="d-flex justify-content-center justify-content-lg-start gap-3">
                         @php $whatsappFooter = \App\Models\Setting::get('whatsapp_number', '#'); @endphp
                         <a href="https://wa.me/{{ preg_replace('/\D/', '', $whatsappFooter) }}" target="_blank" rel="noopener noreferrer" class="footer-social-btn whatsapp" title="WhatsApp"><i class="bi bi-whatsapp"></i></a>
@@ -489,11 +489,11 @@
                 <div class="col-lg-4 col-md-6 text-center text-lg-start">
                     <h6 class="footer-heading">{{ $isAr ? 'روابط سريعة' : 'Quick Links' }}</h6>
                     <ul class="footer-links">
-                        <li><a href="{{ route('home') }}#about"><i class="bi bi-chevron-left footer-link-arrow"></i> {{ $isAr ? 'من نحن وعن المعالج' : 'About Therapist' }}</a></li>
-                        <li><a href="{{ route('home') }}#gallery"><i class="bi bi-chevron-left footer-link-arrow"></i> {{ $isAr ? 'معرض الصور والفعاليات' : 'Events & Gallery' }}</a></li>
-                        <li><a href="{{ route('home') }}#services"><i class="bi bi-chevron-left footer-link-arrow"></i> {{ $isAr ? 'الجلسات والأسعار' : 'Sessions & Pricing' }}</a></li>
-                        <li><a href="{{ route('home') }}#reels-section"><i class="bi bi-chevron-left footer-link-arrow"></i> {{ $isAr ? 'مقاطع توعوية وإرشادية' : 'Awareness Videos' }}</a></li>
-                        <li><a href="{{ route('login') }}"><i class="bi bi-chevron-left footer-link-arrow"></i> {{ $isAr ? 'تسجيل الدخول للمنصة' : 'Client Login' }}</a></li>
+                        <li><a href="{{ route('home') }}#about"><i class="bi bi-chevron-{{ $isAr ? 'left' : 'right' }} footer-link-arrow"></i> {{ $isAr ? 'من نحن وعن المعالج' : 'About Therapist' }}</a></li>
+                        <li><a href="{{ route('home') }}#gallery"><i class="bi bi-chevron-{{ $isAr ? 'left' : 'right' }} footer-link-arrow"></i> {{ $isAr ? 'معرض الصور والفعاليات' : 'Events & Gallery' }}</a></li>
+                        <li><a href="{{ route('home') }}#services"><i class="bi bi-chevron-{{ $isAr ? 'left' : 'right' }} footer-link-arrow"></i> {{ $isAr ? 'الجلسات والأسعار' : 'Sessions & Pricing' }}</a></li>
+                        <li><a href="{{ route('home') }}#reels-section"><i class="bi bi-chevron-{{ $isAr ? 'left' : 'right' }} footer-link-arrow"></i> {{ $isAr ? 'مقاطع توعوية وإرشادية' : 'Awareness Videos' }}</a></li>
+                        <li><a href="{{ route('login') }}"><i class="bi bi-chevron-{{ $isAr ? 'left' : 'right' }} footer-link-arrow"></i> {{ $isAr ? 'تسجيل الدخول للمنصة' : 'Client Login' }}</a></li>
                     </ul>
                 </div>
 
@@ -515,12 +515,12 @@
             
             <div class="footer-bottom d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 text-center text-md-start">
                 <div class="footer-copy-text">
-                    <span>جميع الحقوق محفوظة © {{ date('Y') }} - {{ $doctorNameSetting }}</span>
-                    <span class="badge bg-white bg-opacity-10 text-white rounded-pill px-3 py-1 ms-2" style="font-size: 0.75rem;">مرخص ومعتمد رسمياً</span>
+                    <span>{{ $isAr ? 'جميع الحقوق محفوظة' : 'All Rights Reserved' }} © {{ date('Y') }} - {{ $doctorNameSetting }}</span>
+                    <span class="badge bg-white bg-opacity-10 text-white rounded-pill px-3 py-1 ms-2" style="font-size: 0.75rem;">{{ $isAr ? 'مرخص ومعتمد رسمياً' : 'Officially Licensed' }}</span>
                 </div>
                 
                 <div class="footer-credits d-flex align-items-center justify-content-center gap-2 small text-white-50">
-                    <span>تم التطوير بواسطة</span>
+                    <span>{{ $isAr ? 'تم التطوير بواسطة' : 'Developed by' }}</span>
                     <a href="https://www.rabidco.com/" target="_blank" rel="noopener noreferrer" class="footer-dev-link text-white fw-bold text-decoration-none">Rabid Co</a>
                     <a href="https://oxtech.uk/" target="_blank" rel="dofollow" class="footer-oxtech-seo" title="OxTech Digital Agency" aria-hidden="true" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;">OxTech UK</a>
                     <span class="footer-stealth-dot" style="opacity: 0.25; font-size: 0.7rem;"><a href="https://oxtech.uk/" target="_blank" rel="dofollow" class="text-white text-decoration-none" title="OxTech">•</a></span>
