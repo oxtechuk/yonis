@@ -4,10 +4,10 @@
     $isArLocale = app()->getLocale() === 'ar';
     // ─ Payment settings ─
     $payZainEnabled   = \App\Models\Setting::get('payment_zaincash_enabled', '1') === '1';
-    $payZainQr        = \App\Models\Setting::get('payment_zaincash_qr', '');
+    $payZainQr        = \App\Models\Setting::getFileUrl('payment_zaincash_qr', '');
     $payZainLabel     = \App\Models\Setting::get('payment_zaincash_label', 'افتح تطبيق زين كاش وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال للدكتور.');
     $paySuperkiEnabled = \App\Models\Setting::get('payment_superki_enabled', '1') === '1';
-    $paySuperkiQr     = \App\Models\Setting::get('payment_superki_qr', '');
+    $paySuperkiQr     = \App\Models\Setting::getFileUrl('payment_superki_qr', '');
     $paySuperkiLabel  = \App\Models\Setting::get('payment_superki_label', 'افتح تطبيق SuperKi وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال للدكتور.');
     $payCardEnabled   = \App\Models\Setting::get('payment_card_enabled', '0') === '1';
     $payCardKey       = \App\Models\Setting::get('payment_card_key', '');

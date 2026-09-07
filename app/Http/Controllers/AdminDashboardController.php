@@ -1298,10 +1298,10 @@ class AdminDashboardController extends Controller
             'booking_banner_image'        => Setting::get('booking_banner_image', ''),
             // ─── إعدادات الدفع ───────────────────────────────────────────────
             'payment_zaincash_enabled' => Setting::get('payment_zaincash_enabled', '1'),
-            'payment_zaincash_qr'      => Setting::get('payment_zaincash_qr', ''),
+            'payment_zaincash_qr'      => Setting::getFileUrl('payment_zaincash_qr', ''),
             'payment_zaincash_label'   => Setting::get('payment_zaincash_label', 'افتح تطبيق زين كاش وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال للدكتور.'),
             'payment_superki_enabled'  => Setting::get('payment_superki_enabled', '1'),
-            'payment_superki_qr'       => Setting::get('payment_superki_qr', ''),
+            'payment_superki_qr'       => Setting::getFileUrl('payment_superki_qr', ''),
             'payment_superki_label'    => Setting::get('payment_superki_label', 'افتح تطبيق SuperKi وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال للدكتور.'),
             'payment_card_enabled'     => Setting::get('payment_card_enabled', '0'),
             'payment_card_key'         => Setting::get('payment_card_key', ''),
@@ -1411,7 +1411,11 @@ class AdminDashboardController extends Controller
             $path = $this->storePublicUpload($request->file('payment_zaincash_qr_file'), 'payments');
             Setting::set('payment_zaincash_qr', asset('storage/' . $path));
         } elseif ($request->filled('payment_zaincash_qr')) {
-            Setting::set('payment_zaincash_qr', $request->payment_zaincash_qr);
+            $cleanQr = $request->payment_zaincash_qr;
+            while (preg_match('/https?:\/\/[^\/]+\/storage\/(https?:\/\/.*)$/i', $cleanQr, $m)) {
+                $cleanQr = $m[1];
+            }
+            Setting::set('payment_zaincash_qr', $cleanQr);
         }
 
         // SuperKi
@@ -1421,7 +1425,11 @@ class AdminDashboardController extends Controller
             $path = $this->storePublicUpload($request->file('payment_superki_qr_file'), 'payments');
             Setting::set('payment_superki_qr', asset('storage/' . $path));
         } elseif ($request->filled('payment_superki_qr')) {
-            Setting::set('payment_superki_qr', $request->payment_superki_qr);
+            $cleanQr = $request->payment_superki_qr;
+            while (preg_match('/https?:\/\/[^\/]+\/storage\/(https?:\/\/.*)$/i', $cleanQr, $m)) {
+                $cleanQr = $m[1];
+            }
+            Setting::set('payment_superki_qr', $cleanQr);
         }
 
         // فيزا وماستر كارد

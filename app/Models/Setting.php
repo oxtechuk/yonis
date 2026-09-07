@@ -100,4 +100,28 @@ class Setting extends Model
         $formatted = number_format((float)$amount, 0);
         return "{$formatted} {$sym}";
     }
+
+    /**
+     * Safely resolve image/file URL from settings, preventing nested or duplicate URL prefixes.
+     */
+    public static function getFileUrl(string $key, ?string $default = null): ?string
+    {
+        $val = static::get($key, $default);
+        if (empty($val)) {
+            return $default;
+        }
+
+        // Remove any recursive/duplicated prefixes like https://domain.com/storage/https://...
+        while (preg_match('/https?:\/\/[^\/]+\/storage\/(https?:\/\/.*)$/i', $val, $m)) {
+            $val = $m[1];
+        }
+
+        if (preg_match('/^https?:\/\//i', $val)) {
+            return $val;
+        }
+
+        $cleanPath = ltrim(preg_replace('/^storage\//i', '', ltrim($val, '/')), '/');
+        return asset('storage/' . $cleanPath);
+    }
 }
+

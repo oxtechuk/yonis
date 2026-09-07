@@ -414,12 +414,12 @@ class ApiController extends Controller
                     'default_method' => $defaultPaymentMethod,
                     'zaincash' => [
                         'enabled' => $payZainEnabled,
-                        'qr'      => Setting::get('payment_zaincash_qr', ''),
+                        'qr'      => Setting::getFileUrl('payment_zaincash_qr', ''),
                         'label'   => Setting::get('payment_zaincash_label', 'افتح تطبيق زين كاش وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال للدكتور.'),
                     ],
                     'superki' => [
                         'enabled' => $paySuperkiEnabled,
-                        'qr'      => Setting::get('payment_superki_qr', ''),
+                        'qr'      => Setting::getFileUrl('payment_superki_qr', ''),
                         'label'   => Setting::get('payment_superki_label', 'افتح تطبيق SuperKi وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال للدكتور.'),
                     ],
                     'card' => [
@@ -768,8 +768,8 @@ class ApiController extends Controller
             ]);
 
             // Resolve QR and Instructions
-            $zainQr = Setting::get('payment_zaincash_qr') ? asset('storage/' . Setting::get('payment_zaincash_qr')) : null;
-            $superkiQr = Setting::get('payment_superki_qr') ? asset('storage/' . Setting::get('payment_superki_qr')) : null;
+            $zainQr = Setting::getFileUrl('payment_zaincash_qr');
+            $superkiQr = Setting::getFileUrl('payment_superki_qr');
             $cardLink = Setting::get('payment_card_link', '');
             $cardInstructions = Setting::get('payment_card_instructions', '');
             $whatsappNumber = Setting::get('doctor_whatsapp', Setting::get('clinic_phone', '+9647700000000'));
