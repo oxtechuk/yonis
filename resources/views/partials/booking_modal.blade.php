@@ -154,86 +154,6 @@
                         </div>
                     </div>
 
-                    {{-- Registration Section --}}
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div class="app-section-title fs-5 fw-black text-dark mb-0">{{ __('messages.register') }}</div>
-                            <span id="app_user_status_badge" class="badge bg-light text-muted border small d-none"></span>
-                        </div>
-                        
-                        <div class="mb-2.5">
-                            <label class="form-label small fw-bold text-secondary mb-1">{{ __('messages.full_name') }}</label>
-                            <div class="position-relative">
-                                <input type="text" id="app_user_name" class="form-control app-input w-100 pe-4" placeholder="{{ __('messages.full_name') }}" value="{{ Auth::check() ? Auth::user()->name : '' }}" oninput="savePatientBookingToStorage()" required>
-                                <i class="bi bi-person position-absolute top-50 translate-middle-y end-0 me-3 text-secondary"></i>
-                            </div>
-                        </div>
-
-                        {{-- WhatsApp with Unicode Country Flag Picker --}}
-                        <div class="mb-2.5">
-                            <label class="form-label small fw-bold text-secondary mb-1">{{ __('messages.whatsapp_number') }}</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0 pe-2 ps-2 fs-5" id="app_country_flag_badge" style="border-radius: 0 16px 16px 0; user-select: none;">
-                                    🇮🇶
-                                </span>
-                                <select class="form-select bg-light fw-bold text-dark border-start-0 border-end-0 ps-1 pe-2" id="app_country_code" style="max-width: 140px; cursor:pointer; font-size:0.86rem;" onchange="onModalCountryCodeChanged(this)">
-                                    <option value="+964" data-flag="🇮🇶" selected>🇮🇶 +964 (العراق)</option>
-                                    <option value="+966" data-flag="🇸🇦">🇸🇦 +966 (السعودية)</option>
-                                    <option value="+971" data-flag="🇦🇪">🇦🇪 +971 (الإمارات)</option>
-                                    <option value="+965" data-flag="🇰🇼">🇰🇼 +965 (الكويت)</option>
-                                    <option value="+974" data-flag="🇶🇦">🇶🇦 +974 (قطر)</option>
-                                    <option value="+968" data-flag="🇴🇲">🇴🇲 +968 (عُمان)</option>
-                                    <option value="+973" data-flag="🇧🇭">🇧🇭 +973 (البحرين)</option>
-                                    <option value="+962" data-flag="🇯🇴">🇯🇴 +962 (الأردن)</option>
-                                    <option value="+20" data-flag="🇪🇬">🇪🇬 +20 (مصر)</option>
-                                    <option value="+961" data-flag="🇱🇧">🇱🇧 +961 (لبنان)</option>
-                                    <option value="+963" data-flag="🇸🇾">🇸🇾 +963 (سوريا)</option>
-                                    <option value="+970" data-flag="🇵🇸">🇵🇸 +970 (فلسطين)</option>
-                                    <option value="+967" data-flag="🇾🇪">🇾🇪 +967 (اليمن)</option>
-                                    <option value="+218" data-flag="🇱🇾">🇱🇾 +218 (ليبيا)</option>
-                                    <option value="+249" data-flag="🇸🇩">🇸🇩 +249 (السودان)</option>
-                                    <option value="+213" data-flag="🇩🇿">🇩🇿 +213 (الجزائر)</option>
-                                    <option value="+212" data-flag="🇲🇦">🇲🇦 +212 (المغرب)</option>
-                                    <option value="+216" data-flag="🇹🇳">🇹🇳 +216 (تونس)</option>
-                                    <option value="+90" data-flag="🇹🇷">🇹🇷 +90 (تركيا)</option>
-                                    <option value="+44" data-flag="🇬🇧">🇬🇧 +44 (بريطانيا)</option>
-                                    <option value="+1" data-flag="🇺🇸">🇺🇸 +1 (أمريكا / كندا)</option>
-                                    <option value="+49" data-flag="🇩🇪">🇩🇪 +49 (ألمانيا)</option>
-                                    <option value="+46" data-flag="🇸🇪">🇸🇪 +46 (السويد)</option>
-                                    <option value="+33" data-flag="🇫🇷">🇫🇷 +33 (فرنسا)</option>
-                                    <option value="+31" data-flag="🇳🇱">🇳🇱 +31 (هولندا)</option>
-                                    <option value="+61" data-flag="🇦🇺">🇦🇺 +61 (أستراليا)</option>
-                                    <option value="+41" data-flag="🇨🇭">🇨🇭 +41 (سويسرا)</option>
-                                    <option value="+43" data-flag="🇦🇹">🇦🇹 +43 (النمسا)</option>
-                                    <option value="+47" data-flag="🇳🇴">🇳🇴 +47 (النرويج)</option>
-                                    <option value="+45" data-flag="🇩🇰">🇩🇰 +45 (الدنمارك)</option>
-                                    <option value="+32" data-flag="🇧🇪">🇧🇪 +32 (بلجيكا)</option>
-                                    <option value="+39" data-flag="🇮🇹">🇮🇹 +39 (إيطاليا)</option>
-                                    <option value="+34" data-flag="🇪🇸">🇪🇸 +34 (إسبانيا)</option>
-                                </select>
-                                <input type="tel" id="app_user_phone" class="form-control app-input rounded-start-4" placeholder="7701234567" value="{{ Auth::check() ? preg_replace('/^\+964/', '', Auth::user()->phone ?? '') : '' }}" oninput="savePatientBookingToStorage(); checkUserRegistrationStatus();" required>
-                            </div>
-                        </div>
-
-                        {{-- Email Field --}}
-                        <div class="mb-2.5">
-                            <label class="form-label small fw-bold text-secondary mb-1">البريد الإلكتروني (لتأكيد الموعد واستلام التفاصيل)</label>
-                            <div class="position-relative">
-                                <input type="email" id="app_user_email" class="form-control app-input w-100 pe-4" placeholder="name@example.com" value="{{ Auth::check() ? Auth::user()->email : '' }}" oninput="savePatientBookingToStorage()">
-                                <i class="bi bi-envelope position-absolute top-50 translate-middle-y end-0 me-3 text-secondary"></i>
-                            </div>
-                        </div>
-
-                        <div class="mb-2.5" id="app_password_wrapper" style="{{ Auth::check() ? 'display:none;' : '' }}">
-                            <label class="form-label small fw-bold text-secondary mb-1" id="app_password_label">{{ __('messages.password') }}</label>
-                            <div class="position-relative">
-                                <input type="password" id="app_user_password" class="form-control app-input w-100 pe-4" placeholder="{{ __('messages.password') }}" minlength="6">
-                                <i class="bi bi-lock position-absolute top-50 translate-middle-y end-0 me-3 text-secondary"></i>
-                            </div>
-                            <div class="form-text text-muted small" id="app_password_hint">يرجى تعيين كلمة مرور لإنشاء حسابك ومتابعة مواعيدك.</div>
-                        </div>
-                    </div>
-
                     {{-- ═══ اختيار طريقة الدفع ═══ --}}
                     @if($anyPaymentActive)
                     <div class="mb-3 pt-2 border-top">
@@ -340,6 +260,86 @@
                         </div>
                     </div>
                     @endif
+                    {{-- Registration Section --}}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="app-section-title fs-5 fw-black text-dark mb-0">{{ __('messages.register') }}</div>
+                            <span id="app_user_status_badge" class="badge bg-light text-muted border small d-none"></span>
+                        </div>
+                        
+                        <div class="mb-2.5">
+                            <label class="form-label small fw-bold text-secondary mb-1">{{ __('messages.full_name') }}</label>
+                            <div class="position-relative">
+                                <input type="text" id="app_user_name" class="form-control app-input w-100 pe-4" placeholder="{{ __('messages.full_name') }}" value="{{ Auth::check() ? Auth::user()->name : '' }}" oninput="savePatientBookingToStorage()" required>
+                                <i class="bi bi-person position-absolute top-50 translate-middle-y end-0 me-3 text-secondary"></i>
+                            </div>
+                        </div>
+
+                        {{-- WhatsApp with Unicode Country Flag Picker --}}
+                        <div class="mb-2.5">
+                            <label class="form-label small fw-bold text-secondary mb-1">{{ __('messages.whatsapp_number') }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 pe-2 ps-2 fs-5" id="app_country_flag_badge" style="border-radius: 0 16px 16px 0; user-select: none;">
+                                    🇮🇶
+                                </span>
+                                <select class="form-select bg-light fw-bold text-dark border-start-0 border-end-0 ps-1 pe-2" id="app_country_code" style="max-width: 140px; cursor:pointer; font-size:0.86rem;" onchange="onModalCountryCodeChanged(this)">
+                                    <option value="+964" data-flag="🇮🇶" selected>🇮🇶 +964 (العراق)</option>
+                                    <option value="+966" data-flag="🇸🇦">🇸🇦 +966 (السعودية)</option>
+                                    <option value="+971" data-flag="🇦🇪">🇦🇪 +971 (الإمارات)</option>
+                                    <option value="+965" data-flag="🇰🇼">🇰🇼 +965 (الكويت)</option>
+                                    <option value="+974" data-flag="🇶🇦">🇶🇦 +974 (قطر)</option>
+                                    <option value="+968" data-flag="🇴🇲">🇴🇲 +968 (عُمان)</option>
+                                    <option value="+973" data-flag="🇧🇭">🇧🇭 +973 (البحرين)</option>
+                                    <option value="+962" data-flag="🇯🇴">🇯🇴 +962 (الأردن)</option>
+                                    <option value="+20" data-flag="🇪🇬">🇪🇬 +20 (مصر)</option>
+                                    <option value="+961" data-flag="🇱🇧">🇱🇧 +961 (لبنان)</option>
+                                    <option value="+963" data-flag="🇸🇾">🇸🇾 +963 (سوريا)</option>
+                                    <option value="+970" data-flag="🇵🇸">🇵🇸 +970 (فلسطين)</option>
+                                    <option value="+967" data-flag="🇾🇪">🇾🇪 +967 (اليمن)</option>
+                                    <option value="+218" data-flag="🇱🇾">🇱🇾 +218 (ليبيا)</option>
+                                    <option value="+249" data-flag="🇸🇩">🇸🇩 +249 (السودان)</option>
+                                    <option value="+213" data-flag="🇩🇿">🇩🇿 +213 (الجزائر)</option>
+                                    <option value="+212" data-flag="🇲🇦">🇲🇦 +212 (المغرب)</option>
+                                    <option value="+216" data-flag="🇹🇳">🇹🇳 +216 (تونس)</option>
+                                    <option value="+90" data-flag="🇹🇷">🇹🇷 +90 (تركيا)</option>
+                                    <option value="+44" data-flag="🇬🇧">🇬🇧 +44 (بريطانيا)</option>
+                                    <option value="+1" data-flag="🇺🇸">🇺🇸 +1 (أمريكا / كندا)</option>
+                                    <option value="+49" data-flag="🇩🇪">🇩🇪 +49 (ألمانيا)</option>
+                                    <option value="+46" data-flag="🇸🇪">🇸🇪 +46 (السويد)</option>
+                                    <option value="+33" data-flag="🇫🇷">🇫🇷 +33 (فرنسا)</option>
+                                    <option value="+31" data-flag="🇳🇱">🇳🇱 +31 (هولندا)</option>
+                                    <option value="+61" data-flag="🇦🇺">🇦🇺 +61 (أستراليا)</option>
+                                    <option value="+41" data-flag="🇨🇭">🇨🇭 +41 (سويسرا)</option>
+                                    <option value="+43" data-flag="🇦🇹">🇦🇹 +43 (النمسا)</option>
+                                    <option value="+47" data-flag="🇳🇴">🇳🇴 +47 (النرويج)</option>
+                                    <option value="+45" data-flag="🇩🇰">🇩🇰 +45 (الدنمارك)</option>
+                                    <option value="+32" data-flag="🇧🇪">🇧🇪 +32 (بلجيكا)</option>
+                                    <option value="+39" data-flag="🇮🇹">🇮🇹 +39 (إيطاليا)</option>
+                                    <option value="+34" data-flag="🇪🇸">🇪🇸 +34 (إسبانيا)</option>
+                                </select>
+                                <input type="tel" id="app_user_phone" class="form-control app-input rounded-start-4" placeholder="7701234567" value="{{ Auth::check() ? preg_replace('/^\+964/', '', Auth::user()->phone ?? '') : '' }}" oninput="savePatientBookingToStorage(); checkUserRegistrationStatus();" required>
+                            </div>
+                        </div>
+
+                        {{-- Email Field --}}
+                        <div class="mb-2.5">
+                            <label class="form-label small fw-bold text-secondary mb-1">البريد الإلكتروني (لتأكيد الموعد واستلام التفاصيل)</label>
+                            <div class="position-relative">
+                                <input type="email" id="app_user_email" class="form-control app-input w-100 pe-4" placeholder="name@example.com" value="{{ Auth::check() ? Auth::user()->email : '' }}" oninput="savePatientBookingToStorage()">
+                                <i class="bi bi-envelope position-absolute top-50 translate-middle-y end-0 me-3 text-secondary"></i>
+                            </div>
+                        </div>
+
+                        <div class="mb-2.5" id="app_password_wrapper" style="{{ Auth::check() ? 'display:none;' : '' }}">
+                            <label class="form-label small fw-bold text-secondary mb-1" id="app_password_label">{{ __('messages.password') }}</label>
+                            <div class="position-relative">
+                                <input type="password" id="app_user_password" class="form-control app-input w-100 pe-4" placeholder="{{ __('messages.password') }}" minlength="6">
+                                <i class="bi bi-lock position-absolute top-50 translate-middle-y end-0 me-3 text-secondary"></i>
+                            </div>
+                            <div class="form-text text-muted small" id="app_password_hint">يرجى تعيين كلمة مرور لإنشاء حسابك ومتابعة مواعيدك.</div>
+                        </div>
+                    </div>
+
 
                     {{-- Bottom Action Bar for Screen 2 --}}
                     <div class="mobile-app-bottom-bar">

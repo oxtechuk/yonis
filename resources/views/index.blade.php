@@ -4,9 +4,9 @@
     $isAr = app()->getLocale() === 'ar';
 @endphp
 
-@section('title', 'المعالج النفسي يونس المرشد - حجز استشارات نفسية وأسرية متخصصة')
-@section('meta_description', 'احجز استشارتك النفسية مع المعالج يونس المرشد - جلسات فردية وزوجية وأسرية. استشارات عبر شات أو صوت أو فيديو أو في العيادة. خبرة 10 سنوات في العلاج المعرفي السلوكي.')
-@section('meta_keywords', 'معالج نفسي, استشارة نفسية, يونس المرشد, حجز موعد نفسي, علاج اكتئاب, علاج قلق, استشارة زوجية, علاج أسري')
+@section('title', 'المعالج النفسي د/يونس المرشد  - حجز استشارات نفسية وأسرية متخصصة')
+@section('meta_description', 'احجز استشارتك النفسية مع المعالج د/يونس المرشد  - جلسات فردية وزوجية وأسرية. استشارات عبر شات أو صوت أو فيديو أو في العيادة. خبرة 10 سنوات في العلاج المعرفي السلوكي.')
+@section('meta_keywords', 'معالج نفسي, استشارة نفسية, د/يونس المرشد , حجز موعد نفسي, علاج اكتئاب, علاج قلق, استشارة زوجية, علاج أسري')
 
 @section('head_preload')
     @if($profile && !empty($profile->hero_image))
@@ -385,7 +385,7 @@
                         <i class="bi bi-calendar-check-fill me-2"></i> {{ __('messages.book_now') }}
                     </button>
                     <a href="#about" class="btn btn-hero-secondary py-3 px-4 fw-bold">
-                        <i class="bi bi-person-fill me-2"></i> {{ $isAr ? 'تعرف على يونس' : 'About Yonis' }}
+                        <i class="bi bi-person-fill me-2"></i> {{ $isAr ? 'من الدكتور د/يونس المرشد  ' : 'About Dr:Yonis Almurshid' }}
                     </a>
                 </div>
 
@@ -711,14 +711,6 @@
                                         </div>
                                     </div>
 
-                                    {{-- Location Pill --}}
-                                    <div class="clinic-location-pill">
-                                        <i class="bi bi-geo-alt-fill text-danger fs-5 flex-shrink-0"></i>
-                                        <div>
-                                            <div class="fw-bold">{{ $isAr ? 'مقر عيادة د. يونس المرشد - بغداد' : 'Dr. Yonis Clinic - Baghdad' }}</div>
-                                            <div class="text-secondary small fw-normal">{{ $isAr ? 'جلسة تشخيص وكشف سريري متكامل في بيئة مريحة' : 'Comprehensive clinical exam in a comfortable setting' }}</div>
-                                        </div>
-                                    </div>
 
                                 </div>
 
