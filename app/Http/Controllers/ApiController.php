@@ -1082,22 +1082,6 @@ class ApiController extends Controller
     }
 
     /**
-     * Get Reels / Video Testimonials (TikTok / YouTube / Direct)
-     */
-    public function getReels()
-    {
-        $reels = Reel::where('is_active', true)
-            ->orderBy('sort_order', 'asc')
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return response()->json([
-            'success' => true,
-            'reels' => $reels
-        ]);
-    }
-
-    /**
      * Get patient bookings list (Filter by tabs: upcoming, completed, cancelled)
      */
     public function getPatientBookings(Request $request)
