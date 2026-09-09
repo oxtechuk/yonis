@@ -50,6 +50,11 @@ Route::middleware('throttle:15,1')->group(function () {
     Route::post('/checkout/initialize', [ApiController::class, 'initializeCheckout']);
     Route::post('/checkout/confirm', [ApiController::class, 'confirmCheckout']);
 
+    // Direct Booking Modal API Endpoints
+    Route::post('/booking/request', [BookingController::class, 'store']);
+    Route::match(['get', 'post'], '/booking/check-user', [ApiController::class, 'checkUser']);
+    Route::get('/booking/available-slots', [ApiController::class, 'getSlots']);
+
     // Patient confirms local payment (ZainCash / SuperKi) — public, no token needed
     Route::post('/booking/{bookingRef}/confirm-payment', [BookingController::class, 'confirmPayment']);
 

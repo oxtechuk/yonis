@@ -45,9 +45,15 @@ Route::post('/api/reviews', [ApiController::class, 'storeTestimonial']);
 Route::post('/api/bookings/checkout', [BookingController::class, 'createCheckoutSession']);
 Route::post('/api/bookings/stripe/webhook', [BookingController::class, 'stripeWebhook']);
 Route::get('/booking/success', [BookingController::class, 'bookingSuccess'])->name('booking.success');
-// Patient payment confirmation (public — works for guests too)
-Route::post('/booking/{bookingRef}/confirm-payment', [BookingController::class, 'confirmPayment'])->name('booking.confirm-payment');
-Route::get('/booking/{bookingRef}/view-dashboard', [BookingController::class, 'goToPatientDashboard'])->name('booking.view-dashboard');
+
+// Web Booking Modal Endpoints
+Route::prefix('booking')->group(function () {
+    Route::post('/request', [BookingController::class, 'store'])->name('booking.request');
+    Route::match(['get', 'post'], '/check-user', [ApiController::class, 'checkUser'])->name('booking.check-user');
+    Route::get('/available-slots', [ApiController::class, 'getSlots'])->name('booking.available-slots');
+    Route::post('/{bookingRef}/confirm-payment', [BookingController::class, 'confirmPayment'])->name('booking.confirm-payment');
+    Route::get('/{bookingRef}/view-dashboard', [BookingController::class, 'goToPatientDashboard'])->name('booking.view-dashboard');
+});
 
 // Checkout routes alias (supports requests sent without /api prefix)
 Route::prefix('checkout')->group(function () {

@@ -713,7 +713,11 @@
                                     "}",
                                     "if (res.booking_reference) {",
                                     "  pm.collectionVariables.set(\"booking_ref\", res.booking_reference);",
-                                    "  console.log(\"✅ Booking with Receipt Screenshot Saved:\", res.booking_reference);",
+                                    "  console.log(\"✅ Booking Reference Saved:\", res.booking_reference);",
+                                    "}",
+                                    "if (res.transaction_reference) {",
+                                    "  pm.collectionVariables.set(\"transaction_reference\", res.transaction_reference);",
+                                    "  console.log(\"✅ Transaction Reference Saved:\", res.transaction_reference);",
                                     "}",
                                     "if (res.booking && res.booking.id) {",
                                     "  pm.collectionVariables.set(\"booking_id\", res.booking.id.toString());",
@@ -916,8 +920,9 @@
                                 },
                                 {
                                     "key": "transaction_reference",
-                                    "value": "TX-987654321",
-                                    "type": "text"
+                                    "value": "{{transaction_reference}}",
+                                    "type": "text",
+                                    "description": "معرف العملية المالي الذي تم إرجاعه من خطوة initialize أو رقم إشعار الحوالة"
                                 }
                             ]
                         },

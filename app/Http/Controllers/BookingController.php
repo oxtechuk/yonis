@@ -122,22 +122,30 @@ class BookingController extends Controller
     }
 
     /**
-     * Store a new booking (Legacy / Web fallback).
+     * Store a new booking (Modal / Web submission).
      */
     public function store(Request $request)
     {
+        // Support slot as alias for start_time
+        if (!$request->has('start_time') && $request->has('slot')) {
+            $request->merge(['start_time' => $request->input('slot')]);
+        }
+
         // Validation rules
         $rules = [
             'service_id' => 'required|exists:services,id',
             'date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|string',
+            'booking_type' => 'nullable|in:online,clinic',
+            'payment_method' => 'nullable|string',
+            'transfer_number' => 'nullable|string',
         ];
 
         if (!Auth::check()) {
             $rules['name'] = 'required|string|max:255';
-            $rules['email'] = 'required|string|email|max:255';
             $rules['phone'] = 'required|string|max:20';
-            $rules['password'] = 'required|string|min:8';
+            $rules['email'] = 'nullable|string|email|max:255';
+            $rules['password'] = 'nullable|string|min:6';
         }
 
         $request->validate($rules);
@@ -154,16 +162,42 @@ class BookingController extends Controller
         $dateStr = Carbon::parse($request->date)->format('Y-m-d');
 
         return DB::transaction(function () use ($request, $service, $dateStr, $startTimeStr, $endTimeStr) {
-            $patientId = Auth::check() ? Auth::id() : null;
-            $tempUserData = null;
+            $patient = Auth::user();
 
-            if (!$patientId) {
-                $tempUserData = [
-                    'name' => strip_tags($request->name),
-                    'phone' => strip_tags($request->phone),
-                    'email' => $request->email ?? null,
-                    'password' => $request->password,
-                ];
+            if (!$patient) {
+                $phone = $request->phone;
+                $email = $request->email;
+                $name = $request->name ?: 'عميل جديد';
+                $plainPassword = $request->password ?: '12345678';
+
+                // Look up by phone if exists
+                if (!empty($phone)) {
+                    $digits = preg_replace('/\D/', '', $phone);
+                    $last9 = strlen($digits) >= 9 ? substr($digits, -9) : $digits;
+                    $patient = User::where('phone', $phone)
+                        ->orWhere('phone', '+' . $digits)
+                        ->orWhere('phone', 'like', '%' . $last9)
+                        ->first();
+                }
+                if (!$patient && !empty($email)) {
+                    $patient = User::where('email', $email)->first();
+                }
+
+                if (!$patient) {
+                    $userEmail = !empty($email) ? $email : ('patient_' . preg_replace('/\D/', '', (string)$phone) . '@yonis-app.com');
+                    $patient = User::create([
+                        'name' => $name,
+                        'phone' => $phone,
+                        'email' => $userEmail,
+                        'password' => Hash::make($plainPassword),
+                        'role' => 'patient',
+                    ]);
+                }
+
+                // Log patient in
+                try {
+                    Auth::login($patient, true);
+                } catch (\Throwable $e) {}
             }
 
             // Double Booking prevention check
@@ -186,27 +220,61 @@ class BookingController extends Controller
                 $bookingRef = 'BK-' . strtoupper(Str::random(8));
             } while (Booking::where('booking_reference', $bookingRef)->exists());
 
+            // Handle Receipt image upload
+            $receiptPath = null;
+            if ($request->hasFile('receipt_image')) {
+                $file = $request->file('receipt_image');
+                $filename = 'receipt_' . time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('receipts', $filename, 'public');
+                $receiptPath = 'storage/' . $path;
+            } elseif ($request->filled('receipt_image') && is_string($request->input('receipt_image'))) {
+                $receiptPath = $request->input('receipt_image');
+            }
+
+            $bookingType = $request->input('booking_type') ?: ($service->type === 'clinic' ? 'clinic' : 'online');
+            $consultationType = $bookingType === 'clinic' ? 'clinic' : ($service->getChannelType() !== 'all' ? $service->getChannelType() : 'video');
+            $paymentMethod = $request->input('payment_method') ?: 'zaincash';
+            $transferNumber = $request->input('transfer_number') ?: ($patient ? $patient->phone : null);
+            $bookingStatus = (!empty($receiptPath) || in_array($paymentMethod, ['zaincash', 'superki'])) ? 'PendingPaymentReview' : 'AwaitingPayment';
+
+            $price = $service->getPriceForChannel($consultationType);
+
             $booking = Booking::create([
                 'booking_reference' => $bookingRef,
-                'patient_id' => $patientId,
+                'patient_id' => $patient ? $patient->id : null,
                 'service_id' => $service->id,
+                'booking_type' => $bookingType,
+                'consultation_type' => $consultationType,
+                'price' => $price,
                 'date' => $dateStr,
                 'start_time' => $startTimeStr,
                 'end_time' => $endTimeStr,
                 'title' => $request->title ?? $service->title,
                 'notes' => $request->notes ?? null,
-                'temp_user_data' => $tempUserData,
-                'status' => 'AwaitingPayment',
+                'temp_user_data' => null,
+                'status' => $bookingStatus,
+                'payment_method' => $paymentMethod,
+                'transfer_number' => $transferNumber,
+                'receipt_image' => $receiptPath,
             ]);
+
+            // Notify Doctor and Patient
+            NotificationMailService::notifyDoctorNewBooking($booking, 'طلب حجز جديد');
+            NotificationMailService::notifyPatientBookingReceived($booking);
+
+            $txRef = 'TX-' . strtoupper(Str::random(10));
 
             return response()->json([
                 'success' => true,
                 'booking_reference' => $bookingRef,
-                'transaction_reference' => 'TX-' . strtoupper(\Illuminate\Support\Str::random(10)),
-                'price' => $service->price,
-            ]);
+                'reference' => $bookingRef,
+                'transaction_reference' => $txRef,
+                'price' => $price,
+                'status' => $bookingStatus,
+            ], 201);
         });
     }
+
     /**
      * Patient confirms payment — marks booking as PendingPaymentReview.
      * The doctor then verifies and confirms from the admin panel.
