@@ -153,24 +153,39 @@ class Service extends Model
      */
     public function getIconNameAttribute(): string
     {
+        return $this->getChannelIcon();
+    }
+
+    /**
+     * Get icon class for the consultation channel
+     */
+    public function getChannelIcon(): string
+    {
         if (!empty($this->icon) && !preg_match('/^https?:\/\//i', $this->icon) && !str_starts_with($this->icon, 'services/') && !str_starts_with($this->icon, 'uploads/')) {
-            return $this->icon;
+            return str_starts_with($this->icon, 'bi-') ? $this->icon : ('bi-' . $this->icon);
         }
 
-        // Default icon by channel
         $channel = $this->getChannelType();
         switch ($channel) {
             case 'clinic':
-                return 'bi-hospital';
+                return 'bi-hospital-fill';
             case 'video':
-                return 'bi-camera-video';
+                return 'bi-camera-video-fill';
             case 'voice':
-                return 'bi-telephone';
+                return 'bi-telephone-fill';
             case 'chat':
-                return 'bi-chat-dots';
+                return 'bi-chat-dots-fill';
             default:
-                return 'bi-heart-pulse';
+                return 'bi-heart-pulse-fill';
         }
+    }
+
+    /**
+     * Get formatted display price with active currency symbol
+     */
+    public function getFormattedPrice(): string
+    {
+        return Setting::formatPrice($this->getDisplayPrice());
     }
 }
 
