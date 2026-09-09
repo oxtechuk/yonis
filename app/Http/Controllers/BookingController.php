@@ -452,13 +452,33 @@ class BookingController extends Controller
         NotificationMailService::notifyDoctorNewBooking($booking, 'إشعار تحويل وتأكيد دفع جديد');
         NotificationMailService::notifyPatientBookingReceived($booking);
 
+        $token = null;
+        if ($booking->patient) {
+            try {
+                $token = $booking->patient->createToken('mobile-token')->plainTextToken;
+            } catch (\Throwable $e) {}
+        }
+
         return response()->json([
             'success' => true,
             'status' => 'PendingPaymentReview',
             'message' => 'تم استلام طلبك وتأكيد الدفع بنجاح. حجزك الآن قيد المراجعة، وبعد إتمام التحقق سيصلك رقم تأكيد الحجز النهائي وتفاصيل الموعد.',
-            'booking_reference' => $bookingRef,
+            'booking_reference' => $booking->booking_reference ?: $bookingRef,
             'payment_method' => $paymentMethod,
+            'transfer_number' => $transferNumber,
+            'receipt_image' => $booking->receipt_image,
+            'receipt_image_url' => $booking->receipt_image_url,
             'transaction_reference' => $transRef,
+            'token' => $token,
+            'token_type' => 'Bearer',
+            'user' => $booking->patient ? [
+                'id'    => $booking->patient->id,
+                'name'  => $booking->patient->name,
+                'phone' => $booking->patient->phone,
+                'email' => $booking->patient->email,
+                'role'  => $booking->patient->role,
+            ] : null,
+            'booking' => $booking->fresh(['service', 'patient', 'payment']),
             'redirect_url' => route('patient.dashboard'),
         ]);
     }

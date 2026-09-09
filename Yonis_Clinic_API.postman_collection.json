@@ -972,6 +972,43 @@
                     }
                 },
                 {
+                    "name": "1️⃣-B POST تأكيد دفع محلي (JSON Payload / Checkout flow)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"booking_reference\": \"{{booking_ref}}\",\n    \"payment_method\": \"zaincash\",\n    \"transfer_number\": \"+9647701234567\",\n    \"transaction_reference\": \"TX-987654\",\n    \"notes\": \"تم التحويل بنجاح من محفظة زين كاش\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/payment/confirm-local",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "payment",
+                                "confirm-local"
+                            ]
+                        },
+                        "description": "تأكيد الدفع المحلي عبر JSON: يرسل تطبيق الموبايل (Flutter/React Native) الرقم المرجعي ورقم التحويل وطريقة الدفع لتحديث حالة الحجز إلى 'PendingPaymentReview' والحصول على توكن تسجيل الدخول تلقائياً."
+                    }
+                },
+                {
                     "name": "2️⃣ POST ويب هوك SpaceRemit التلقائي (Webhook Callback)",
                     "request": {
                         "method": "POST",
