@@ -722,8 +722,44 @@
     </div>
 </div>
 
+@php
+    $modalI18n = [
+        'months' => $isArLocale ? [
+            'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+            'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+        ] : [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ],
+        'minutes' => __('messages.minutes'),
+        'enter_subject' => __('messages.enter_subject_warning'),
+        'enter_name' => __('messages.enter_name_warning'),
+        'enter_phone' => __('messages.enter_phone_warning'),
+        'select_slot' => __('messages.select_slot_warning'),
+        'enter_password' => __('messages.enter_password_warning'),
+        'terms_required' => __('messages.terms_required_warning'),
+        'loading_slots' => __('messages.loading_slots'),
+        'no_slots' => __('messages.no_slots_warning'),
+        'failed_slots' => __('messages.failed_slots'),
+        'existing_user' => __('messages.existing_user_badge'),
+        'new_user' => __('messages.new_user_badge'),
+        'submitting' => __('messages.submitting_booking'),
+        'request_failed' => __('messages.request_failed'),
+        'confirm_btn' => __('messages.confirm_and_send_receipt'),
+        'pay_zain' => __('messages.pay_zaincash'),
+        'pay_superki' => __('messages.pay_superki'),
+        'pay_card' => __('messages.pay_card'),
+        'past_date' => $isArLocale ? 'تاريخ سابق غير متاح' : 'Past date unavailable',
+        'default_service' => $isArLocale ? 'جلسة استشارة' : 'Consultation Session',
+        'is_ar' => $isArLocale,
+        'slot_am' => $isArLocale ? 'ص' : 'AM',
+        'slot_pm' => $isArLocale ? 'م' : 'PM',
+    ];
+@endphp
+
 <script>
 // ════ Shared Booking Modal JS Engine ════
+const _i18n = {!! json_encode($modalI18n, JSON_UNESCAPED_UNICODE) !!};
 const _initDate = new Date();
 const _initYear = _initDate.getFullYear();
 const _initMonth = _initDate.getMonth();
@@ -743,14 +779,6 @@ let appState = {
     year: _initYear,
     month: _initMonth,
 };
-
-const appMonthNames = @json($isArLocale ? [
-    'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-    'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
-] : [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-]);
 
 const waNumber = '{{ preg_replace("/\D/", "", $waRaw) }}';
 let appUserIsRegistered = {{ Auth::check() ? 'true' : 'false' }};
@@ -798,7 +826,7 @@ function onModalServiceChanged(selectEl) {
 
     // Update dynamic duration badge
     const badge = document.getElementById('app_modal_duration_badge');
-    if (badge) badge.textContent = dur + ' ' + '{{ __("messages.minutes") }}';
+    if (badge) badge.textContent = dur + ' ' + _i18n.minutes;
     
     const p = appState.bookingType === 'clinic'
         ? (opt.getAttribute('data-clinic') || opt.getAttribute('data-price'))
@@ -851,7 +879,7 @@ function selectServiceAndOpenModal(id, title, price, duration, categoryType) {
     appState.title = title || (selectedType === 'clinic' ? '{{ $isArLocale ? "كشف واستشارة بالعيادة" : "In-Clinic Consultation" }}' : '{{ $isArLocale ? "استشارة نفسية أونلاين" : "Online Consultation" }}');
 
     const badge = document.getElementById('app_modal_duration_badge');
-    if (badge) badge.textContent = dur + ' ' + '{{ __("messages.minutes") }}';
+    if (badge) badge.textContent = dur + ' ' + _i18n.minutes;
     
     const select = document.getElementById('app_service_select');
     if (select) {
@@ -893,7 +921,7 @@ function goToAppScreen2() {
 
     const title = titleInput ? titleInput.value.trim() : '';
     if (!title) {
-        alert(@json(__('messages.enter_subject_warning')));
+        alert(_i18n.enter_subject);
         if (titleInput) titleInput.focus();
         return;
     }
@@ -901,26 +929,26 @@ function goToAppScreen2() {
 
     const name = nameInput ? nameInput.value.trim() : '';
     if (!name) {
-        alert(@json(__('messages.enter_name_warning')));
+        alert(_i18n.enter_name);
         if (nameInput) nameInput.focus();
         return;
     }
 
     const rawPhone = phoneInput ? phoneInput.value.trim().replace(/^0+/, '') : '';
     if (!rawPhone || rawPhone.length < 6) {
-        alert(@json(__('messages.enter_phone_warning')));
+        alert(_i18n.enter_phone);
         if (phoneInput) phoneInput.focus();
         return;
     }
 
     if (!appState.slot) {
-        alert(@json(__('messages.select_slot_warning')));
+        alert(_i18n.select_slot);
         return;
     }
 
     const password = passInput ? passInput.value.trim() : '';
     if (!appUserIsRegistered && (!password || password.length < 6)) {
-        alert(@json(__('messages.enter_password_warning')));
+        alert(_i18n.enter_password);
         if (passInput) passInput.focus();
         return;
     }
@@ -975,7 +1003,7 @@ function changeAppMonth(offset) {
 
 function renderAppCalendar() {
     const titleEl = document.getElementById('app-calendar-month-title');
-    if (titleEl) titleEl.textContent = appMonthNames[appState.month] + ' ' + appState.year;
+    if (titleEl) titleEl.textContent = _i18n.months[appState.month] + ' ' + appState.year;
     const daysGrid = document.getElementById('app-calendar-days-grid');
     if (!daysGrid) return;
     daysGrid.innerHTML = '';
@@ -1007,7 +1035,7 @@ function renderAppCalendar() {
 
         if (isPast) {
             dayEl.className = 'app-calendar-day disabled-day';
-            dayEl.title = @json($isArLocale ? 'تاريخ سابق غير متاح' : 'Past date unavailable');
+            dayEl.title = _i18n.past_date;
         } else {
             const isSelected = (formattedDate === appState.date);
             dayEl.className = 'app-calendar-day' + (isSelected ? ' selected' : '') + (isToday ? ' today-day' : '');
@@ -1027,7 +1055,7 @@ function fetchModalSlots(dateStr) {
     const container = document.getElementById('app-slots-grid');
     if (!container) return;
 
-    container.innerHTML = `<div class="text-center py-3 w-100" style="grid-column: 1 / -1;"><div class="spinner-border spinner-border-sm text-primary me-2"></div><span class="text-muted small">${@json(__('messages.loading_slots'))}</span></div>`;
+    container.innerHTML = '<div class="text-center py-3 w-100" style="grid-column: 1 / -1;"><div class="spinner-border spinner-border-sm text-primary me-2"></div><span class="text-muted small">' + _i18n.loading_slots + '</span></div>';
 
     fetch(`{{ url('/api/slots') }}?service_id=${appState.serviceId}&date=${dateStr}`, {
         headers: { 'Accept': 'application/json' }
@@ -1038,7 +1066,7 @@ function fetchModalSlots(dateStr) {
         const slots = data?.slots || (Array.isArray(data) ? data : []);
 
         if (!slots || slots.length === 0) {
-            container.innerHTML = `<div class="alert alert-warning border-0 small py-2.5 px-3 mb-0 w-100 text-center" style="grid-column: 1 / -1;"><i class="bi bi-exclamation-triangle-fill text-warning me-1"></i> ${@json(__('messages.no_slots_warning'))}</div>`;
+            container.innerHTML = '<div class="alert alert-warning border-0 small py-2.5 px-3 mb-0 w-100 text-center" style="grid-column: 1 / -1;"><i class="bi bi-exclamation-triangle-fill text-warning me-1"></i> ' + _i18n.no_slots + '</div>';
             appState.slot = '';
             return;
         }
@@ -1053,7 +1081,7 @@ function fetchModalSlots(dateStr) {
             if (parts.length >= 2) {
                 let hour = parseInt(parts[0], 10);
                 const min = parts[1];
-                const period = hour >= 12 ? '{{ $isArLocale ? "م" : "PM" }}' : '{{ $isArLocale ? "ص" : "AM" }}';
+                const period = hour >= 12 ? _i18n.slot_pm : _i18n.slot_am;
                 hour = hour % 12 || 12;
                 displayTime = `${hour.toString().padStart(2, '0')}:${min} ${period}`;
             }
@@ -1073,7 +1101,7 @@ function fetchModalSlots(dateStr) {
         });
     })
     .catch(() => {
-        container.innerHTML = `<div class="text-center text-muted small py-2 w-100" style="grid-column: 1 / -1;">${@json(__('messages.failed_slots'))}</div>`;
+        container.innerHTML = '<div class="text-center text-muted small py-2 w-100" style="grid-column: 1 / -1;">' + _i18n.failed_slots + '</div>';
     });
 }
 
@@ -1085,11 +1113,7 @@ function selectAppSlot(time, el) {
 
 function onModalCountryCodeChanged(selectEl) {
     const opt = selectEl.options[selectEl.selectedIndex];
-    const flagBadge = document.getElementById('app_country_flag_badge');
     const flag = opt ? (opt.getAttribute('data-flag') || '🇮🇶') : '🇮🇶';
-    if (flagBadge) {
-        flagBadge.textContent = flag;
-    }
     localStorage.setItem('yonis_country_code', selectEl.value);
     localStorage.setItem('yonis_country_flag', flag);
     checkUserRegistrationStatus();
@@ -1123,14 +1147,12 @@ function restorePatientBookingData() {
     const savedName = localStorage.getItem('yonis_patient_name');
     const savedPhone = localStorage.getItem('yonis_patient_phone');
     const savedCode = localStorage.getItem('yonis_country_code');
-    const savedFlag = localStorage.getItem('yonis_country_flag');
     const savedEmail = localStorage.getItem('yonis_patient_email');
 
     const nameInput = document.getElementById('app_user_name');
     const phoneInput = document.getElementById('app_user_phone');
     const codeSelect = document.getElementById('app_country_code');
     const emailInput = document.getElementById('app_user_email');
-    const flagBadge = document.getElementById('app_country_flag_badge');
 
     if (nameInput && (!nameInput.value || nameInput.value.trim() === '') && savedName) {
         nameInput.value = savedName;
@@ -1143,7 +1165,6 @@ function restorePatientBookingData() {
     }
     if (codeSelect && savedCode) {
         codeSelect.value = savedCode;
-        if (flagBadge) flagBadge.textContent = savedFlag || '🇮🇶';
     }
 
     if (phoneInput && phoneInput.value.trim().length >= 6) {
@@ -1190,7 +1211,7 @@ function checkUserRegistrationStatus() {
                 appUserIsRegistered = true;
                 if (badge) {
                     badge.className = 'badge bg-success-subtle text-success border border-success-subtle small';
-                    badge.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> ' + @json(__('messages.existing_user_badge'));
+                    badge.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> ' + _i18n.existing_user;
                 }
                 if (passWrapper) passWrapper.style.display = 'none';
                 if (passInput) passInput.value = '';
@@ -1209,7 +1230,7 @@ function checkUserRegistrationStatus() {
                 appUserIsRegistered = false;
                 if (badge) {
                     badge.className = 'badge bg-info-subtle text-primary border border-info-subtle small';
-                    badge.innerHTML = '<i class="bi bi-person-plus-fill me-1"></i> ' + @json(__('messages.new_user_badge'));
+                    badge.innerHTML = '<i class="bi bi-person-plus-fill me-1"></i> ' + _i18n.new_user;
                 }
                 if (passWrapper) passWrapper.style.display = 'block';
             }
@@ -1266,7 +1287,7 @@ function executeAppBooking() {
     const termsCheck = document.getElementById('app_terms_check');
 
     if (termsCheck && !termsCheck.checked) {
-        alert(@json(__('messages.terms_required_warning')));
+        alert(_i18n.terms_required);
         return;
     }
 
@@ -1277,17 +1298,17 @@ function executeAppBooking() {
     const details = detailsInput ? detailsInput.value.trim() : '';
 
     if (!name || !rawPhone) {
-        alert(@json(__('messages.enter_name_warning')));
+        alert(_i18n.enter_name);
         return;
     }
 
     if (!appState.slot) {
-        alert(@json(__('messages.select_slot_warning')));
+        alert(_i18n.select_slot);
         return;
     }
 
     if (!appUserIsRegistered && (!password || password.length < 6)) {
-        alert(@json(__('messages.enter_password_warning')));
+        alert(_i18n.enter_password);
         if (passInput) passInput.focus();
         return;
     }
@@ -1298,7 +1319,7 @@ function executeAppBooking() {
     const btn = document.getElementById('app-submit-pay-btn');
     if (btn) {
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> ' + @json(__('messages.submitting_booking'));
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> ' + _i18n.submitting;
     }
 
     const fullPhone = rawPhone.startsWith('+') ? rawPhone : (countryCode + rawPhone);
@@ -1336,11 +1357,11 @@ function executeAppBooking() {
     fetch("{{ url('/api/checkout/initialize') }}", { method: 'POST', headers, body: formData })
         .then(r => r.json())
         .then(data => {
-            if (!data.success) throw new Error(data.message || @json(__('messages.request_failed')));
+            if (!data.success) throw new Error(data.message || _i18n.request_failed);
             
             if (btn) {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> ' + @json(__('messages.confirm_and_send_receipt')) + ' (' + (appState.price || 50) + ' ' + appCurrencySymbol + ')';
+                btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> ' + _i18n.confirm_btn + ' (' + (appState.price || 50) + ' ' + appCurrencySymbol + ')';
             }
 
             const ref = data?.booking_reference || 'REF-' + Math.floor(1000 + Math.random() * 9000);
@@ -1358,19 +1379,19 @@ function executeAppBooking() {
             }
 
             if (document.getElementById('app-res-ref')) document.getElementById('app-res-ref').textContent = '#' + ref;
-            if (document.getElementById('app-res-service')) document.getElementById('app-res-service').textContent = appState.title || '{{ $isArLocale ? "جلسة استشارة" : "Consultation Session" }}';
+            if (document.getElementById('app-res-service')) document.getElementById('app-res-service').textContent = appState.title || _i18n.default_service;
             if (document.getElementById('app-res-datetime')) document.getElementById('app-res-datetime').textContent = appState.date + ' | ' + appState.slot;
             if (document.getElementById('app-res-type')) document.getElementById('app-res-type').textContent = (appState.price || 50) + ' ' + appCurrencySymbol;
 
             const payMethodLabels = {
-                zaincash: @json(__('messages.pay_zaincash')),
-                superki: @json(__('messages.pay_superki')),
-                card: @json(__('messages.pay_card'))
+                zaincash: _i18n.pay_zain,
+                superki: _i18n.pay_superki,
+                card: _i18n.pay_card
             };
-            const methodLabel = payMethodLabels[appState.paymentMethod] || @json(__('messages.pay_zaincash'));
+            const methodLabel = payMethodLabels[appState.paymentMethod] || _i18n.pay_zain;
             if (document.getElementById('app-res-paymethod')) document.getElementById('app-res-paymethod').textContent = methodLabel;
 
-            const waMsg = @json($isArLocale)
+            const waMsg = _i18n.is_ar
                 ? `السلام عليكم دكتور يونس، تم تسجيل طلب حجز موعد مؤكد\nرقم المرجع: #${ref}\nالاسم: ${name}\nالخدمة: ${appState.title}\nالموعد: ${appState.date} (${appState.slot})\nطريقة الدفع: ${methodLabel}\nالمبلغ: ${appState.price || 50} ${appCurrencySymbol}\nمرفق لكم لقطة شاشة إيصال الدفع.`
                 : `Hello Dr. Yonis, my booking request has been submitted\nBooking Reference: #${ref}\nName: ${name}\nService: ${appState.title}\nDate: ${appState.date} (${appState.slot})\nPayment Method: ${methodLabel}\nAmount: ${appState.price || 50} ${appCurrencySymbol}\nPayment receipt screenshot attached.`;
                 
@@ -1397,9 +1418,9 @@ function executeAppBooking() {
         .catch(err => {
             if (btn) {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> ' + @json(__('messages.confirm_and_send_receipt')) + ' (' + (appState.price || 50) + ' ' + appCurrencySymbol + ')';
+                btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> ' + _i18n.confirm_btn + ' (' + (appState.price || 50) + ' ' + appCurrencySymbol + ')';
             }
-            alert(err.message || @json(__('messages.request_failed')));
+            alert(err.message || _i18n.request_failed);
         });
 }
 
