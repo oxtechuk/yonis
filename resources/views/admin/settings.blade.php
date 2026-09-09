@@ -138,6 +138,9 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+
                         <!-- Favicon Section -->
                         <div class="col-md-12">
                             <div class="p-3 bg-light rounded-4 border">
