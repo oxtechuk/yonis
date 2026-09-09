@@ -1421,6 +1421,14 @@ class AdminDashboardController extends Controller
             Setting::set('site_logo', $request->site_logo);
         }
 
+        // Handle Favicon file upload
+        if ($request->hasFile('favicon_file')) {
+            $path = $this->storePublicUpload($request->file('favicon_file'), 'branding');
+            Setting::set('site_favicon', asset('storage/' . $path));
+        } elseif ($request->filled('site_favicon')) {
+            Setting::set('site_favicon', $request->site_favicon);
+        }
+
         // Handle footer logo file upload
         if ($request->hasFile('footer_logo_file')) {
             $path = $this->storePublicUpload($request->file('footer_logo_file'), 'branding');

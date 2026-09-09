@@ -138,6 +138,35 @@
                                         </div>
                                     </div>
                                 </div>
+                        <!-- Favicon Section -->
+                        <div class="col-md-12">
+                            <div class="p-3 bg-light rounded-4 border">
+                                <label class="form-label fw-bold text-dark mb-1">أيقونة المتصفح (Favicon)</label>
+                                <p class="text-secondary small mb-3">الأيقونة التي تظهر بجانب عنوان الموقع في علامات تبويب المتصفح والمفضلة وتطبيقات الهواتف (PNG, ICO, SVG, WEBP).</p>
+                                
+                                <div class="row align-items-center g-3">
+                                    <div class="col-auto">
+                                        @if(!empty($settings['site_favicon']))
+                                            <div class="border rounded-3 p-2 bg-white text-center shadow-sm" style="width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;">
+                                                <img src="{{ $settings['site_favicon'] }}" alt="Favicon" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                            </div>
+                                        @else
+                                            <div class="border rounded-3 p-2 bg-white text-center shadow-sm" style="width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;">
+                                                <img src="{{ asset('favicon.svg') }}" alt="Default Favicon" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div class="col">
+                                        <div class="mb-2">
+                                            <label class="form-label small fw-bold">رفع أيقونة جديدة (Favicon File):</label>
+                                            <input type="file" name="favicon_file" class="form-control form-control-sm rounded-3" accept="image/*,.ico,.svg">
+                                        </div>
+                                        <div>
+                                            <label class="form-label small fw-bold">أو رابط مباشر (URL):</label>
+                                            <input type="text" name="site_favicon" class="form-control form-control-sm rounded-3" placeholder="{{ asset('favicon.svg') }}" value="{{ $settings['site_favicon'] ?? '' }}">
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

@@ -20,6 +20,18 @@
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
+
+    {{-- ── Favicon & App Icons ────────────────────────────────── --}}
+    @php
+        $siteFavicon = \App\Models\Setting::getFileUrl('site_favicon', '');
+        if (empty($siteFavicon)) {
+            $siteFavicon = !empty($siteLogo) ? \App\Models\Setting::getFileUrl('site_logo') : asset('favicon.svg');
+        }
+    @endphp
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    <link rel="icon" type="image/x-icon" href="{{ $siteFavicon }}">
+    <link rel="shortcut icon" href="{{ $siteFavicon }}">
+    <link rel="apple-touch-icon" href="{{ $siteFavicon }}">
     
     @php
         $primaryColor = \App\Models\Setting::get('primary_color', '#3B52A4');
@@ -83,9 +95,6 @@
                     @if($currentUser && $currentUser->hasPermission('manage_payments'))
                         <a href="{{ route('admin.payments') }}" class="sidebar-link @if(Route::is('admin.payments')) active @endif">
                             <i class="bi bi-credit-card me-2"></i> <span class="link-text">المدفوعات والفواتير</span>
-                        </a>
-                        <a href="{{ route('admin.reports') }}" class="sidebar-link @if(Route::is('admin.reports*')) active @endif">
-                            <i class="bi bi-bar-chart-line-fill me-2"></i> <span class="link-text">التقارير الشاملة</span>
                         </a>
                     @endif
 

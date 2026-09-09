@@ -21,6 +21,18 @@
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="{{ url()->current() }}">
 
+    {{-- ── Favicon & App Icons ────────────────────────────────── --}}
+    @php
+        $siteFavicon = \App\Models\Setting::getFileUrl('site_favicon', '');
+        if (empty($siteFavicon)) {
+            $siteFavicon = !empty($siteLogo) ? \App\Models\Setting::getFileUrl('site_logo') : asset('favicon.svg');
+        }
+    @endphp
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    <link rel="icon" type="image/x-icon" href="{{ $siteFavicon }}">
+    <link rel="shortcut icon" href="{{ $siteFavicon }}">
+    <link rel="apple-touch-icon" href="{{ $siteFavicon }}">
+
     {{-- ── Google Search Console Verification ──────────────── --}}
     @php $googleVerify = \App\Models\Setting::get('google_site_verification', ''); @endphp
     @if(!empty($googleVerify))
