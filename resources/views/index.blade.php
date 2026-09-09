@@ -238,15 +238,25 @@
 .credentials-list li:last-child { border-bottom: none; }
 .credentials-list li i { color: var(--primary-color); font-size: 1.1rem; margin-top: 2px; flex-shrink: 0; }
 
-/* ═══ Services Cards ══════════════════════════════════════════ */
+/* ═══ Services Cards Equal Height & Luxury Design ══════════════ */
 .services-wrapper { background: #f0f4fb; padding: 5rem 0; }
+.services-swiper-online .swiper-wrapper,
+.services-swiper-clinic .swiper-wrapper {
+    align-items: stretch !important;
+}
+.services-swiper-online .swiper-slide,
+.services-swiper-clinic .swiper-slide {
+    height: auto !important;
+    display: flex !important;
+}
 .service-card-new {
     background: #fff; border-radius: 24px; padding: 2rem;
     box-shadow: 0 8px 30px rgba(59,82,164,0.08);
-    border: 2px solid transparent;
-    transition: all 0.3s ease; cursor: pointer;
+    border: 2px solid #eef2f6;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;
     position: relative; overflow: hidden;
-    height: 100%;
+    height: 100% !important; width: 100%;
+    display: flex !important; flex-direction: column !important; justify-content: space-between !important;
 }
 .service-card-new::before {
     content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
@@ -258,6 +268,45 @@
 .service-card-new.popular { border-color: var(--primary-color); }
 .service-card-new.popular::before { opacity: 1; }
 .popular-badge { position: absolute; top: 1rem; left: 1rem; background: linear-gradient(135deg, var(--primary-color), #5b72c7); color: #fff; font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.7rem; border-radius: 30px; }
+
+.pricing-icon-bubble {
+    width: 52px; height: 52px; border-radius: 16px;
+    background: rgba(59, 82, 164, 0.08); color: var(--primary-color);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; flex-shrink: 0; transition: all 0.3s ease;
+}
+.service-card-new:hover .pricing-icon-bubble {
+    background: var(--primary-color); color: #fff; transform: scale(1.06);
+}
+.clinic-card-luxury .pricing-icon-bubble {
+    background: rgba(136, 19, 55, 0.08); color: #881337;
+}
+.clinic-card-luxury:hover .pricing-icon-bubble {
+    background: #881337; color: #fff;
+}
+
+.service-card-title {
+    font-size: 1.22rem; font-weight: 800; line-height: 1.4; color: #1e293b;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden; min-height: 3.4rem; margin-bottom: 0.5rem;
+}
+.service-card-desc {
+    font-size: 0.88rem; line-height: 1.6; color: #64748b;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+    overflow: hidden; min-height: 4.2rem; margin-bottom: 1.25rem;
+}
+
+.pricing-amount-box {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px;
+    padding: 0.9rem 1.15rem; display: flex; align-items: center; justify-content: space-between;
+    margin-top: auto; margin-bottom: 1rem;
+}
+.pricing-main-price {
+    font-size: 1.45rem; font-weight: 900; color: var(--primary-color); line-height: 1.1;
+}
+.pricing-main-price small {
+    font-size: 0.78rem; font-weight: 600; color: #94a3b8;
+}
 
 .channel-prices { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1rem; }
 .channel-price-item { display: flex; align-items: center; gap: 0.4rem; background: #f8fafc; padding: 0.4rem 0.6rem; border-radius: 8px; font-size: 0.82rem; }
@@ -549,129 +598,14 @@
     </div>
 </div>
 
-{{-- ═══════════════════════════════════════════════════════════
-     3. SERVICES SECTION WITH DEDICATED ONLINE & CLINIC CATEGORIES
-═══════════════════════════════════════════════════════════ --}}
-<section id="services" class="services-wrapper reveal-on-scroll">
-    <div class="container">
-        <div class="text-center mb-4">
-            <h2 class="section-title">{{ __('messages.services_title') }}</h2>
-            <p class="section-subtitle">{{ __('messages.services_subtitle') }}</p>
-        </div>
-
-        {{-- ── Category Tabs: Online vs Clinic ─────────────────── --}}
-        <div class="d-flex justify-content-center mb-5">
-            <div class="booking-type-toggle-container">
-                <button type="button" class="booking-type-toggle-btn active" id="btnCategoryOnline" onclick="showServiceCategory('online')">
-                   {{ $isAr ? 'الاستشارات الأونلاين (عن بُعد)' : 'Online Consultations' }}
-                    <span class="badge badge-default-tag bg-primary text-white ms-2" style="font-size: 0.72rem; padding: 0.25rem 0.6rem; border-radius: 50px;"></span>
-                </button>
-                <button type="button" class="booking-type-toggle-btn" id="btnCategoryClinic" onclick="showServiceCategory('clinic')">
-                   {{ $isAr ? 'حجوزات العيادة (حضورياً)' : 'In-Clinic Appointments' }}
-                </button>
-            </div>
-        </div>
-
-        {{-- ═════════════════════════════════════════════════════════
-             CATEGORY 1: ONLINE SERVICES (RESPONSIVE SLIDER)
-        ═════════════════════════════════════════════════════════ --}}
-        <div id="onlineCategoryGrid" class="services-swiper-container">
-            <div class="swiper services-swiper-online">
-                <div class="swiper-wrapper">
-                    @php
-                        $onlineServices = $services->filter(fn($s) => in_array($s->type, ['online', 'both']));
-                    @endphp
-                    @foreach($onlineServices as $index => $service)
-                        <div class="swiper-slide h-auto">
-                            @php
-                                $srvChannel = $service->getChannelType();
-                                $displayPrice = $service->getDisplayPrice();
-                            @endphp
-                            <div class="service-card-new h-100 d-flex flex-column justify-content-between {{ $index === 1 ? 'popular' : '' }}"
-                                 onclick="selectServiceAndOpenModal({{ $service->id }}, '{{ $service->title }}', {{ $displayPrice }}, {{ $service->duration }}, 'online')">
-                                
-                                <div>
-                                    {{-- Header: Icon + Badges --}}
-                                    <div class="d-flex justify-content-between align-items-start mb-2 pt-2">
-                                        <div class="pricing-icon-bubble">
-                                            @if(!empty($service->icon_url))
-                                                <img src="{{ $service->icon_url }}" alt="{{ $service->title }}" style="width:28px; height:28px; object-fit:contain;">
-                                            @elseif(!empty($service->icon) && !str_contains($service->icon, '/') && !str_starts_with($service->icon, 'http'))
-                                                <i class="bi {{ str_starts_with($service->icon, 'bi-') ? $service->icon : 'bi-' . $service->icon }}"></i>
-                                            @elseif($srvChannel === 'video')
-                                                <i class="bi bi-camera-video-fill"></i>
-                                            @elseif($srvChannel === 'voice')
-                                                <i class="bi bi-telephone-fill"></i>
-                                            @elseif($srvChannel === 'chat')
-                                                <i class="bi bi-chat-dots-fill"></i>
-                                            @else
-                                                <i class="bi bi-laptop"></i>
-                                            @endif
-                                        </div>
-                                        <div class="d-flex flex-column align-items-end gap-1">
-                                            <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1" style="font-size: 0.74rem;">
-                                                <i class="bi bi-clock me-1 text-primary"></i> {{ $service->duration }} {{ $isAr ? 'دقيقة' : 'mins' }}
-                                                @if($srvChannel !== 'all')
-                                                    • {{ $service->getChannelLabel() }}
-                                                @endif
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {{-- Title & Description --}}
-                                    <h4 class="fw-black text-dark mb-2" style="font-size: 1.25rem; line-height: 1.4;">{{ $service->title }}</h4>
-                                    <p class="text-secondary small mb-3" style="line-height: 1.6; min-height: 48px;">{{ $service->description }}</p>
-
-                                    {{-- Main Price Box --}}
-                                    <div class="pricing-amount-box">
-                                        <div>
-                                            <span class="text-secondary small fw-bold d-block mb-1">{{ $isAr ? 'الرسوم' : 'Price' }}</span>
-                                            <div class="pricing-main-price">
-                                                {{ number_format($displayPrice, 0) }} {{ \App\Models\Setting::currencySymbol() }}
-                                                <small>{{ $isAr ? '/ للجلسة' : '/ session' }}</small>
-                                            </div>
-                                        </div>
-                                        <div class="text-end">
-                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small fw-bold">
-                                                <i class="bi bi-shield-check me-1"></i> {{ $isAr ? 'سرية تامة 100%' : '100% Confidential' }}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                </div>
-
-                                {{-- Action CTA Button --}}
-                                <div class="mt-2">
-                                    <button type="button" class="btn {{ $index === 1 ? 'btn-royal-primary' : 'btn-outline-primary' }} w-100 py-3 rounded-pill fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#bookingModal">
-                                        <span>{{ $isAr ? 'احجز استشارتك أونلاين الآن' : 'Book Online Session Now' }}</span>
-                                        <i class="bi bi-arrow-{{ $isAr ? 'left' : 'right' }} fs-6"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-                <div class="swiper-pagination services-pagination-online mt-4"></div>
-            </div>
-        </div>
-
-        {{-- ═════════════════════════════════════════════════════════
-             CATEGORY 2: CLINIC SERVICES (RESPONSIVE SLIDER)
-        ═════════════════════════════════════════════════════════ --}}
-        <div id="clinicCategoryGrid" class="services-swiper-container d-none">
-            <div class="swiper services-swiper-clinic">
-                <div class="swiper-wrapper">
-                    @php
-                        $clinicServices = $services->filter(fn($s) => in_array($s->type, ['clinic', 'both']));
-                    @endphp
-                    @foreach($clinicServices as $index => $service)
+{{-- ════════════════════════════════�                    @foreach($onlineServices as $index => $service)
                         <div class="swiper-slide h-auto">
                             <div class="service-card-new clinic-card-luxury h-100 d-flex flex-column justify-content-between {{ $index === 0 ? 'popular' : '' }}"
                                  onclick="selectServiceAndOpenModal({{ $service->id }}, '{{ $service->title }}', {{ $service->clinic_price ?? $service->price }}, {{ $service->duration }}, 'clinic')">
                                 
-                                <div>
+                                <div class="d-flex flex-column flex-grow-1">
                                     {{-- Header: Icon + Badges --}}
-                                    <div class="d-flex justify-content-between align-items-start mb-2 pt-2">
+                                    <div class="d-flex justify-content-between align-items-start mb-3 pt-1">
                                         <div class="pricing-icon-bubble">
                                             @if(!empty($service->icon_url))
                                                 <img src="{{ $service->icon_url }}" alt="{{ $service->title }}" style="width:28px; height:28px; object-fit:contain;">
@@ -692,8 +626,8 @@
                                     </div>
 
                                     {{-- Title & Description --}}
-                                    <h4 class="fw-black text-dark mb-2" style="font-size: 1.25rem; line-height: 1.4;">{{ $service->title }}</h4>
-                                    <p class="text-secondary small mb-3" style="line-height: 1.6; min-height: 48px;">{{ $service->description }}</p>
+                                    <h4 class="service-card-title">{{ $service->title }}</h4>
+                                    <p class="service-card-desc">{{ $service->description }}</p>
 
                                     {{-- Main Price Box --}}
                                     <div class="pricing-amount-box">
@@ -711,11 +645,10 @@
                                         </div>
                                     </div>
 
-
                                 </div>
 
                                 {{-- Action CTA Button --}}
-                                <div class="mt-2">
+                                <div class="mt-auto pt-2">
                                     <button type="button" class="btn btn-outline-danger w-100 py-3 rounded-pill fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#bookingModal">
                                         <span>{{ $isAr ? 'احجز موعدك بالعيادة الآن' : 'Book In-Clinic Now' }}</span>
                                         <i class="bi bi-arrow-{{ $isAr ? 'left' : 'right' }} fs-6"></i>

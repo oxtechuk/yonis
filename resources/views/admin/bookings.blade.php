@@ -158,10 +158,31 @@
                             <td>
                                 @if($booking->payment)
                                     <span class="badge @if($booking->payment->status === 'Paid') bg-success-subtle text-success border border-success-subtle @else bg-warning-subtle text-warning border border-warning-subtle @endif">
-                                        {{ $booking->payment->status === 'Paid' ? 'مدفوع' : $booking->payment->status }}
+                                        {{ $booking->payment->status === 'Paid' ? 'مدفوع' : ($booking->payment->status === 'Pending' ? 'بانتظار التأكيد' : $booking->payment->status) }}
                                     </span>
                                 @else
                                     <span class="badge bg-secondary-subtle text-secondary">غير متوفر</span>
+                                @endif
+
+                                @if($booking->payment_method)
+                                    <div class="small text-muted mt-1 fw-medium">
+                                        <i class="bi bi-wallet2 text-primary"></i> {{ $booking->payment_method_label }}
+                                    </div>
+                                @endif
+
+                                @if($booking->transfer_number)
+                                    <div class="small text-muted mt-0.5" style="font-size: 0.75rem;">
+                                        <i class="bi bi-phone text-secondary"></i> <span class="text-dark fw-bold font-monospace">{{ $booking->transfer_number }}</span>
+                                    </div>
+                                @endif
+
+                                @if($booking->receipt_image_url)
+                                    <div class="mt-1">
+                                        <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0.5 d-inline-flex align-items-center gap-1 shadow-sm" style="font-size: 0.72rem;" onclick="viewReceiptImage('{{ $booking->receipt_image_url }}', '{{ $booking->booking_reference }}', '{{ $booking->transfer_number ?? 'غير محدد' }}')">
+                                            <i class="bi bi-receipt"></i>
+                                            <span>عرض الإيصال</span>
+                                        </button>
+                                    </div>
                                 @endif
                             </td>
                             <td class="pe-4 text-end">
@@ -395,8 +416,43 @@
     </div>
 </div>
 
+<!-- Receipt Viewer Modal -->
+<div class="modal fade" id="receiptViewerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-light border-0 py-3">
+                <div>
+                    <h6 class="modal-title fw-bold text-dark m-0" id="receiptModalTitle">إيصال تحويل الحجز</h6>
+                    <small class="text-muted" id="receiptModalSubtitle"></small>
+                </div>
+                <button type="button" class="btn-close ms-0" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-3 bg-light-subtle">
+                <div class="position-relative rounded-3 overflow-hidden shadow-sm bg-white p-2">
+                    <img id="receiptModalImg" src="" alt="إيصال التحويل" class="img-fluid rounded-3" style="max-height: 500px; width: auto; object-fit: contain;">
+                </div>
+            </div>
+            <div class="modal-footer border-0 bg-light py-2 px-3 d-flex justify-content-between">
+                <a id="receiptModalDownloadBtn" href="#" target="_blank" download class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold">
+                    <i class="bi bi-box-arrow-up-right me-1"></i> فتح بحجم كامل
+                </a>
+                <button type="button" class="btn btn-sm btn-secondary rounded-pill px-4" data-bs-dismiss="modal">إغلاق</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section('scripts')
 <script>
+    function viewReceiptImage(url, ref, transferNum) {
+        document.getElementById('receiptModalImg').src = url;
+        document.getElementById('receiptModalTitle').innerText = 'إيصال تحويل الحجز: ' + ref;
+        document.getElementById('receiptModalSubtitle').innerText = 'رقم هاتف التحويل: ' + transferNum;
+        document.getElementById('receiptModalDownloadBtn').href = url;
+        const modal = new bootstrap.Modal(document.getElementById('receiptViewerModal'));
+        modal.show();
+    }
+
     function onBookingTypeChange() {
         const bookingType = document.getElementById('modal-booking-type').value;
         const consultationSelect = document.getElementById('modal-consultation-type');

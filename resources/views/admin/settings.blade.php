@@ -47,6 +47,11 @@
                         <i class="bi bi-whatsapp me-1 text-success"></i> الواتساب واللغة (WhatsApp)
                     </button>
                 </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-bold px-4 rounded-3" id="legal-tab" data-bs-toggle="tab" data-bs-target="#legal-panel" type="button" role="tab">
+                        <i class="bi bi-shield-check me-1 text-primary"></i> روابط التطبيق والسياسات (App & Policies)
+                    </button>
+                </li>
             </ul>
 
             <!-- Tab Content -->
@@ -844,6 +849,159 @@
 
                     </div>
                 </div>{{-- end whatsapp-panel --}}
+
+                <!-- 7. App Links & Legal Policies Panel -->
+                <div class="tab-pane fade" id="legal-panel" role="tabpanel" aria-labelledby="legal-tab">
+                    <div class="row g-4 col-lg-11">
+
+                        <!-- Information / Compliance Banner -->
+                        <div class="col-12">
+                            <div class="p-4 rounded-4 bg-primary bg-opacity-10 border border-primary border-opacity-20 d-flex flex-column flex-md-row align-items-start gap-3">
+                                <div class="p-3 bg-primary text-white rounded-3 shadow-sm">
+                                    <i class="bi bi-shield-check fs-3"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h5 class="fw-bold text-dark mb-1">الروابط القانونية وتطبيق الهاتف (Google Play & App Store Compliance)</h5>
+                                    <p class="text-secondary small mb-2">
+                                        هذه الروابط تُرسل تلقائياً إلى تطبيق الموبايل (Flutter) عبر الـ API ليتم فتحها من شاشة الإعدادات، كما تُستخدم كروابط رسمية ومباشرة للرفع على متجري <strong>Google Play Console</strong> و <strong>Apple App Store Connect</strong>.
+                                    </p>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <span class="badge bg-white text-dark border"><i class="bi bi-check-circle-fill text-success me-1"></i> تتبع بيانات الاسم، الهاتف، والإيميل</span>
+                                        <span class="badge bg-white text-dark border"><i class="bi bi-check-circle-fill text-success me-1"></i> سداد بالتحويل المحلي فقط بدون تخزين بطاقات</span>
+                                        <span class="badge bg-white text-dark border"><i class="bi bi-check-circle-fill text-success me-1"></i> سرية طبية واستشارية 100%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 1. App Store / Play Store Rating Link -->
+                        <div class="col-12">
+                            <div class="card border rounded-4 p-4 bg-white shadow-sm">
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="p-2 bg-warning bg-opacity-10 text-warning rounded-3">
+                                            <i class="bi bi-star-fill fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold text-dark mb-0">1. رابط تقييم التطبيق (App Rating / Review URL)</h6>
+                                            <small class="text-muted">الرابط الذي يوجّه المستخدم لتقييم التطبيق على متجر جوجل بلاي أو آب ستور من داخل التطبيق.</small>
+                                        </div>
+                                    </div>
+                                    @if(!empty($settings['app_rating_url']))
+                                        <a href="{{ $settings['app_rating_url'] }}" target="_blank" class="btn btn-sm btn-outline-warning rounded-pill px-3 fw-bold">
+                                            <i class="bi bi-box-arrow-up-right me-1"></i> تجربة الرابط
+                                        </a>
+                                    @endif
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-secondary border-end-0"><i class="bi bi-link-45deg fs-5"></i></span>
+                                    <input type="url" name="app_rating_url" class="form-control form-control-lg rounded-start-0" 
+                                           placeholder="https://play.google.com/store/apps/details?id=com.yonis.clinic" 
+                                           value="{{ $settings['app_rating_url'] ?? '' }}">
+                                </div>
+                                <div class="form-text text-muted small mt-2">
+                                    مثال لنظام أندرويد: <code>https://play.google.com/store/apps/details?id=com.yonis.clinic</code> أو رابط آبل: <code>https://apps.apple.com/app/id...</code>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Privacy Policy Link & Custom Content -->
+                        <div class="col-12">
+                            <div class="card border rounded-4 p-4 bg-white shadow-sm">
+                                <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="p-2 bg-primary bg-opacity-10 text-primary rounded-3">
+                                            <i class="bi bi-shield-lock-fill fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold text-dark mb-0">2. رابط سياسة الخصوصية (Privacy Policy URL)</h6>
+                                            <small class="text-muted">رابط صفحة سياسة الخصوصية الرسمية المعروضة للمراجعين ومتاجر التطبيقات.</small>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ route('privacy.policy') }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold">
+                                            <i class="bi bi-eye-fill me-1"></i> معاينة صفحة الخصوصية
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 fw-bold" onclick="navigator.clipboard.writeText('{{ route('privacy.policy') }}'); alert('تم نسخ رابط سياسة الخصوصية!');">
+                                            <i class="bi bi-clipboard me-1"></i> نسخ الرابط
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-dark">الرابط المعتمد لسياسة الخصوصية:</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light text-secondary border-end-0"><i class="bi bi-globe fs-5"></i></span>
+                                        <input type="text" name="privacy_policy_url" class="form-control rounded-start-0" 
+                                               placeholder="{{ route('privacy.policy') }}" 
+                                               value="{{ $settings['privacy_policy_url'] ?? route('privacy.policy') }}">
+                                    </div>
+                                    <div class="form-text text-muted small mt-1">
+                                        الافتراضي: <code>{{ route('privacy.policy') }}</code> (اتركه كما هو لاستخدام الصفحة الاحترافية المدمجة في الموقع).
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="form-label small fw-bold text-dark">
+                                        تخصيص نص سياسة الخصوصية (اختياري):
+                                    </label>
+                                    <textarea name="privacy_policy_content" rows="4" class="form-control rounded-3" 
+                                              placeholder="إذا أردت استبدال النص الافتراضي الكامل بنص مخصص من طرفك، اكتبه هنا. في حال تركه فارغاً سيتم استخدام النص القانوني الشامل والجاهز">{{ $settings['privacy_policy_content'] ?? '' }}</textarea>
+                                    <div class="form-text text-muted small mt-1">
+                                        عند تركه فارغاً، يتم استخدام القالب القانوني المعتمد تلقائياً (المطابق لجمع الاسم، رقم الهاتف، الإيميل، والتحويلات المحلية).
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. Terms & Conditions Link & Custom Content -->
+                        <div class="col-12">
+                            <div class="card border rounded-4 p-4 bg-white shadow-sm">
+                                <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="p-2 bg-info bg-opacity-10 text-info rounded-3">
+                                            <i class="bi bi-file-earmark-ruled-fill fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold text-dark mb-0">3. رابط الشروط والأحكام وسياسة الاستخدام (Terms & Conditions URL)</h6>
+                                            <small class="text-muted">رابط صفحة الشروط والأحكام وسياسة حجز وإلغاء المواعيد.</small>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ route('terms.conditions') }}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill px-3 fw-bold">
+                                            <i class="bi bi-eye-fill me-1"></i> معاينة صفحة الشروط
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 fw-bold" onclick="navigator.clipboard.writeText('{{ route('terms.conditions') }}'); alert('تم نسخ رابط الشروط والأحكام!');">
+                                            <i class="bi bi-clipboard me-1"></i> نسخ الرابط
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-dark">الرابط المعتمد للشروط والأحكام:</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light text-secondary border-end-0"><i class="bi bi-globe fs-5"></i></span>
+                                        <input type="text" name="terms_conditions_url" class="form-control rounded-start-0" 
+                                               placeholder="{{ route('terms.conditions') }}" 
+                                               value="{{ $settings['terms_conditions_url'] ?? route('terms.conditions') }}">
+                                    </div>
+                                    <div class="form-text text-muted small mt-1">
+                                        الافتراضي: <code>{{ route('terms.conditions') }}</code> (اتركه كما هو لاستخدام الصفحة الاحترافية المدمجة في الموقع).
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="form-label small fw-bold text-dark">
+                                        تخصيص نص الشروط والأحكام (اختياري):
+                                    </label>
+                                    <textarea name="terms_conditions_content" rows="4" class="form-control rounded-3" 
+                                              placeholder="إذا أردت استبدال النص الافتراضي الكامل بنص مخصص من طرفك، اكتبه هنا. في حال تركه فارغاً سيتم استخدام النص المعتمد">{{ $settings['terms_conditions_content'] ?? '' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>{{-- end legal-panel --}}
 
             </div>{{-- end tab-content --}}
 

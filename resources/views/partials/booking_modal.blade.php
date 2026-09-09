@@ -254,6 +254,58 @@
                         </div>
                         @endif
 
+                        {{-- ═══ حقول إثبات التحويل المالي (رقم التحويل وسكرين شوت الإيصال) ═══ --}}
+                        <div class="p-3 rounded-4 mt-3" style="background:#f8fafc; border: 1.5px dashed #cbd5e1;">
+                            <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                <label class="form-label fw-bold text-dark mb-0 small">
+                                    <i class="bi bi-phone-vibrate text-primary me-1"></i> رقم هاتف المحوّل / رقم التحويل
+                                </label>
+                                <span class="badge bg-light text-muted border small" style="font-size: 0.7rem;">اختياري</span>
+                            </div>
+                            <div class="position-relative mb-1">
+                                <input type="tel" id="app_transfer_number" class="form-control app-input w-100 pe-4" 
+                                       placeholder="رقم الهاتف / المحفظة التي تم التحويل منها">
+                                <i class="bi bi-hash position-absolute top-50 translate-middle-y end-0 me-3 text-secondary"></i>
+                            </div>
+                            <div class="form-text text-muted small mb-3" style="font-size: 0.78rem;">
+                                <i class="bi bi-info-circle text-primary me-1"></i> في حال تركه فارغاً، سيتم اعتماد رقم هاتفك المسجل أعلاه تلقائياً.
+                            </div>
+
+                            {{-- Upload Screenshot Area --}}
+                            <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                <label class="form-label fw-bold text-dark mb-0 small">
+                                    <i class="bi bi-image text-success me-1"></i> إرفاق سكرين شوت إشعار التحويل
+                                </label>
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 small" style="font-size: 0.7rem;">يسرّع التأكيد</span>
+                            </div>
+
+                            {{-- Custom Upload Box --}}
+                            <div id="receiptUploadBox" class="text-center p-3 rounded-3 bg-white border position-relative" style="cursor: pointer; transition: all 0.2s ease;" onclick="document.getElementById('app_receipt_file').click()">
+                                <input type="file" id="app_receipt_file" class="d-none" accept="image/*" onchange="onReceiptImageSelected(this)">
+                                
+                                {{-- Placeholder View --}}
+                                <div id="receiptPlaceholderView">
+                                    <i class="bi bi-cloud-arrow-up-fill text-primary fs-3 d-block mb-1"></i>
+                                    <div class="fw-bold small text-dark mb-0.5">اضغط هنا لاختيار صورة الإيصال أو الإشعار</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">يدعم JPG, PNG, WEBP (حتى 10MB)</div>
+                                </div>
+
+                                {{-- Preview View --}}
+                                <div id="receiptPreviewView" class="d-none align-items-center justify-content-between gap-2 text-start">
+                                    <div class="d-flex align-items-center gap-2 overflow-hidden">
+                                        <img id="receiptPreviewImg" src="" alt="Receipt Preview" class="rounded-2 border" style="width: 48px; height: 48px; object-fit: cover;">
+                                        <div class="overflow-hidden">
+                                            <div class="fw-bold small text-dark text-truncate" id="receiptFileName">إشعار_التحويل.png</div>
+                                            <div class="text-success small" style="font-size: 0.75rem;"><i class="bi bi-check-circle-fill me-1"></i> تم إرفاق الصورة بنجاح</div>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-circle p-1.5" onclick="event.stopPropagation(); removeReceiptImage();" title="حذف الصورة" style="width:30px;height:30px; display:flex; align-items:center; justify-content:center;">
+                                        <i class="bi bi-trash3-fill"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="alert alert-light border rounded-4 p-2.5 mt-3 mb-0 d-flex align-items-center gap-2 small text-secondary">
                             <i class="bi bi-info-circle-fill text-primary fs-5 flex-shrink-0"></i>
                             <div>امسح رمز QR أعلاه لإتمام التحويل، ثم اضغط <strong>تأكيد الحجز</strong> لإرسال الإيصال وتثبيت الموعد.</div>
@@ -999,11 +1051,49 @@ function checkUserRegistrationStatus() {
     }, 400);
 }
 
+function onReceiptImageSelected(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const previewImg = document.getElementById('receiptPreviewImg');
+            const previewView = document.getElementById('receiptPreviewView');
+            const placeholderView = document.getElementById('receiptPlaceholderView');
+            const fileNameEl = document.getElementById('receiptFileName');
+            
+            if (previewImg) previewImg.src = e.target.result;
+            if (fileNameEl) fileNameEl.textContent = file.name;
+            if (placeholderView) placeholderView.classList.add('d-none');
+            if (previewView) {
+                previewView.classList.remove('d-none');
+                previewView.classList.add('d-flex');
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function removeReceiptImage() {
+    const input = document.getElementById('app_receipt_file');
+    if (input) input.value = '';
+    const previewImg = document.getElementById('receiptPreviewImg');
+    const previewView = document.getElementById('receiptPreviewView');
+    const placeholderView = document.getElementById('receiptPlaceholderView');
+    if (previewImg) previewImg.src = '';
+    if (previewView) {
+        previewView.classList.add('d-none');
+        previewView.classList.remove('d-flex');
+    }
+    if (placeholderView) placeholderView.classList.remove('d-none');
+}
+
 function executeAppBooking() {
     const nameInput = document.getElementById('app_user_name');
     const phoneInput = document.getElementById('app_user_phone');
     const emailInput = document.getElementById('app_user_email');
     const passInput = document.getElementById('app_user_password');
+    const transferNumInput = document.getElementById('app_transfer_number');
+    const receiptFileInput = document.getElementById('app_receipt_file');
     const countryCode = document.getElementById('app_country_code') ? document.getElementById('app_country_code').value : '+964';
 
     const name = nameInput ? nameInput.value.trim() : '';
@@ -1037,34 +1127,38 @@ function executeAppBooking() {
     }
 
     const fullPhone = rawPhone.startsWith('+') ? rawPhone : (countryCode + rawPhone);
+    const transferNumber = transferNumInput && transferNumInput.value.trim() ? transferNumInput.value.trim() : fullPhone;
 
     const selServiceOpt = document.getElementById('app_service_select') ? document.getElementById('app_service_select').selectedOptions[0] : null;
     const serviceChannel = selServiceOpt ? (selServiceOpt.getAttribute('data-channel') || 'video') : 'video';
     const consultationChannel = (serviceChannel === 'clinic') ? 'clinic' : (serviceChannel === 'all' ? 'video' : serviceChannel);
 
-    const payload = {
-        service_id: appState.serviceId || 1,
-        booking_type: appState.bookingType || 'online',
-        consultation_type: consultationChannel,
-        date: appState.date,
-        start_time: appState.slot,
-        name: name,
-        phone: fullPhone,
-        email: email || null,
-        password: password || null,
-        title: appState.title,
-        notes: appState.details,
-        payment_method: appState.paymentMethod || 'zaincash',
-    };
+    const formData = new FormData();
+    formData.append('service_id', appState.serviceId || 1);
+    formData.append('booking_type', appState.bookingType || 'online');
+    formData.append('consultation_type', consultationChannel);
+    formData.append('date', appState.date);
+    formData.append('start_time', appState.slot);
+    formData.append('name', name);
+    formData.append('phone', fullPhone);
+    if (email) formData.append('email', email);
+    if (password) formData.append('password', password);
+    if (appState.title) formData.append('title', appState.title);
+    if (appState.details) formData.append('notes', appState.details);
+    formData.append('payment_method', appState.paymentMethod || 'zaincash');
+    formData.append('transfer_number', transferNumber);
+
+    if (receiptFileInput && receiptFileInput.files && receiptFileInput.files[0]) {
+        formData.append('receipt_image', receiptFileInput.files[0]);
+    }
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : '';
     const headers = {
-        'Content-Type': 'application/json',
         'X-CSRF-TOKEN': csrfToken,
         'Accept': 'application/json',
     };
 
-    fetch("{{ url('/api/checkout/initialize') }}", { method: 'POST', headers, body: JSON.stringify(payload) })
+    fetch("{{ url('/api/checkout/initialize') }}", { method: 'POST', headers, body: formData })
         .then(r => r.json())
         .then(data => {
             if (!data.success) throw new Error(data.message || 'حدث خطأ في طلب الحجز.');

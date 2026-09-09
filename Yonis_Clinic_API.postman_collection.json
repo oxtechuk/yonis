@@ -1,8 +1,8 @@
 {
     "info": {
-        "_postman_id": "yonis-clinic-api-master-v3",
-        "name": "🏥 Yonis Clinic API (Official & Complete)",
-        "description": "المجموعة الرسمية والكاملة لكافة واجهات البرمجة (APIs) لعيادة ومنصة د. يونس المرشدي.\n\nتتضمن كل ما تحتاجه لبرمجة تطبيق الموبايل (Flutter / React Native) أو واجهة الويب الأمامية:\n- فحص الإعدادات وطرق الدفع والـ QR وحالة النظام\n- تسجيل الدخول وإنشاء الحسابات واسترجاع الملف الشخصي\n- استعراض بيانات الطبيب والخدمات المحدثة (عيادة/أونلاين) والمواعيد المتاحة والريلز\n- محرك الحجز الكامل بسيناريوهين: مريض مسجل (مع التوكن وبقيم null) وزائر جديد (Guest)\n- تأكيد الدفع المحلي (زين كاش / سوبركي) والويب هوك والدفع بالبطاقات\n- لوحة تحكم المريض وإعادة جدولة وإلغاء المواعيد\n\n### بيانات الاختبار الجاهزة من قاعدة البيانات:\n- **المريض المسجل (أحمد):** `+9647701234567` / كلمة المرور: `password`\n- **المريضة المسجلة (سارة):** `+9647809876543` / كلمة المرور: `password`\n- **الطبيب المدير (د. يونس):** `dr.yonis@example.com` أو `+9647700000000` / كلمة المرور: `password`\n\n### المتغيرات التلقائية (Collection Variables):\n- `base_url`: رابط الدومين المباشر (مثل https://younis-almurshid.com) دون الحاجة لكتابة /api\n- `token`: يتم حفظه تلقائياً عند استدعاء Login أو Register\n- `booking_ref`: يتم حفظه تلقائياً عند إنشاء أي حجز جديد لاستخدامه في تأكيد الدفع فوراً",
+        "_postman_id": "yonis-clinic-api-master-v4",
+        "name": "🏥 Yonis Clinic API (Official & Complete v4.0)",
+        "description": "المجموعة الرسمية والكاملة والمحدثة لكافة واجهات البرمجة (APIs) لعيادة ومنصة د. يونس المرشدي.\n\nتتضمن كل ما تحتاجه لبرمجة تطبيق الموبايل (Flutter / React Native / iOS / Android) أو واجهة الويب الأمامية:\n- **الإعدادات والروابط القانونية:** روابط تقييم التطبيق (Google Play / App Store)، سياسة الخصوصية الرسمية، الشروط والأحكام، وطرق الدفع والـ QR وحالة النظام.\n- **المصادقة:** تسجيل الدخول وإنشاء الحسابات واسترجاع الملف الشخصي وتجديد الجلسات.\n- **الأطباء والخدمات:** استعراض بيانات الطبيب والخدمات المحدثة (عيادة/أونلاين) والمواعيد المتاحة والريلز والتقييمات.\n- **محرك الحجز المزدوج (Dual Checkout Engine):**\n  1. مريض مسجل (مع Bearer Token وبقيم null).\n  2. زائر جديد (Guest Checkout مع إنشاء الحساب التلقائي).\n  3. رفع سكرين شوت الإيصال ورقم التحويل (Multipart Form-Data & JSON) مع المعاينة التلقائية والـ Fallback لرقم الهاتف.\n- **تأكيد الدفع:** التحويل المحلي (زين كاش / سوبركي) والويب هوك والدفع بالبطاقات.\n- **إدارة مواعيد المريض:** لوحة تحكم المريض وإعادة جدولة وإلغاء المواعيد مع التحقق الأمني IDOR.\n\n### بيانات الاختبار الجاهزة من قاعدة البيانات:\n- **المريض المسجل (أحمد):** `+9647701234567` / كلمة المرور: `password`\n- **المريضة المسجلة (سارة):** `+9647809876543` / كلمة المرور: `password`\n- **الطبيب المدير (د. يونس):** `dr.yonis@example.com` أو `+9647700000000` / كلمة المرور: `password`\n\n### المتغيرات التلقائية (Collection Variables):\n- `base_url`: رابط الدومين المباشر (مثل https://younis-almurshid.com أو http://localhost/yonis/public)\n- `token`: يتم حفظه تلقائياً عند استدعاء Login أو Register\n- `booking_ref`: يتم حفظه تلقائياً عند إنشاء أي حجز جديد لاستخدامه في تأكيد الدفع فوراً\n- `booking_id`: المعرف الرقمي للحجز لعمليات الإلغاء وإعادة الجدولة",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "variable": [
@@ -45,7 +45,7 @@
     ],
     "item": [
         {
-            "name": "⚙️ 1. الإعدادات وحالة النظام (Config & Health)",
+            "name": "⚙️ 1. الإعدادات والروابط وحالة النظام (Config & Legal)",
             "item": [
                 {
                     "name": "📱 GET واجهة الصفحة الرئيسية لتطبيق الموبايل (Mobile Home Master API)",
@@ -67,11 +67,11 @@
                                 "home"
                             ]
                         },
-                        "description": "نقطة انطلاق الشاشة الرئيسية لتطبيق الموبايل (Flutter / Mobile App):\n- doctor: بيانات الطبيب، النبذة، صور الهيرو والـ Avatar، الهاتف، ورقم الواتساب.\n- statistics: إحصائيات الخبرة وعدد الاستشارات ونسبة الرضا والتقييم.\n- channels: قنوات الاستشارة المتاحة (عيادة، فيديو، صوت، شات).\n- services: الخدمات بالأيقونات المخصصة والأسعار والمدد الزمنية.\n- reels: قائمة مقاطع الفيديو القصيرة والريلز مع الصور المصغرة.\n- testimonials: آراء وتقييمات المرضى.\n- config: إعدادات العملة وبوابات الدفع النشطة."
+                        "description": "نقطة انطلاق الشاشة الرئيسية لتطبيق الموبايل (Flutter / Mobile App):\n- doctor: بيانات الطبيب، النبذة، صور الهيرو والـ Avatar، الهاتف، ورقم الواتساب.\n- statistics: إحصائيات الخبرة وعدد الاستشارات ونسبة الرضا والتقييم.\n- channels: قنوات الاستشارة المتاحة (عيادة، فيديو، صوت، شات).\n- services: الخدمات بالأيقونات المخصصة والأسعار والمدد الزمنية.\n- reels: قائمة مقاطع الفيديو القصيرة والريلز مع الصور المصغرة.\n- testimonials: آراء وتقييمات المرضى.\n- config: إعدادات العملة، روابط التقييم والسياسات، وبوابات الدفع النشطة."
                     }
                 },
                 {
-                    "name": "GET إعدادات التطبيق وخيارات الحجز والدفع (Config)",
+                    "name": "GET إعدادات التطبيق وخيارات الحجز والدفع والسياسات (Config)",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -90,7 +90,7 @@
                                 "config"
                             ]
                         },
-                        "description": "يعيد خيارات وإعدادات المنصة:\n- العملة الرسمية للمنصة: currency, currency_code, currency_symbol (الافتراضي IQD / د.ع)\n- كائن payment: طرق الدفع المحلية (زين كاش، سوبركي، فيزا/ماستر كارد، رموز QR، ورقم الواتساب للتأكيد)\n- حالة تفعيل حجز العيادة والاستشارات الأونلاين (شات، صوت، فيديو)\n- ألوان المنصة والشعارات وروابط السوشيال ميديا"
+                        "description": "يعيد خيارات وإعدادات المنصة المحدثة لتطبيق الموبايل:\n- app_rating_url: رابط تقييم التطبيق على متجر جوجل بلاي أو آب ستور.\n- privacy_policy_url: الرابط الرسمي لسياسة الخصوصية المتوافقة مع متطلبات المتاجر.\n- terms_conditions_url & terms_url: الرابط الرسمي للشروط والأحكام وسياسة الاستخدام.\n- العملة الرسمية للمنصة: currency, currency_code, currency_symbol (الافتراضي IQD / د.ع)\n- كائن payment: طرق الدفع المحلية (زين كاش، سوبركي، فيزا/ماستر كارد، رموز QR، ورقم الواتساب للتأكيد)\n- حالة تفعيل حجز العيادة والاستشارات الأونلاين (شات، صوت، فيديو)\n- ألوان المنصة والشعارات وروابط السوشيال ميديا"
                     }
                 }
             ]
@@ -428,7 +428,7 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/api/slots?service_id=1&date=2026-09-08",
+                            "raw": "{{base_url}}/api/slots?service_id=1&date=2026-10-15",
                             "host": [
                                 "{{base_url}}"
                             ],
@@ -444,16 +444,16 @@
                                 },
                                 {
                                     "key": "date",
-                                    "value": "2026-09-08",
+                                    "value": "2026-10-15",
                                     "description": "التاريخ المطلوب فحصه (YYYY-MM-DD)"
                                 }
                             ]
                         },
-                        "description": "يعيد جدول مواعيد اليوم مقسماً بدقة:\n- available_slots: المواعيد المتاحة فقط للحجز مع وقت البداية والنهاية والتنسيق العربي.\n- unavailable_slots: المواعيد غير المتاحة مع سبب عدم الإتاحة (محجوزة / محظورة / وقت مضى).\n- booked_slots: المواعيد المحجوزة مسبقاً.\n- all_slots: كامل الجدول لليوم مع حالة كل فترة (is_available: true/false).\n- summary: ملخص إحصائي (إجمالي المواعيد، المتاح، والمحجوز)."
+                        "description": "يعيد جميع الساعات المتاحة للحجز والمواعيد المحجوزة بالفعل في ذلك اليوم."
                     }
                 },
                 {
-                    "name": "GET الفيديوهات والريلز التوعوية (Reels)",
+                    "name": "GET مقاطع الفيديو القصيرة (Reels)",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -472,16 +472,34 @@
                                 "reels"
                             ]
                         },
-                        "description": "مقاطع الفيديو والريلز التوعوية القصيرة من TikTok و YouTube shorts."
+                        "description": "يعيد قائمة مقاطع الريلز النشطة مع روابط الفيديو والصور المصغرة والعناوين وعدد المشاهدات."
                     }
-                }
-            ]
-        },
-        {
-            "name": "💳 4. مسار الحجز والدفع (Booking & Checkout Flow)",
-            "item": [
+                },
                 {
-                    "name": "1️⃣ POST فحص حالة المريض قبل الحجز (Check User)",
+                    "name": "GET آراء وتقييمات المراجعين (Testimonials)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/testimonials",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "testimonials"
+                            ]
+                        },
+                        "description": "يعيد آراء وتقييمات وتجارب المرضى المعتمدة مع التقييم بالنجوم."
+                    }
+                },
+                {
+                    "name": "POST إرسال تقييم ورأي جديد (Submit Review)",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -496,7 +514,48 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"phone\": \"+9647701234567\"\n}",
+                            "raw": "{\n    \"name\": \"مريم جاسم\",\n    \"rating\": 5,\n    \"comment\": \"تجربة علاجية واستشارية ممتازة مع الدكتور يونس، فرقت كثيراً في راحتي النفسية.\",\n    \"role\": \"مراجعة استشارة أسرية\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/testimonials",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "testimonials"
+                            ]
+                        },
+                        "description": "إرسال رأي أو تقييم جديد من المريض للمراجعة والاعتماد."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "💳 4. محرك الحجز والدفع المزدوج (Checkout & Booking Engine)",
+            "item": [
+                {
+                    "name": "1️⃣ POST فحص حالة العميل قبل الحجز (Check User Registered/New)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"phone\": \"+9647701234567\",\n    \"email\": \"patient.ahmed@example.com\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -514,24 +573,20 @@
                                 "check-user"
                             ]
                         },
-                        "description": "فحص هل رقم هاتف المريض مسجل مسبقاً؟\n- مسجل: is_registered: true و requires_password: false (لا يحتاج باسورد)\n- جديد: is_registered: false و requires_password: true (يطلب منه باسورد لإنشاء حسابه)"
+                        "description": "يفحص إذا كان رقم الهاتف أو الإيميل مسجلاً مسبقاً في النظام:\n- إذا كان مسجلاً (is_registered: true): يُطلب منه تسجيل الدخول.\n- إذا كان جديداً (is_registered: false): ينتقل مباشرة لتسجيل بياناته كزائر جديد."
                     }
                 },
                 {
-                    "name": "2️⃣A POST حجز مريض مسجل (مع Token - الحقول null)",
+                    "name": "2️⃣A POST حجز مريض مسجل (JSON - مع Bearer Token ورقم التحويل)",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "exec": [
                                     "const res = pm.response.json();",
-                                    "if (res.token) {",
-                                    "  pm.collectionVariables.set(\"token\", res.token);",
-                                    "  console.log(\"✅ Patient Token Updated:\", res.token);",
-                                    "}",
                                     "if (res.booking_reference) {",
                                     "  pm.collectionVariables.set(\"booking_ref\", res.booking_reference);",
-                                    "  console.log(\"✅ Authenticated Booking Reference Saved:\", res.booking_reference);",
+                                    "  console.log(\"✅ Registered Booking Reference Saved:\", res.booking_reference);",
                                     "}",
                                     "if (res.booking && res.booking.id) {",
                                     "  pm.collectionVariables.set(\"booking_id\", res.booking.id.toString());",
@@ -565,7 +620,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"service_id\": 1,\n    \"booking_type\": \"online\",\n    \"consultation_type\": \"video\",\n    \"payment_method\": \"zaincash\",\n    \"date\": \"2026-10-15\",\n    \"start_time\": \"10:00 AM\",\n    \"title\": \"استشارة نفسية متخصصة\",\n    \"notes\": \"مريض مسجل بالفعل، الحجز مرتبط بحسابه مباشرة\",\n    \"name\": null,\n    \"phone\": null,\n    \"email\": null,\n    \"password\": null\n}",
+                            "raw": "{\n    \"service_id\": 1,\n    \"booking_type\": \"online\",\n    \"consultation_type\": \"video\",\n    \"payment_method\": \"zaincash\",\n    \"transfer_number\": \"+9647701234567\",\n    \"date\": \"2026-10-15\",\n    \"start_time\": \"10:00 AM\",\n    \"title\": \"استشارة نفسية متخصصة\",\n    \"notes\": \"مريض مسجل بالفعل، الحجز مرتبط بحسابه مباشرة\",\n    \"name\": null,\n    \"phone\": null,\n    \"email\": null,\n    \"password\": null\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -583,11 +638,11 @@
                                 "initialize"
                             ]
                         },
-                        "description": "السيناريو الأهم للمريض المسجل ومعه Bearer Token:\n- حقول name, phone, email, password ترسل كـ null (أو تهمل تماماً).\n- يربط السيرفر الحجز مباشرة بـ patient_id الخاص بالمريض المسجل.\n- يحفظ السكربت مرجع الحجز تلقائياً في متغير {{booking_ref}} لاستخدامه في تأكيد الدفع."
+                        "description": "حجز مريض مسجل لديه Bearer Token:\n- حقول name, phone, email, password ترسل كـ null (أو تهمل تماماً).\n- حقل transfer_number اختياري: إذا أُرسل فارغاً يتم اعتماد رقم هاتف المريض المسجل تلقائياً.\n- يربط السيرفر الحجز مباشرة بـ patient_id الخاص بالمريض المسجل.\n- يحفظ السكربت مرجع الحجز تلقائياً في متغير {{booking_ref}}."
                     }
                 },
                 {
-                    "name": "2️⃣B POST حجز زائر جديد (Guest - بيانات كاملة وإنشاء حساب)",
+                    "name": "2️⃣B POST حجز زائر جديد (JSON - إنشاء حساب تلقائي ورقم التحويل)",
                     "event": [
                         {
                             "listen": "test",
@@ -624,7 +679,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"service_id\": 1,\n    \"booking_type\": \"online\",\n    \"consultation_type\": \"video\",\n    \"payment_method\": \"zaincash\",\n    \"date\": \"2026-10-15\",\n    \"start_time\": \"11:00 AM\",\n    \"title\": \"استشارة نفسية أولى\",\n    \"notes\": \"زائر جديد يقوم بالحجز لأول مرة\",\n    \"name\": \"مصطفى كمال الدين\",\n    \"phone\": \"+9647755667788\",\n    \"email\": \"mustafa@example.com\",\n    \"password\": \"password123\"\n}",
+                            "raw": "{\n    \"service_id\": 1,\n    \"booking_type\": \"online\",\n    \"consultation_type\": \"video\",\n    \"payment_method\": \"zaincash\",\n    \"transfer_number\": \"+9647755667788\",\n    \"date\": \"2026-10-15\",\n    \"start_time\": \"11:00 AM\",\n    \"title\": \"استشارة نفسية أولى\",\n    \"notes\": \"زائر جديد يقوم بالحجز لأول مرة\",\n    \"name\": \"مصطفى كمال الدين\",\n    \"phone\": \"+9647755667788\",\n    \"email\": \"mustafa@example.com\",\n    \"password\": \"password123\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -642,7 +697,129 @@
                                 "initialize"
                             ]
                         },
-                        "description": "حجز لعميل جديد غير مسجل: يرسل الاسم ورقم الهاتف وكلمة المرور لإنشاء حسابه تلقائياً وحفظ مرجع الحجز في {{booking_ref}}."
+                        "description": "حجز لعميل جديد غير مسجل: يرسل الاسم ورقم الهاتف وكلمة المرور لإنشاء حسابه تلقائياً، مع دعم حقل transfer_number (إذا ترك فارغاً يعتمد رقم الهاتف). يحفظ مرجع الحجز في {{booking_ref}} والتوكن في {{token}}."
+                    }
+                },
+                {
+                    "name": "2️⃣C POST حجز مع رفع سكرين شوت الإيصال ورقم التحويل (Multipart Form-Data)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "const res = pm.response.json();",
+                                    "if (res.token) {",
+                                    "  pm.collectionVariables.set(\"token\", res.token);",
+                                    "}",
+                                    "if (res.booking_reference) {",
+                                    "  pm.collectionVariables.set(\"booking_ref\", res.booking_reference);",
+                                    "  console.log(\"✅ Booking with Receipt Screenshot Saved:\", res.booking_reference);",
+                                    "}",
+                                    "if (res.booking && res.booking.id) {",
+                                    "  pm.collectionVariables.set(\"booking_id\", res.booking.id.toString());",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "service_id",
+                                    "value": "1",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "booking_type",
+                                    "value": "online",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "consultation_type",
+                                    "value": "video",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "payment_method",
+                                    "value": "zaincash",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "transfer_number",
+                                    "value": "+9647701234567",
+                                    "type": "text",
+                                    "description": "رقم الهاتف أو المحفظة التي تم التحويل منها (اختياري، إذا ترك فارغاً يعتمد رقم الهاتف)"
+                                },
+                                {
+                                    "key": "receipt_image",
+                                    "type": "file",
+                                    "src": [],
+                                    "description": "ملف صورة سكرين شوت إشعار التحويل (JPG, PNG, WEBP)"
+                                },
+                                {
+                                    "key": "date",
+                                    "value": "2026-10-15",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "start_time",
+                                    "value": "12:30 PM",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "title",
+                                    "value": "جلسة استشارة مع إرفاق إيصال الدفع",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "notes",
+                                    "value": "تم إرفاق صورة الإيصال مع الطلب",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "أحمد محمود سالم",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "phone",
+                                    "value": "+9647701234567",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "email",
+                                    "value": "patient.ahmed@example.com",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "password",
+                                    "value": "password",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/checkout/initialize",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "checkout",
+                                "initialize"
+                            ]
+                        },
+                        "description": "نموذج Multipart/form-data متكامل لتطبيق الموبايل لرفع ملف سكرين شوت الإيصال receipt_image مع بيانات الحجز مباشرة. يقوم السيرفر بحفظ الصورة في مجلد التخزين العام وإرجاع رابطها receipt_image_url."
                     }
                 },
                 {
@@ -703,27 +880,46 @@
             "name": "📲 5. تأكيد الدفع المحلي والويب هوك (Payment Verification)",
             "item": [
                 {
-                    "name": "1️⃣ POST تأكيد دفع محلي (زين كاش / سوبركي برقم الحوالة)",
+                    "name": "1️⃣ POST تأكيد دفع محلي وإرسال رقم التحويل وسكرين شوت الإيصال",
                     "request": {
                         "method": "POST",
                         "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
                             {
                                 "key": "Accept",
                                 "value": "application/json"
                             }
                         ],
                         "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"booking_ref\": \"{{booking_ref}}\",\n    \"payment_method\": \"zaincash\",\n    \"transaction_reference\": \"TX-987654321\"\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "booking_ref",
+                                    "value": "{{booking_ref}}",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "payment_method",
+                                    "value": "zaincash",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "transfer_number",
+                                    "value": "+9647701234567",
+                                    "type": "text",
+                                    "description": "رقم المحفظة / الهاتف المحول منه"
+                                },
+                                {
+                                    "key": "receipt_image",
+                                    "type": "file",
+                                    "src": [],
+                                    "description": "صورة سكرين شوت الإشعار أو الإيصال"
+                                },
+                                {
+                                    "key": "transaction_reference",
+                                    "value": "TX-987654321",
+                                    "type": "text"
                                 }
-                            }
+                            ]
                         },
                         "url": {
                             "raw": "{{base_url}}/api/booking/{{booking_ref}}/confirm-payment",
@@ -737,7 +933,7 @@
                                 "confirm-payment"
                             ]
                         },
-                        "description": "يضغط المريض على 'أكدت الدفع' بعد مسح QR زين كاش أو سوبركي ويرسل رقم العملية.\nيتحول الحجز إلى حالة 'PendingPaymentReview' (قيد المراجعة والتدقيق)، وتظهر للمريض رسالة: 'حجزك الآن قيد المراجعة، وبعد إتمام التحقق سيصلك رقم تأكيد الحجز النهائي وتفاصيل الموعد'."
+                        "description": "تأكيد الدفع اللاحق: يرسل المريض رقم التحويل وصورة الإيصال بعد تحويل المبلغ.\nيتحول الحجز إلى حالة 'PendingPaymentReview' (قيد مراجعة وتدقيق الإدارة)، وتظهر في لوحة تحكم الدكتور مع زر معاينة الإيصال."
                     }
                 },
                 {
@@ -814,11 +1010,11 @@
                                 "bookings"
                             ]
                         },
-                        "description": "جلب قائمة جميع حجوزات المريض المسجل صاحب التوكن الحالي مرتبة تنازلياً مع تفاصيل الخدمة والدفع."
+                        "description": "يعيد قائمة بجميع حجوزات المريض المسجل (القادمة والسابقة والملغية) متضمنة:\n- transfer_number\n- receipt_image_url (الرابط المباشر لمعاينة الإيصال)\n- payment_method & payment_method_label\n- consultation_type_label & booking_type_label\n- بيانات الخدمة والمدفوعات."
                     }
                 },
                 {
-                    "name": "GET الحجوزات القادمة (Upcoming Bookings)",
+                    "name": "GET المواعيد القادمة فقط للمريض (Upcoming Tab)",
                     "request": {
                         "auth": {
                             "type": "bearer",
@@ -850,15 +1046,16 @@
                             "query": [
                                 {
                                     "key": "tab",
-                                    "value": "upcoming"
+                                    "value": "upcoming",
+                                    "description": "فلترة المواعيد القادمة"
                                 }
                             ]
                         },
-                        "description": "فلترة الحجوزات القادمة المؤكدة أو بانتظار الدفع بدءاً من اليوم فصاعداً."
+                        "description": "يعيد فقط المواعيد القادمة النشطة المؤكدة أو بانتظار الدفع."
                     }
                 },
                 {
-                    "name": "GET الحجوزات المكتملة السابقة (Completed Bookings)",
+                    "name": "GET المواعيد السابقة للمريض (Completed Tab)",
                     "request": {
                         "auth": {
                             "type": "bearer",
@@ -890,15 +1087,16 @@
                             "query": [
                                 {
                                     "key": "tab",
-                                    "value": "completed"
+                                    "value": "completed",
+                                    "description": "فلترة المواعيد المكتملة"
                                 }
                             ]
                         },
-                        "description": "فلترة الجلسات المنتهية والمكتملة سابقاً."
+                        "description": "يعيد المواعيد التي تمت بالفعل في تواريخ سابقة."
                     }
                 },
                 {
-                    "name": "GET الحجوزات الملغاة (Cancelled Bookings)",
+                    "name": "POST إلغاء موعد للمريض مع الحماية واسترداد المبلغ (Cancel Booking)",
                     "request": {
                         "auth": {
                             "type": "bearer",
@@ -910,35 +1108,34 @@
                                 }
                             ]
                         },
-                        "method": "GET",
+                        "method": "POST",
                         "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
                             {
                                 "key": "Accept",
                                 "value": "application/json"
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/api/patient/bookings?tab=cancelled",
+                            "raw": "{{base_url}}/api/booking/{{booking_id}}/cancel",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
                                 "api",
-                                "patient",
-                                "bookings"
-                            ],
-                            "query": [
-                                {
-                                    "key": "tab",
-                                    "value": "cancelled"
-                                }
+                                "booking",
+                                "{{booking_id}}",
+                                "cancel"
                             ]
                         },
-                        "description": "فلترة الحجوزات الملغاة بواسطة المريض أو الطبيب أو المنتهية الصلاحية."
+                        "description": "إلغاء الموعد من قِبل المريض:\n- محمي بـ IDOR (لا يمكن للمريض إلغاء حجز غير مسجل باسمه).\n- إذا تم الإلغاء قبل أكثر من 24 ساعة وكان الدفع عبر Stripe يُنفذ أمر Refund تلقائياً."
                     }
                 },
                 {
-                    "name": "POST إعادة جدولة الموعد (Reschedule Booking)",
+                    "name": "POST إعادة جدولة الموعد لوقت آخر (Reschedule Booking)",
                     "request": {
                         "auth": {
                             "type": "bearer",
@@ -963,7 +1160,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"date\": \"2026-10-20\",\n    \"start_time\": \"12:00 PM\"\n}",
+                            "raw": "{\n    \"date\": \"2026-10-20\",\n    \"start_time\": \"02:30 PM\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -982,42 +1179,7 @@
                                 "reschedule"
                             ]
                         },
-                        "description": "إعادة جدولة موعد قادم وتغيير تاريخه ووقته مع فحص توفر الموعد الجديد."
-                    }
-                },
-                {
-                    "name": "POST إلغاء الحجز من المريض (Cancel Booking)",
-                    "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{token}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{base_url}}/api/booking/{{booking_id}}/cancel",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "api",
-                                "booking",
-                                "{{booking_id}}",
-                                "cancel"
-                            ]
-                        },
-                        "description": "إلغاء حجز المريض مع فحص الأهلية للاسترداد (إذا كان قبل أكثر من 24 ساعة من الموعد)."
+                        "description": "تعديل وقت وتاريخ الموعد المحجوز:\n- يتحقق من عدد مرات التعديل المسموحة من الإعدادات (max_reschedule_allowed).\n- يتحقق من مهلة التعديل قبل الموعد (min_reschedule_notice_hours)."
                     }
                 }
             ]

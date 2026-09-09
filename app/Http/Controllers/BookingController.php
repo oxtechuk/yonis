@@ -225,13 +225,41 @@ class BookingController extends Controller
 
         $booking->status = 'PendingPaymentReview';
 
-        $paymentMethod = $request->input('payment_method');
-        $transRef = $request->input('transaction_reference') ?? $request->input('transaction_id');
+        $paymentMethod = $request->input('payment_method') ?: $booking->payment_method;
+        $transRef = $request->input('transaction_reference') ?? $request->input('transaction_id') ?? $request->input('transfer_number') ?? $request->input('sender_phone');
 
-        if ($paymentMethod || $transRef) {
+        if ($paymentMethod) {
+            $booking->payment_method = $paymentMethod;
+        }
+
+        // Transfer Number handling
+        $transferNumber = $request->input('transfer_number') ?: $request->input('sender_phone') ?: $transRef;
+        if (empty($transferNumber)) {
+            $transferNumber = $booking->patient ? $booking->patient->phone : ($booking->temp_user_data['phone'] ?? null);
+        }
+        if ($transferNumber) {
+            $booking->transfer_number = $transferNumber;
+        }
+
+        // Receipt image handling
+        if ($request->hasFile('receipt_image')) {
+            $file = $request->file('receipt_image');
+            $filename = 'receipt_' . time() . '_' . \Illuminate\Support\Str::random(10) . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('receipts', $filename, 'public');
+            $booking->receipt_image = 'storage/' . $path;
+        } elseif ($request->hasFile('receipt_file')) {
+            $file = $request->file('receipt_file');
+            $filename = 'receipt_' . time() . '_' . \Illuminate\Support\Str::random(10) . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('receipts', $filename, 'public');
+            $booking->receipt_image = 'storage/' . $path;
+        } elseif ($request->filled('receipt_image') && is_string($request->input('receipt_image'))) {
+            $booking->receipt_image = $request->input('receipt_image');
+        }
+
+        if ($paymentMethod || $transferNumber) {
             $noteAdd = [];
             if ($paymentMethod) $noteAdd[] = "طريقة الدفع: {$paymentMethod}";
-            if ($transRef) $noteAdd[] = "رقم المعاملة: {$transRef}";
+            if ($transferNumber) $noteAdd[] = "رقم التحويل: {$transferNumber}";
             $booking->notes = trim(($booking->notes ? $booking->notes . " | " : "") . implode(' - ', $noteAdd));
         }
 
@@ -239,8 +267,8 @@ class BookingController extends Controller
 
         if ($booking->payment) {
             $updateData = [];
-            if ($transRef) {
-                $updateData['payment_intent_id'] = $transRef;
+            if ($transferNumber) {
+                $updateData['payment_intent_id'] = $transferNumber;
             }
             if (!empty($updateData)) {
                 $booking->payment->update($updateData);
@@ -249,7 +277,8 @@ class BookingController extends Controller
 
         Log::info("Booking {$bookingRef} marked as PendingPaymentReview by patient.", [
             'payment_method' => $paymentMethod,
-            'transaction_reference' => $transRef
+            'transfer_number' => $transferNumber,
+            'receipt_image' => $booking->receipt_image
         ]);
 
         // Ensure patient user account exists and authenticate them

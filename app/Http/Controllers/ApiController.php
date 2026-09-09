@@ -542,6 +542,12 @@ class ApiController extends Controller
                     'number' => Setting::get('whatsapp_number', '+9647800000000'),
                     'default_message' => Setting::get('whatsapp_default_message', 'مرحباً دكتور يونس، أود الاستفسار عن حجز موعد.'),
                 ],
+                'legal_links' => [
+                    'app_rating_url'       => Setting::get('app_rating_url', 'https://play.google.com/store/apps/details?id=com.yonis.clinic'),
+                    'privacy_policy_url'   => Setting::get('privacy_policy_url', '') ?: url('/privacy-policy'),
+                    'terms_conditions_url' => Setting::get('terms_conditions_url', '') ?: url('/terms'),
+                    'terms_url'            => Setting::get('terms_conditions_url', '') ?: url('/terms'),
+                ],
                 'payment_methods' => [
                     'zaincash' => $payZainEnabled,
                     'superki' => $paySuperkiEnabled,
@@ -579,6 +585,10 @@ class ApiController extends Controller
         $defaultPaymentMethod = $payZainEnabled ? 'zaincash' : ($paySuperkiEnabled ? 'superki' : ($payCardEnabled ? 'card' : 'zaincash'));
         $doctorProfile = DoctorProfile::first();
 
+        $appRatingUrl = Setting::get('app_rating_url', 'https://play.google.com/store/apps/details?id=com.yonis.clinic');
+        $privacyPolicyUrl = Setting::get('privacy_policy_url', '') ?: url('/privacy-policy');
+        $termsConditionsUrl = Setting::get('terms_conditions_url', '') ?: url('/terms');
+
         return response()->json([
             'success' => true,
             'config' => [
@@ -605,6 +615,16 @@ class ApiController extends Controller
                     'default_message' => Setting::get('whatsapp_default_message', 'مرحباً دكتور يونس، أود الاستفسار عن حجز موعد استشارة.'),
                     'greeting' => Setting::get('whatsapp_widget_greeting', 'أهلاً بك! 👋 معك عيادة الدكتور يونس المرشد. كيف يمكننا مساعدتك اليوم؟'),
                 ],
+                'legal_links' => [
+                    'app_rating_url'       => $appRatingUrl,
+                    'privacy_policy_url'   => $privacyPolicyUrl,
+                    'terms_conditions_url' => $termsConditionsUrl,
+                    'terms_url'            => $termsConditionsUrl,
+                ],
+                'app_rating_url'          => $appRatingUrl,
+                'privacy_policy_url'      => $privacyPolicyUrl,
+                'terms_conditions_url'    => $termsConditionsUrl,
+                'terms_url'               => $termsConditionsUrl,
                 'payment' => [
                     'default_method' => $defaultPaymentMethod,
                     'zaincash' => [
@@ -771,6 +791,10 @@ class ApiController extends Controller
             'phone' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
             'password' => 'nullable|string|min:6',
+            'transfer_number' => 'nullable|string|max:50',
+            'sender_phone' => 'nullable|string|max:50',
+            'receipt_image' => 'nullable',
+            'receipt_file' => 'nullable',
         ];
 
         // If not recognized as registered user:
@@ -895,6 +919,30 @@ class ApiController extends Controller
                 }
             }
 
+            // Transfer Number handling (defaults to user's phone if empty)
+            $transferNumber = $request->input('transfer_number') ?: $request->input('sender_phone');
+            if (empty($transferNumber)) {
+                $transferNumber = $patient ? $patient->phone : ($request->input('phone') ?? null);
+            }
+
+            // Receipt image upload handling
+            $receiptPath = null;
+            if ($request->hasFile('receipt_image')) {
+                $file = $request->file('receipt_image');
+                $filename = 'receipt_' . time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('receipts', $filename, 'public');
+                $receiptPath = 'storage/' . $path;
+            } elseif ($request->hasFile('receipt_file')) {
+                $file = $request->file('receipt_file');
+                $filename = 'receipt_' . time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('receipts', $filename, 'public');
+                $receiptPath = 'storage/' . $path;
+            } elseif ($request->filled('receipt_image') && is_string($request->input('receipt_image'))) {
+                $receiptPath = $request->input('receipt_image');
+            }
+
+            $bookingStatus = (!empty($receiptPath) || in_array($paymentMethod, ['zaincash', 'superki'])) ? 'PendingPaymentReview' : 'AwaitingPayment';
+
             // Create booking record linked directly to patient
             $booking = Booking::create([
                 'booking_reference' => $bookingRef,
@@ -909,7 +957,10 @@ class ApiController extends Controller
                 'title' => $request->title ?? $service->title,
                 'notes' => $request->notes ?? null,
                 'temp_user_data' => null,
-                'status' => 'AwaitingPayment',
+                'status' => $bookingStatus,
+                'payment_method' => $paymentMethod,
+                'transfer_number' => $transferNumber,
+                'receipt_image' => $receiptPath,
             ]);
 
             // Attempt login if session is active
@@ -1012,6 +1063,9 @@ class ApiController extends Controller
                 'currency' => $currencyCode,
                 'currency_symbol' => $currencySymbol,
                 'payment_method' => $paymentMethod,
+                'transfer_number' => $transferNumber,
+                'receipt_image' => $receiptPath,
+                'receipt_image_url' => $booking->receipt_image_url,
                 'qr_code' => $activeQr,
                 'payment_instructions' => $instructions,
                 'whatsapp_url' => $waUrl,

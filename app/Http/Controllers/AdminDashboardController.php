@@ -1336,6 +1336,12 @@ class AdminDashboardController extends Controller
             'whatsapp_widget_enabled'       => Setting::get('whatsapp_widget_enabled', '1'),
             'whatsapp_default_message'      => Setting::get('whatsapp_default_message', 'مرحباً دكتور يونس، أود الاستفسار عن حجز موعد استشارة.'),
             'whatsapp_widget_greeting'      => Setting::get('whatsapp_widget_greeting', 'أهلاً بك! 👋 معك عيادة الدكتور يونس المرشد. كيف يمكننا مساعدتك اليوم؟'),
+            // ─── إعدادات روابط التطبيق والسياسات القانونية ─────────────────────────
+            'app_rating_url'                => Setting::get('app_rating_url', 'https://play.google.com/store/apps/details?id=com.yonis.clinic'),
+            'privacy_policy_url'            => Setting::get('privacy_policy_url', url('/privacy-policy')),
+            'terms_conditions_url'          => Setting::get('terms_conditions_url', url('/terms')),
+            'privacy_policy_content'        => Setting::get('privacy_policy_content', ''),
+            'terms_conditions_content'      => Setting::get('terms_conditions_content', ''),
         ];
         return view('admin.settings', compact('settings'));
     }
@@ -1373,6 +1379,12 @@ class AdminDashboardController extends Controller
             'payment_card_instructions'    => 'nullable|string|max:500',
             'payment_spaceremit_key'       => 'nullable|string|max:255',
             'payment_spaceremit_currency'  => 'nullable|string|max:10',
+            // App & Legal Policies validation
+            'app_rating_url'               => 'nullable|string|max:1000',
+            'privacy_policy_url'           => 'nullable|string|max:1000',
+            'terms_conditions_url'         => 'nullable|string|max:1000',
+            'privacy_policy_content'       => 'nullable|string',
+            'terms_conditions_content'     => 'nullable|string',
         ]);
 
         // Handle header logo file upload
@@ -1495,6 +1507,23 @@ class AdminDashboardController extends Controller
         }
         if ($request->has('whatsapp_widget_greeting')) {
             Setting::set('whatsapp_widget_greeting', trim($request->whatsapp_widget_greeting ?? ''));
+        }
+
+        // ─── إعدادات روابط التطبيق والسياسات القانونية ─────────────────────
+        if ($request->has('app_rating_url')) {
+            Setting::set('app_rating_url', trim($request->app_rating_url ?? ''));
+        }
+        if ($request->has('privacy_policy_url')) {
+            Setting::set('privacy_policy_url', trim($request->privacy_policy_url ?? ''));
+        }
+        if ($request->has('terms_conditions_url')) {
+            Setting::set('terms_conditions_url', trim($request->terms_conditions_url ?? ''));
+        }
+        if ($request->has('privacy_policy_content')) {
+            Setting::set('privacy_policy_content', $request->privacy_policy_content ?? '');
+        }
+        if ($request->has('terms_conditions_content')) {
+            Setting::set('terms_conditions_content', $request->terms_conditions_content ?? '');
         }
 
         return redirect()->back()->with('success', 'تم حفظ جميع الإعدادات بنجاح!');

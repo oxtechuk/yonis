@@ -494,6 +494,8 @@
                         <li><a href="{{ route('home') }}#gallery"><i class="bi bi-chevron-{{ $isAr ? 'left' : 'right' }} footer-link-arrow"></i> {{ $isAr ? 'معرض الصور والفعاليات' : 'Events & Gallery' }}</a></li>
                         <li><a href="{{ route('home') }}#services"><i class="bi bi-chevron-{{ $isAr ? 'left' : 'right' }} footer-link-arrow"></i> {{ $isAr ? 'الجلسات والأسعار' : 'Sessions & Pricing' }}</a></li>
                         <li><a href="{{ route('home') }}#reels-section"><i class="bi bi-chevron-{{ $isAr ? 'left' : 'right' }} footer-link-arrow"></i> {{ $isAr ? 'مقاطع توعوية وإرشادية' : 'Awareness Videos' }}</a></li>
+                        <li><a href="{{ route('privacy.policy') }}"><i class="bi bi-shield-lock-fill footer-link-arrow text-primary"></i> {{ $isAr ? 'سياسة الخصوصية' : 'Privacy Policy' }}</a></li>
+                        <li><a href="{{ route('terms.conditions') }}"><i class="bi bi-file-earmark-ruled-fill footer-link-arrow text-info"></i> {{ $isAr ? 'الشروط والأحكام' : 'Terms of Service' }}</a></li>
                         <li><a href="{{ route('login') }}"><i class="bi bi-chevron-{{ $isAr ? 'left' : 'right' }} footer-link-arrow"></i> {{ $isAr ? 'تسجيل الدخول للمنصة' : 'Client Login' }}</a></li>
                     </ul>
                 </div>
@@ -515,9 +517,13 @@
             <div class="footer-divider my-4" style="border-top: 1px solid rgba(255, 255, 255, 0.08);"></div>
             
             <div class="footer-bottom d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 text-center text-md-start">
-                <div class="footer-copy-text">
+                <div class="footer-copy-text d-flex flex-wrap align-items-center justify-content-center justify-content-md-start gap-2">
                     <span>{{ $isAr ? 'جميع الحقوق محفوظة' : 'All Rights Reserved' }} © {{ date('Y') }} - {{ $doctorNameSetting }}</span>
-                    <span class="badge bg-white bg-opacity-10 text-white rounded-pill px-3 py-1 ms-2" style="font-size: 0.75rem;">{{ $isAr ? 'مرخص ومعتمد رسمياً' : 'Officially Licensed' }}</span>
+                    <span class="badge bg-white bg-opacity-10 text-white rounded-pill px-3 py-1" style="font-size: 0.75rem;">{{ $isAr ? 'مرخص ومعتمد رسمياً' : 'Officially Licensed' }}</span>
+                    <span class="text-white-50">|</span>
+                    <a href="{{ route('privacy.policy') }}" class="text-white-50 text-decoration-none small hover-white">{{ $isAr ? 'الخصوصية' : 'Privacy' }}</a>
+                    <span class="text-white-50">·</span>
+                    <a href="{{ route('terms.conditions') }}" class="text-white-50 text-decoration-none small hover-white">{{ $isAr ? 'الشروط' : 'Terms' }}</a>
                 </div>
                 
                 <div class="footer-credits d-flex align-items-center justify-content-center gap-2 small text-white-50">

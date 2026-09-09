@@ -25,6 +25,12 @@ Route::get('/sitemap.xml', [ApiController::class, 'sitemapXml']);
 // Landing Page & Public Booking Wizard
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
+// Legal & Policies (Compliant with Google Play & Apple App Store Review)
+Route::get('/privacy-policy', [HomeController::class, 'privacyPolicy'])->name('privacy.policy');
+Route::get('/privacy', [HomeController::class, 'privacyPolicy']);
+Route::get('/terms', [HomeController::class, 'termsConditions'])->name('terms.conditions');
+Route::get('/terms-and-conditions', [HomeController::class, 'termsConditions']);
+
 // API Public Endpoints
 Route::get('/api/services', [ApiController::class, 'getServices']);
 Route::get('/api/availabilities', [ApiController::class, 'getAvailabilities']);

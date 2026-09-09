@@ -32,4 +32,20 @@ class HomeController extends Controller
             'whatsappNumber', 'googleVerification', 'doctorName', 'ogImage'
         ));
     }
+
+    /**
+     * Show Privacy Policy page (Compliant with Google Play & App Store)
+     */
+    public function privacyPolicy()
+    {
+        return view('legal.privacy');
+    }
+
+    /**
+     * Show Terms & Conditions and Booking/Cancellation Policies
+     */
+    public function termsConditions()
+    {
+        return view('legal.terms');
+    }
 }

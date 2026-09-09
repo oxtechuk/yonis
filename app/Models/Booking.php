@@ -22,8 +22,15 @@ class Booking extends Model
         'notes',
         'temp_user_data',
         'status',
+        'payment_method',
+        'transfer_number',
+        'receipt_image',
         'rescheduled_at',
         'reschedule_count',
+    ];
+
+    protected $appends = [
+        'receipt_image_url',
     ];
 
     protected $casts = [
@@ -44,6 +51,35 @@ class Booking extends Model
             'video' => 'مكالمة فيديو',
             'clinic' => 'حجز بالعيادة',
             default => 'حجز بالعيادة',
+        };
+    }
+
+    /**
+     * Get Receipt Image Full URL
+     */
+    public function getReceiptImageUrlAttribute(): ?string
+    {
+        if (empty($this->receipt_image)) {
+            return null;
+        }
+        if (preg_match('/^https?:\/\//i', $this->receipt_image)) {
+            return $this->receipt_image;
+        }
+        $cleanPath = ltrim(preg_replace('/^storage\//i', '', ltrim($this->receipt_image, '/')), '/');
+        return asset('storage/' . $cleanPath);
+    }
+
+    /**
+     * Get Payment Method Label in Arabic
+     */
+    public function getPaymentMethodLabelAttribute(): string
+    {
+        return match ($this->payment_method) {
+            'zaincash' => 'زين كاش (ZainCash)',
+            'superki' => 'SuperKi',
+            'card' => 'بطاقة ائتمان (فيزا / ماستر كارد)',
+            'stripe' => 'Stripe',
+            default => $this->payment_method ?? 'تحويل محلي',
         };
     }
 
