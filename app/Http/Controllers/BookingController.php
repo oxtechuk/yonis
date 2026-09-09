@@ -264,7 +264,7 @@ class BookingController extends Controller
             $consultationType = $bookingType === 'clinic' ? 'clinic' : ($service->getChannelType() !== 'all' ? $service->getChannelType() : 'video');
             $paymentMethod = $request->input('payment_method') ?: 'zaincash';
             $transferNumber = $request->input('transfer_number') ?: ($patient ? $patient->phone : null);
-            $bookingStatus = (!empty($receiptPath) || in_array($paymentMethod, ['zaincash', 'superki'])) ? 'PendingPaymentReview' : 'AwaitingPayment';
+            $bookingStatus = (!empty($receiptPath)) ? 'PendingPaymentReview' : 'AwaitingPayment';
 
             $price = $service->getPriceForChannel($consultationType);
 
@@ -287,9 +287,11 @@ class BookingController extends Controller
                 'receipt_image' => $receiptPath,
             ]);
 
-            // Notify Doctor and Patient
-            NotificationMailService::notifyDoctorNewBooking($booking, 'طلب حجز جديد');
-            NotificationMailService::notifyPatientBookingReceived($booking);
+            // Only notify doctor and patient if receipt is already attached / payment confirmed directly
+            if ($bookingStatus === 'PendingPaymentReview') {
+                NotificationMailService::notifyDoctorNewBooking($booking, 'طلب حجز وتأكيد دفع جديد');
+                NotificationMailService::notifyPatientBookingReceived($booking);
+            }
 
             $txRef = 'TX-' . strtoupper(Str::random(10));
 

@@ -983,7 +983,7 @@ class ApiController extends Controller
                 $receiptPath = $request->input('receipt_image');
             }
 
-            $bookingStatus = (!empty($receiptPath) || in_array($paymentMethod, ['zaincash', 'superki'])) ? 'PendingPaymentReview' : 'AwaitingPayment';
+            $bookingStatus = (!empty($receiptPath)) ? 'PendingPaymentReview' : 'AwaitingPayment';
 
             // Create booking record linked directly to patient
             $booking = Booking::create([
@@ -1073,9 +1073,11 @@ class ApiController extends Controller
             $waMsg = urlencode("مرحباً دكتور يونس، تم حجز موعد جديد برقم: {$bookingRef}\nالخدمة: {$service->title}\nالمبلغ: {$calculatedPrice} {$currencySymbol}\nطريقة الدفع: {$paymentMethod}\nيرجى مراجعة وتأكيد الحجز.");
             $waUrl = "https://wa.me/{$cleanWa}?text={$waMsg}";
 
-            // Fail-safe Email notifications to Doctor and Patient
-            \App\Services\NotificationMailService::notifyDoctorNewBooking($booking, 'حجز جديد عبر التطبيق');
-            \App\Services\NotificationMailService::notifyPatientBookingReceived($booking);
+            // Only notify doctor and patient if receipt is already attached / payment confirmed directly
+            if ($bookingStatus === 'PendingPaymentReview') {
+                \App\Services\NotificationMailService::notifyDoctorNewBooking($booking, 'طلب حجز وتأكيد دفع جديد');
+                \App\Services\NotificationMailService::notifyPatientBookingReceived($booking);
+            }
 
             // Generate Auth token so mobile client logs in immediately
             $authToken = null;

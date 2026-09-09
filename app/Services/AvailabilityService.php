@@ -61,9 +61,15 @@ class AvailabilityService
             ->get();
 
         // 5. Get existing active bookings for this date
-        // Active statuses: AwaitingPayment, Confirmed, Completed
+        // Active statuses: Confirmed, Completed, PendingPaymentReview, and recent AwaitingPayment (15 mins)
         $existingBookings = Booking::where('date', $dateStr)
-            ->whereIn('status', ['AwaitingPayment', 'Confirmed', 'Completed'])
+            ->where(function ($q) {
+                $q->whereIn('status', ['Confirmed', 'Completed', 'PendingPaymentReview'])
+                  ->orWhere(function ($subQ) {
+                      $subQ->where('status', 'AwaitingPayment')
+                           ->where('created_at', '>=', Carbon::now()->subMinutes(15));
+                  });
+            })
             ->get();
 
         $duration = $service->duration;
@@ -200,7 +206,13 @@ class AvailabilityService
             ->get();
 
         $existingBookings = Booking::where('date', $dateStr)
-            ->whereIn('status', ['AwaitingPayment', 'Confirmed', 'Completed'])
+            ->where(function ($q) {
+                $q->whereIn('status', ['Confirmed', 'Completed', 'PendingPaymentReview'])
+                  ->orWhere(function ($subQ) {
+                      $subQ->where('status', 'AwaitingPayment')
+                           ->where('created_at', '>=', Carbon::now()->subMinutes(15));
+                  });
+            })
             ->get();
 
         $duration = max((int)$service->duration, 15);
