@@ -19,6 +19,173 @@
 @endphp
 
 {{-- ═══ REUSABLE BOOKING POPUP MODAL WITH INTERACTIVE MULTI-STEP FLOW ═══ --}}
+<style>
+/* ─── Modal & Step 2 Streamlined Design ─── */
+.mobile-app-modal-dialog {
+    max-width: 500px !important;
+}
+.mobile-app-modal-content {
+    border-radius: 24px !important;
+}
+.mobile-app-header {
+    padding: 0.85rem 1.25rem !important;
+}
+.mobile-app-header-title {
+    font-size: 1.05rem !important;
+    font-weight: 800 !important;
+}
+.mobile-app-body {
+    padding: 1.1rem 1.25rem 5.2rem 1.25rem !important;
+}
+.app-section-title {
+    font-size: 0.88rem !important;
+    font-weight: 800 !important;
+    margin-bottom: 0.5rem !important;
+    color: #0f172a !important;
+}
+.app-input {
+    border-radius: 12px !important;
+    padding: 0.65rem 0.85rem !important;
+    font-size: 0.85rem !important;
+}
+.app-input-sm {
+    border: 1.5px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.82rem;
+    background: #ffffff;
+    transition: all 0.2s ease;
+}
+.app-input-sm:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 82, 164, 0.12);
+    outline: none;
+}
+
+/* ─── Segmented Payment Method Toggle Switch ─── */
+.pay-toggle-switcher {
+    display: flex;
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: 14px;
+    gap: 4px;
+    border: 1px solid #e2e8f0;
+}
+.pay-toggle-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 6px;
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    color: #64748b;
+    font-weight: 700;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    outline: none;
+    user-select: none;
+}
+.pay-toggle-btn:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.65);
+    color: #1e293b;
+}
+.pay-toggle-btn.active {
+    background: #ffffff;
+    box-shadow: 0 3px 10px rgba(15, 23, 42, 0.08);
+}
+.pay-toggle-btn.active.zain {
+    color: #6d28d9;
+    box-shadow: 0 2px 10px rgba(109, 40, 217, 0.16), 0 0 0 1.5px #7c3aed;
+}
+.pay-toggle-btn.active.superki {
+    color: #0369a1;
+    box-shadow: 0 2px 10px rgba(2, 132, 199, 0.16), 0 0 0 1.5px #0284c7;
+}
+.pay-toggle-btn.active.card {
+    color: #1e40af;
+    box-shadow: 0 2px 10px rgba(37, 99, 235, 0.16), 0 0 0 1.5px #2563eb;
+}
+.pay-toggle-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    color: #fff;
+    flex-shrink: 0;
+}
+.pay-toggle-icon.zain { background: linear-gradient(135deg, #7c3aed, #4c1d95); }
+.pay-toggle-icon.superki { background: linear-gradient(135deg, #0284c7, #075985); }
+.pay-toggle-icon.card { background: linear-gradient(135deg, #1e3a8a, #2563eb); }
+
+/* ─── Compact QR Box & Panels ─── */
+.pay-qr-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 10px 12px;
+    text-align: center;
+}
+.pay-qr-img-box {
+    display: inline-block;
+    padding: 6px;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    margin-bottom: 6px;
+}
+.pay-qr-img-box img {
+    max-width: 120px;
+    max-height: 120px;
+    border-radius: 8px;
+    object-fit: contain;
+    display: block;
+}
+.pay-qr-label {
+    font-size: 0.77rem;
+    color: #475569;
+    line-height: 1.45;
+    margin: 0;
+    font-weight: 600;
+}
+
+/* ─── Proof & Upload Card ─── */
+.pay-proof-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 10px 12px;
+    margin-top: 8px;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.02);
+}
+.pay-upload-dropzone {
+    border: 1.5px dashed #cbd5e1;
+    border-radius: 10px;
+    padding: 8px 10px;
+    background: #f8fafc;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+.pay-upload-dropzone:hover {
+    border-color: var(--primary-color);
+    background: #f0f4ff;
+}
+
+/* ─── Bottom Bar ─── */
+.mobile-app-bottom-bar {
+    padding: 0.7rem 1.25rem !important;
+    gap: 8px !important;
+}
+</style>
+
 <div class="modal fade" id="bookingModal" tabindex="-1" aria-hidden="true" dir="rtl">
     <div class="modal-dialog modal-dialog-centered mobile-app-modal-dialog">
         <div class="modal-content mobile-app-modal-content position-relative text-end">
@@ -245,63 +412,60 @@
                 <div id="app-screen-2" class="d-none">
                     
                     {{-- كارت ملخص الموعد المختار --}}
-                    <div class="card border rounded-4 p-3 mb-3 bg-white shadow-sm">
-                        <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
-                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 fw-bold">
+                    <div class="card border rounded-4 p-2.5 mb-2.5 bg-white shadow-sm" dir="rtl">
+                        <div class="d-flex align-items-center justify-content-between mb-1.5 pb-1.5 border-bottom">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-0.5 fw-bold" style="font-size:0.75rem;">
                                 <i class="bi bi-check-circle-fill me-1"></i> ملخص الحجز
                             </span>
-                            <span class="fw-black fs-5" style="color:var(--primary-color);" id="app-required-price">50 {{ \App\Models\Setting::currencySymbol() }}</span>
+                            <span class="fw-black" style="color:var(--primary-color); font-size: 1rem;" id="app-required-price">50 {{ \App\Models\Setting::currencySymbol() }}</span>
                         </div>
-                        <div class="small text-secondary mb-1">
-                            <strong class="text-dark"><i class="bi bi-tag-fill text-primary me-1"></i> الخدمة:</strong>
-                            <span id="step2_summary_service" class="fw-bold text-dark">استشارة نفسية</span>
-                        </div>
-                        <div class="small text-secondary mb-1">
-                            <strong class="text-dark"><i class="bi bi-calendar-event text-primary me-1"></i> الموعد:</strong>
-                            <span id="step2_summary_datetime" class="fw-bold text-primary font-monospace">—</span>
-                        </div>
-                        <div class="small text-secondary">
-                            <strong class="text-dark"><i class="bi bi-person-fill text-primary me-1"></i> المريض:</strong>
-                            <span id="step2_summary_patient" class="fw-bold text-dark">—</span>
-                        </div>
-                    </div>
-
-                    {{-- تفاصيل وملاحظات الاستشارة --}}
-                    <div class="mb-3">
-                        <div class="app-section-title">{{ __('messages.consultation_details') }} <span class="badge bg-light text-muted border small ms-1" style="font-size:0.72rem;">اختياري</span></div>
-                        <textarea id="app_consultation_details" class="form-control app-input w-100 text-end" rows="2" placeholder="{{ __('messages.consultation_details_ph') }}"></textarea>
-                    </div>
-
-                    {{-- ═══ اختيار طريقة الدفع ═══ --}}
-                    @if($anyPaymentActive)
-                    <div class="mb-3 pt-2 border-top">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div class="app-section-title fs-6 fw-black text-dark mb-0">
-                                <i class="bi bi-wallet2 text-primary me-1"></i> طريقة الدفع
+                        <div class="row g-1 text-secondary" style="font-size:0.78rem;">
+                            <div class="col-12 text-truncate mb-0.5">
+                                <strong class="text-dark"><i class="bi bi-tag-fill text-primary me-1"></i> الخدمة:</strong>
+                                <span id="step2_summary_service" class="fw-bold text-dark">استشارة نفسية</span>
+                            </div>
+                            <div class="col-7 text-truncate">
+                                <strong class="text-dark"><i class="bi bi-calendar-event text-primary me-1"></i> الموعد:</strong>
+                                <span id="step2_summary_datetime" class="fw-bold text-primary font-monospace">—</span>
+                            </div>
+                            <div class="col-5 text-truncate text-start">
+                                <strong class="text-dark"><i class="bi bi-person-fill text-primary me-1"></i> المريض:</strong>
+                                <span id="step2_summary_patient" class="fw-bold text-dark">—</span>
                             </div>
                         </div>
+                    </div>
+
+                    {{-- ═══ اختيار طريقة الدفع بتصميم Toggle Switch الفاخر ═══ --}}
+                    @if($anyPaymentActive)
+                    <div class="mb-2.5 pt-2 border-top" dir="rtl">
+                        <div class="d-flex justify-content-between align-items-center mb-1.5">
+                            <div class="app-section-title fw-black text-dark mb-0" style="font-size:0.85rem;">
+                                <i class="bi bi-wallet2 text-primary me-1"></i> طريقة الدفع
+                            </div>
+                            <span class="text-muted" style="font-size:0.72rem;">اختر طريقة الدفع المناسبة</span>
+                        </div>
                         
-                        {{-- تبويبات طرق الدفع --}}
-                        <div class="d-flex gap-2 mb-3" id="payment-method-tabs" role="tablist">
+                        {{-- Segmented Toggle Switcher --}}
+                        <div class="pay-toggle-switcher mb-2.5" id="payment-method-tabs" role="tablist">
                             @if($payZainEnabled)
-                            <button type="button" class="btn pay-tab-btn flex-fill {{ $defaultPayMethod === 'zaincash' ? 'active' : '' }}"
-                                    id="pay-tab-zaincash" onclick="switchPayTab('zaincash')"
-                                    style="{{ $defaultPayMethod === 'zaincash' ? 'background:linear-gradient(135deg,#7c3aed,#4c1d95);color:#fff;' : 'background:#e2e8f0;color:#475569;' }}border:none;border-radius:14px;padding:10px 6px;font-weight:700;font-size:.85rem;">
-                                 زين كاش
+                            <button type="button" class="pay-toggle-btn {{ $defaultPayMethod === 'zaincash' ? 'active zain' : '' }}"
+                                    id="pay-tab-zaincash" onclick="switchPayTab('zaincash')">
+                                <span class="pay-toggle-icon zain"><i class="bi bi-wallet2"></i></span>
+                                <span>زين كاش</span>
                             </button>
                             @endif
                             @if($paySuperkiEnabled)
-                            <button type="button" class="btn pay-tab-btn flex-fill {{ $defaultPayMethod === 'superki' ? 'active' : '' }}"
-                                    id="pay-tab-superki" onclick="switchPayTab('superki')"
-                                    style="{{ $defaultPayMethod === 'superki' ? 'background:linear-gradient(135deg,#0284c7,#075985);color:#fff;' : 'background:#e2e8f0;color:#475569;' }}border:none;border-radius:14px;padding:10px 6px;font-weight:700;font-size:.85rem;">
-                                 SuperKi
+                            <button type="button" class="pay-toggle-btn {{ $defaultPayMethod === 'superki' ? 'active superki' : '' }}"
+                                    id="pay-tab-superki" onclick="switchPayTab('superki')">
+                                <span class="pay-toggle-icon superki"><i class="bi bi-qr-code-scan"></i></span>
+                                <span>SuperKi</span>
                             </button>
                             @endif
                             @if($payCardEnabled)
-                            <button type="button" class="btn pay-tab-btn flex-fill {{ $defaultPayMethod === 'card' ? 'active' : '' }}"
-                                    id="pay-tab-card" onclick="switchPayTab('card')"
-                                    style="{{ $defaultPayMethod === 'card' ? 'background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;' : 'background:#e2e8f0;color:#475569;' }}border:none;border-radius:14px;padding:10px 6px;font-weight:700;font-size:.85rem;">
-                                 فيزا وماستر كارد
+                            <button type="button" class="pay-toggle-btn {{ $defaultPayMethod === 'card' ? 'active card' : '' }}"
+                                    id="pay-tab-card" onclick="switchPayTab('card')">
+                                <span class="pay-toggle-icon card"><i class="bi bi-credit-card-2-front"></i></span>
+                                <span>بطاقة بنكية</span>
                             </button>
                             @endif
                         </div>
@@ -309,18 +473,17 @@
                         {{-- ─── بانل زين كاش ─── --}}
                         @if($payZainEnabled)
                         <div id="pay-panel-zaincash" class="pay-panel {{ $defaultPayMethod !== 'zaincash' ? 'd-none' : '' }}">
-                            <div class="card border-0 rounded-4 p-3 bg-light shadow-none text-center">
+                            <div class="pay-qr-card">
                                 @if(!empty($payZainQr))
-                                    <div class="d-inline-block p-2 bg-white rounded-4 shadow-sm border mx-auto mb-2">
-                                        <img src="{{ $payZainQr }}" alt="ZainCash QR"
-                                             style="max-width:190px;max-height:190px;border-radius:10px;object-fit:contain;">
+                                    <div class="pay-qr-img-box">
+                                        <img src="{{ $payZainQr }}" alt="ZainCash QR">
                                     </div>
-                                    <p class="text-secondary small mb-0 px-2 fw-bold" dir="rtl" style="text-align:center;">{{ $payZainLabel }}</p>
+                                    <p class="pay-qr-label" dir="rtl">{{ $payZainLabel }}</p>
                                 @else
-                                    <div class="p-3 text-muted">
-                                        <i class="bi bi-qr-code" style="font-size:2.8rem;opacity:.5;color:#7c3aed;"></i>
-                                        <p class="small mt-2 mb-1 fw-bold text-dark" dir="rtl">دفع زين كاش عبر <bdi dir="ltr">QR</bdi></p>
-                                        <p class="small text-muted mb-0" dir="rtl">افتح تطبيق زين كاش وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال.</p>
+                                    <div class="py-2 text-muted text-center">
+                                        <i class="bi bi-qr-code" style="font-size:2.2rem;color:#7c3aed;"></i>
+                                        <p class="small mt-1 mb-0 fw-bold text-dark" dir="rtl">دفع زين كاش عبر <bdi dir="ltr">QR</bdi></p>
+                                        <p class="pay-qr-label" dir="rtl">افتح تطبيق زين كاش وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال.</p>
                                     </div>
                                 @endif
                             </div>
@@ -330,18 +493,17 @@
                         {{-- ─── بانل SuperKi ─── --}}
                         @if($paySuperkiEnabled)
                         <div id="pay-panel-superki" class="pay-panel {{ $defaultPayMethod !== 'superki' ? 'd-none' : '' }}">
-                            <div class="card border-0 rounded-4 p-3 bg-light shadow-none text-center">
+                            <div class="pay-qr-card">
                                 @if(!empty($paySuperkiQr))
-                                    <div class="d-inline-block p-2 bg-white rounded-4 shadow-sm border mx-auto mb-2">
-                                        <img src="{{ $paySuperkiQr }}" alt="SuperKi QR"
-                                             style="max-width:190px;max-height:190px;border-radius:10px;object-fit:contain;">
+                                    <div class="pay-qr-img-box">
+                                        <img src="{{ $paySuperkiQr }}" alt="SuperKi QR">
                                     </div>
-                                    <p class="text-secondary small mb-0 px-2 fw-bold" dir="rtl" style="text-align:center;">{{ $paySuperkiLabel }}</p>
+                                    <p class="pay-qr-label" dir="rtl">{{ $paySuperkiLabel }}</p>
                                 @else
-                                    <div class="p-3 text-muted">
-                                        <i class="bi bi-qr-code" style="font-size:2.8rem;opacity:.5;color:#0284c7;"></i>
-                                        <p class="small mt-2 mb-1 fw-bold text-dark" dir="rtl">دفع <bdi dir="ltr">SuperKi</bdi> عبر <bdi dir="ltr">QR</bdi></p>
-                                        <p class="small text-muted mb-0" dir="rtl">افتح تطبيق SuperKi وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال.</p>
+                                    <div class="py-2 text-muted text-center">
+                                        <i class="bi bi-qr-code" style="font-size:2.2rem;color:#0284c7;"></i>
+                                        <p class="small mt-1 mb-0 fw-bold text-dark" dir="rtl">دفع <bdi dir="ltr">SuperKi</bdi> عبر <bdi dir="ltr">QR</bdi></p>
+                                        <p class="pay-qr-label" dir="rtl">افتح تطبيق SuperKi وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال.</p>
                                     </div>
                                 @endif
                             </div>
@@ -351,19 +513,19 @@
                         {{-- ─── بانل فيزا وماستر كارد ─── --}}
                         @if($payCardEnabled)
                         <div id="pay-panel-card" class="pay-panel {{ $defaultPayMethod !== 'card' ? 'd-none' : '' }}">
-                            <div class="card border-0 rounded-4 p-3 bg-light shadow-none mb-2">
-                                <div class="d-flex align-items-center justify-content-between mb-2 border-bottom pb-2">
-                                    <div class="fw-bold text-dark small">
+                            <div class="pay-qr-card text-start" dir="rtl">
+                                <div class="d-flex align-items-center justify-content-between mb-1.5 border-bottom pb-1.5">
+                                    <div class="fw-bold text-dark" style="font-size:0.8rem;">
                                         <i class="bi bi-shield-check text-success me-1"></i> بوابة الدفع بالبطاقة الائتمانية
                                     </div>
                                     <div class="d-flex align-items-center gap-1" dir="ltr">
-                                        <span class="badge bg-white px-2 py-1 shadow-sm border text-primary fw-black" style="font-size: 0.8rem;">VISA</span>
-                                        <span class="badge bg-white px-2 py-1 shadow-sm border text-danger fw-black" style="font-size: 0.8rem;">MasterCard</span>
+                                        <span class="badge bg-white px-2 py-0.5 shadow-sm border text-primary fw-bold" style="font-size: 0.72rem;">VISA</span>
+                                        <span class="badge bg-white px-2 py-0.5 shadow-sm border text-danger fw-bold" style="font-size: 0.72rem;">MasterCard</span>
                                     </div>
                                 </div>
-                                <p class="text-secondary small mb-2" dir="rtl">{{ $payCardInstructions }}</p>
+                                <p class="pay-qr-label text-secondary mb-2" style="text-align:right;">{{ $payCardInstructions }}</p>
                                 @if(!empty($payCardLink))
-                                <a href="{{ $payCardLink }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-3 fw-bold w-100 py-2">
+                                <a href="{{ $payCardLink }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill fw-bold w-100 py-1.5" style="font-size:0.82rem;">
                                     <i class="bi bi-box-arrow-up-right me-1"></i> فتح رابط الدفع الإلكتروني المباشر
                                 </a>
                                 @endif
@@ -371,43 +533,43 @@
                         </div>
                         @endif
 
-                        {{-- ═══ حقول إثبات التحويل المالي (رقم التحويل وسكرين شوت الإيصال) ═══ --}}
-                        <div class="p-3 rounded-4 mt-3" style="background:#f8fafc; border: 1.5px dashed #cbd5e1;" dir="rtl">
-                            <div class="d-flex align-items-center justify-content-between mb-1.5">
-                                <label class="form-label fw-bold text-dark mb-0 small">
+                        {{-- ═══ كارت إثبات التحويل المالي وسكرين شوت الإيصال ═══ --}}
+                        <div class="pay-proof-card" dir="rtl">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <label class="form-label fw-bold text-dark mb-0" style="font-size:0.78rem;">
                                     <i class="bi bi-phone-vibrate text-primary me-1"></i> رقم هاتف المحوّل / رقم التحويل
                                 </label>
-                                <span class="badge bg-light text-muted border small" style="font-size: 0.7rem;">اختياري</span>
+                                <span class="badge bg-light text-muted border" style="font-size: 0.68rem;">اختياري</span>
                             </div>
                             <div class="input-group mb-1">
-                                <span class="input-group-text bg-white border-end-0 text-muted ps-3 pe-2" style="border-radius: 0 16px 16px 0;">
-                                    <i class="bi bi-hash fs-5"></i>
+                                <span class="input-group-text bg-light border-end-0 text-muted ps-2.5 pe-2" style="border-radius: 0 12px 12px 0;">
+                                    <i class="bi bi-hash fs-6"></i>
                                 </span>
-                                <input type="tel" id="app_transfer_number" class="form-control app-input border-start-0 text-end ps-3" 
-                                       style="border-radius: 16px 0 0 16px;"
+                                <input type="tel" id="app_transfer_number" class="form-control app-input-sm border-start-0 text-end ps-2.5" 
+                                       style="border-radius: 12px 0 0 12px;"
                                        placeholder="رقم الهاتف / المحفظة التي تم التحويل منها">
                             </div>
-                            <div class="form-text text-muted small mb-3 text-end" style="font-size: 0.78rem;">
+                            <div class="form-text text-muted mb-2.5 text-end" style="font-size: 0.72rem;">
                                 <i class="bi bi-info-circle text-primary me-1"></i> في حال تركه فارغاً، سيتم اعتماد رقم هاتفك المسجل تلقائياً.
                             </div>
 
                             {{-- Upload Screenshot Area --}}
-                            <div class="d-flex align-items-center justify-content-between mb-1.5">
-                                <label class="form-label fw-bold text-dark mb-0 small">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <label class="form-label fw-bold text-dark mb-0" style="font-size:0.78rem;">
                                     <i class="bi bi-image text-success me-1"></i> إرفاق سكرين شوت إشعار التحويل
                                 </label>
-                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 small" style="font-size: 0.7rem;">يسرّع التأكيد</span>
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25" style="font-size: 0.68rem;">يسرّع التأكيد</span>
                             </div>
 
                             {{-- Custom Upload Box --}}
-                            <div id="receiptUploadBox" class="text-center p-3 rounded-3 bg-white border position-relative" style="cursor: pointer; transition: all 0.2s ease;" onclick="document.getElementById('app_receipt_file').click()">
+                            <div id="receiptUploadBox" class="pay-upload-dropzone" onclick="document.getElementById('app_receipt_file').click()">
                                 <input type="file" id="app_receipt_file" class="d-none" accept="image/*" onchange="onReceiptImageSelected(this)">
                                 
                                 {{-- Placeholder View --}}
-                                <div id="receiptPlaceholderView">
-                                    <i class="bi bi-cloud-arrow-up-fill text-primary fs-3 d-block mb-1"></i>
-                                    <div class="fw-bold small text-dark mb-0.5">اضغط هنا لاختيار صورة الإيصال أو الإشعار</div>
-                                    <div class="text-muted" style="font-size: 0.75rem;">
+                                <div id="receiptPlaceholderView" class="py-1">
+                                    <i class="bi bi-cloud-arrow-up-fill text-primary fs-4 d-block mb-0.5"></i>
+                                    <div class="fw-bold text-dark" style="font-size:0.8rem;">اضغط هنا لاختيار صورة الإيصال أو الإشعار</div>
+                                    <div class="text-muted" style="font-size: 0.7rem;">
                                         يدعم <bdi dir="ltr">JPG, PNG, WEBP</bdi> (حتى 10MB)
                                     </div>
                                 </div>
@@ -415,13 +577,51 @@
                                 {{-- Preview View --}}
                                 <div id="receiptPreviewView" class="d-none align-items-center justify-content-between gap-2 text-start">
                                     <div class="d-flex align-items-center gap-2 overflow-hidden">
-                                        <img id="receiptPreviewImg" src="" alt="Receipt Preview" class="rounded-2 border" style="width: 48px; height: 48px; object-fit: cover;">
+                                        <img id="receiptPreviewImg" src="" alt="Receipt Preview" class="rounded-2 border" style="width: 40px; height: 40px; object-fit: cover;">
                                         <div class="overflow-hidden text-end">
-                                            <div class="fw-bold small text-dark text-truncate" id="receiptFileName">إشعار_التحويل.png</div>
-                                            <div class="text-success small" style="font-size: 0.75rem;"><i class="bi bi-check-circle-fill me-1"></i> تم إرفاق الصورة بنجاح</div>
+                                            <div class="fw-bold text-dark text-truncate" id="receiptFileName" style="font-size:0.78rem;">إشعار_التحويل.png</div>
+                                            <div class="text-success" style="font-size: 0.7rem;"><i class="bi bi-check-circle-fill me-1"></i> تم إرفاق الصورة بنجاح</div>
                                         </div>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-circle p-1.5" onclick="event.stopPropagation(); removeReceiptImage();" title="حذف الصورة" style="width:30px;height:30px; display:flex; align-items:center; justify-content:center;">
+                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-circle p-1" onclick="event.stopPropagation(); removeReceiptImage();" title="حذف الصورة" style="width:26px;height:26px; display:flex; align-items:center; justify-content:center;">
+                                        <i class="bi bi-trash3-fill" style="font-size:0.75rem;"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Alert box with compact style --}}
+                        <div class="alert alert-light border rounded-3 p-2 mt-2 mb-0 d-flex align-items-center gap-2 text-secondary" dir="rtl" style="font-size:0.76rem; text-align: right; background:#f8fafc;">
+                            <i class="bi bi-info-circle-fill text-primary fs-6 flex-shrink-0"></i>
+                            <div style="line-height: 1.45;">
+                                امسح رمز <bdi dir="ltr" class="fw-bold">QR</bdi> أعلاه لإتمام التحويل، ثم اضغط <strong>تأكيد الحجز</strong> لإرسال الإيصال وتثبيت الموعد.
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
+                    {{-- Terms check --}}
+                    <div class="form-check my-2" dir="rtl">
+                        <input class="form-check-input" type="checkbox" id="app_terms_check" checked style="cursor:pointer;">
+                        <label class="form-check-label fw-bold text-secondary" for="app_terms_check" style="font-size:0.78rem; cursor:pointer;">
+                            {{ $isArLocale ? 'أوافق على الشروط وسياسة الخصوصية والسرية الطبية التامة' : 'I agree to the Terms & Privacy Policy' }}
+                        </label>
+                    </div>
+
+                    {{-- Bottom Action Bar for Screen 2 --}}
+                    <div class="mobile-app-bottom-bar">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-3 py-1.5 fw-bold d-flex align-items-center gap-1" onclick="goToAppScreen1()" style="font-size:0.85rem;">
+                            <i class="bi bi-arrow-right"></i>
+                            <span>السابق</span>
+                        </button>
+                        <button type="button" class="btn-app-primary flex-fill d-flex align-items-center justify-content-center gap-2" id="app-submit-pay-btn" onclick="executeAppBooking()" style="white-space:nowrap; font-size:0.86rem; padding:0.65rem 0.9rem;">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>تأكيد الحجز وإرسال الإيصال</span>
+                            <span class="badge bg-white bg-opacity-25 rounded-pill px-2 py-0.5 fw-bold ms-1" id="app-btn-price-display">{{ $modalServices->first()->price ?? 50 }} {{ \App\Models\Setting::currencySymbol() }}</span>
+                        </button>
+                    </div>
+
+                </div>{{-- End Screen 2 --}}Image();" title="حذف الصورة" style="width:30px;height:30px; display:flex; align-items:center; justify-content:center;">
                                         <i class="bi bi-trash3-fill"></i>
                                     </button>
                                 </div>
@@ -654,12 +854,6 @@ function updateModalPrice(price) {
 }
 
 // ─── Payment Tab Switcher ───────────────────────────────────────
-const payTabGradients = {
-    zaincash:   'linear-gradient(135deg,#7c3aed,#4c1d95)',
-    superki:    'linear-gradient(135deg,#0284c7,#075985)',
-    card:       'linear-gradient(135deg,#1e3a8a,#2563eb)',
-};
-
 function switchPayTab(method) {
     appState.paymentMethod = method;
     // Hide all panels
@@ -668,16 +862,14 @@ function switchPayTab(method) {
     const panel = document.getElementById('pay-panel-' + method);
     if (panel) panel.classList.remove('d-none');
 
-    // Reset all tab buttons
-    document.querySelectorAll('.pay-tab-btn').forEach(btn => {
-        btn.style.background = '#e2e8f0';
-        btn.style.color = '#475569';
+    // Reset all toggle buttons
+    document.querySelectorAll('.pay-toggle-btn').forEach(btn => {
+        btn.classList.remove('active', 'zain', 'superki', 'card');
     });
-    // Highlight active tab
+    // Activate clicked button
     const activeBtn = document.getElementById('pay-tab-' + method);
-    if (activeBtn && payTabGradients[method]) {
-        activeBtn.style.background = payTabGradients[method];
-        activeBtn.style.color = '#fff';
+    if (activeBtn) {
+        activeBtn.classList.add('active', method);
     }
 }
 
