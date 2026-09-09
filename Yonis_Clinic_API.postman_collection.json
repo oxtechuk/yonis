@@ -92,6 +92,36 @@
                         },
                         "description": "يعيد خيارات وإعدادات المنصة المحدثة لتطبيق الموبايل:\n- app_rating_url: رابط تقييم التطبيق على متجر جوجل بلاي أو آب ستور.\n- privacy_policy_url: الرابط الرسمي لسياسة الخصوصية المتوافقة مع متطلبات المتاجر.\n- terms_conditions_url & terms_url: الرابط الرسمي للشروط والأحكام وسياسة الاستخدام.\n- العملة الرسمية للمنصة: currency, currency_code, currency_symbol (الافتراضي IQD / د.ع)\n- كائن payment: طرق الدفع المحلية (زين كاش، سوبركي، فيزا/ماستر كارد، رموز QR، ورقم الواتساب للتأكيد)\n- حالة تفعيل حجز العيادة والاستشارات الأونلاين (شات، صوت، فيديو)\n- ألوان المنصة والشعارات وروابط السوشيال ميديا"
                     }
+                },
+                {
+                    "name": "💳 GET قائمة طرق الدفع الديناميكية بالاسم واللوجو والـ ID ورمز QR (Dynamic Payment Methods)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/payment-methods?active_only=true",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "payment-methods"
+                            ],
+                            "query": [
+                                {
+                                    "key": "active_only",
+                                    "value": "true",
+                                    "description": "تصفية طرق الدفع المفعّلة فقط من الإعدادات (true/false)"
+                                }
+                            ]
+                        },
+                        "description": "يعيد قائمة طرق الدفع المعرفة ديناميكياً من لوحة التحكم مع اللوجو المرفوع، والـ ID، والاسم المخصص، ورمز QR، والتعليمات:\n- id: المعرف البرمجي لطريقة الدفع (مثل: zaincash, superki, card, spaceremit)\n- name / name_ar / name_en: اسم الطريقة المخصص\n- logo / image: رابط صورة ولوجو طريقة الدفع المرفوعة من الإعدادات\n- qr_image: رابط صورة رمز QR للتحويل المباشر\n- instructions: تعليمات الدفع المخصصة للمريض\n- is_enabled: حالة التفعيل"
+                    }
                 }
             ]
         },

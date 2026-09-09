@@ -18,6 +18,7 @@ Route::middleware('throttle:60,1')->group(function () {
 
     // Config & System Status
     Route::get('/config', [ApiController::class, 'getApiConfig']);
+    Route::get('/payment-methods', [ApiController::class, 'getPaymentMethods']);
 
     // Doctor Profile
     Route::get('/doctor/profile', [ApiController::class, 'getDoctorProfile']);

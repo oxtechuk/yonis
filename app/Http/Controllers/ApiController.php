@@ -609,14 +609,29 @@ class ApiController extends Controller
     }
 
     /**
+     * Get dynamic payment methods list (ID, Name, Logo, QR, Instructions, Active status)
+     */
+    public function getPaymentMethods(Request $request)
+    {
+        $onlyEnabled = $request->boolean('active_only', true);
+        $methods = array_values(Setting::getPaymentMethods($onlyEnabled));
+
+        return response()->json([
+            'success'         => true,
+            'total'           => count($methods),
+            'default_method'  => $methods[0]['id'] ?? 'zaincash',
+            'whatsapp_number' => Setting::get('whatsapp_number', '+9647800000000'),
+            'payment_methods' => $methods,
+        ]);
+    }
+
+    /**
      * Get API status & configuration flags for Mobile Client
      */
     public function getApiConfig()
     {
-        $payZainEnabled = Setting::get('payment_zaincash_enabled', '1') === '1';
-        $paySuperkiEnabled = Setting::get('payment_superki_enabled', '1') === '1';
-        $payCardEnabled = Setting::get('payment_card_enabled', '0') === '1';
-        $defaultPaymentMethod = $payZainEnabled ? 'zaincash' : ($paySuperkiEnabled ? 'superki' : ($payCardEnabled ? 'card' : 'zaincash'));
+        $paymentMethodsList = array_values(Setting::getPaymentMethods(true));
+        $defaultPaymentMethod = $paymentMethodsList[0]['id'] ?? 'zaincash';
         $doctorProfile = DoctorProfile::first();
 
         $appRatingUrl = Setting::get('app_rating_url', 'https://play.google.com/store/apps/details?id=com.yonis.clinic');
@@ -652,20 +667,28 @@ class ApiController extends Controller
                     'default_message' => Setting::get('whatsapp_default_message', 'مرحباً دكتور يونس، أود الاستفسار عن حجز موعد استشارة.'),
                     'greeting'        => Setting::get('whatsapp_widget_greeting', 'أهلاً بك! معك عيادة الدكتور يونس المرشد. كيف يمكننا مساعدتك اليوم؟'),
                 ],
+                'payment_methods_list' => $paymentMethodsList,
                 'payment_methods' => [
                     'default'  => $defaultPaymentMethod,
+                    'list'     => $paymentMethodsList,
                     'zaincash' => [
-                        'enabled' => $payZainEnabled,
+                        'enabled' => Setting::get('payment_zaincash_enabled', '1') === '1',
+                        'name'    => Setting::get('payment_zaincash_name', 'زين كاش'),
+                        'logo'    => Setting::getFileUrl('payment_zaincash_logo', ''),
                         'qr'      => Setting::getFileUrl('payment_zaincash_qr', ''),
                         'label'   => Setting::get('payment_zaincash_label', 'افتح تطبيق زين كاش وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال للدكتور.'),
                     ],
                     'superki' => [
-                        'enabled' => $paySuperkiEnabled,
+                        'enabled' => Setting::get('payment_superki_enabled', '1') === '1',
+                        'name'    => Setting::get('payment_superki_name', 'SuperKi'),
+                        'logo'    => Setting::getFileUrl('payment_superki_logo', ''),
                         'qr'      => Setting::getFileUrl('payment_superki_qr', ''),
                         'label'   => Setting::get('payment_superki_label', 'افتح تطبيق SuperKi وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال للدكتور.'),
                     ],
                     'card' => [
-                        'enabled'      => $payCardEnabled,
+                        'enabled'      => Setting::get('payment_card_enabled', '0') === '1',
+                        'name'         => Setting::get('payment_card_name', 'بطاقة دفع'),
+                        'logo'         => Setting::getFileUrl('payment_card_logo', ''),
                         'link'         => Setting::get('payment_card_link', ''),
                         'instructions' => Setting::get('payment_card_instructions', 'يمكنك الدفع مباشرة باستخدام أي بطاقة فيزا أو ماستر كارد بأمان وسرية تامة.'),
                     ],
