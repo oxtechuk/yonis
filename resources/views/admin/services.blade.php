@@ -354,8 +354,151 @@
     {{-- ═══ Main Content Grid ═══ --}}
     <div class="row g-4 align-items-start">
 
-        {{-- ── Left Column: Add Service Panel ───────────────────────── --}}
-        <div class="col-xl-5 col-lg-5 col-12">
+        {{-- ── Primary Column: Services List & Management Table ───────── --}}
+        <div class="col-xl-7 col-lg-7 col-12">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-header bg-white py-3 px-4 border-bottom border-light">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                        <div>
+                            <h5 class="fw-black m-0 text-dark d-flex align-items-center gap-2" style="font-size: 1.1rem;">
+                                <i class="bi bi-collection-fill text-primary"></i>
+                                <span>قائمة الخدمات الطبية المعتمدة</span>
+                            </h5>
+                            <p class="text-secondary small m-0 mt-0.5">تدعم اللغتين العربية والإنجليزية وتتزامن تلقائياً مع التطبيق والموقع.</p>
+                        </div>
+                        
+                        {{-- Segmented Category Filter Capsule --}}
+                        <div class="category-segment-capsule">
+                            <button type="button" class="service-filter-btn active" onclick="filterServicesTable('all', this)">
+                                <i class="bi bi-grid-fill"></i> الجميع ({{ count($services) }})
+                            </button>
+                            <button type="button" class="service-filter-btn" onclick="filterServicesTable('online', this)">
+                                <i class="bi bi-laptop"></i> أونلاين ({{ $services->whereIn('type', ['online', 'both'])->count() }})
+                            </button>
+                            <button type="button" class="service-filter-btn" onclick="filterServicesTable('clinic', this)">
+                                <i class="bi bi-hospital"></i> عيادة ({{ $services->whereIn('type', ['clinic', 'both'])->count() }})
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light text-secondary" style="font-size: 0.8rem; letter-spacing: 0.3px;">
+                                <tr>
+                                    <th class="ps-4 py-3">الخدمة (عربي / EN)</th>
+                                    <th class="py-3">المدة</th>
+                                    <th class="py-3">الأسعار والقنوات</th>
+                                    <th class="py-3">الحالة</th>
+                                    <th class="pe-4 py-3 text-end">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($services as $service)
+                                    @php
+                                        $chType = $service->getChannelType();
+                                    @endphp
+                                    <tr class="service-row" data-type="{{ $service->type }}">
+                                        {{-- 1. Service Title + Icon --}}
+                                        <td class="ps-4 py-3">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="rounded-3 d-flex align-items-center justify-content-center shadow-xs" 
+                                                     style="width:44px; height:44px; min-width:44px; background: linear-gradient(135deg, rgba(64, 85, 165, 0.1), rgba(109, 143, 214, 0.15)); border: 1px solid rgba(64, 85, 165, 0.18);">
+                                                    @if($service->icon_url)
+                                                        <img src="{{ $service->icon_url }}" alt="icon" style="width:26px; height:26px; object-fit:contain; border-radius:6px;">
+                                                    @else
+                                                        <i class="bi {{ $service->icon_name }} fs-4 text-primary"></i>
+                                                    @endif
+                                                </div>
+                                                <div>
+                                                    <div class="fw-black text-dark fs-6 mb-0.5">{{ $service->title_ar ?: $service->title }}</div>
+                                                    @if($service->title_en)
+                                                        <div class="text-primary small fw-bold mb-0.5" dir="ltr" style="font-size:0.75rem;">
+                                                            <i class="bi bi-translate me-1"></i> {{ $service->title_en }}
+                                                        </div>
+                                                    @endif
+                                                    <div class="text-secondary small text-truncate" style="max-width: 220px;">{{ $service->description_ar ?: ($service->description ?: 'استشارة نفسية معتمدة') }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        {{-- 2. Duration --}}
+                                        <td class="py-3">
+                                            <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1 fw-bold" style="font-size:0.76rem;">
+                                                <i class="bi bi-clock-history me-1 text-primary"></i> {{ $service->duration }} دقيقة
+                                            </span>
+                                        </td>
+
+                                        {{-- 3. Channel Pricing Chips --}}
+                                        <td class="py-3">
+                                            <div class="d-flex flex-wrap gap-1 align-items-center">
+                                                @if($service->type === 'clinic' || (!is_null($service->clinic_price) && (float)$service->clinic_price > 0))
+                                                    <span class="price-chip-luxury clinic" title="كشف في العيادة">
+                                                        <i class="bi bi-hospital"></i> {{ number_format($service->clinic_price ?? $service->price, 0) }} {{ \App\Models\Setting::currencySymbol() }}
+                                                    </span>
+                                                @endif
+
+                                                @if($service->type !== 'clinic')
+                                                    @if($chType === 'video' || (!is_null($service->video_price) && (float)$service->video_price > 0))
+                                                        <span class="price-chip-luxury video" title="استشارة فيديو أونلاين">
+                                                            <i class="bi bi-camera-video"></i> {{ number_format($service->video_price ?? $service->price, 0) }} {{ \App\Models\Setting::currencySymbol() }}
+                                                        </span>
+                                                    @endif
+                                                    @if($chType === 'voice' || (!is_null($service->voice_price) && (float)$service->voice_price > 0))
+                                                        <span class="price-chip-luxury voice" title="استشارة صوت أونلاين">
+                                                            <i class="bi bi-telephone"></i> {{ number_format($service->voice_price ?? $service->price, 0) }} {{ \App\Models\Setting::currencySymbol() }}
+                                                        </span>
+                                                    @endif
+                                                    @if($chType === 'chat' || (!is_null($service->chat_price) && (float)$service->chat_price > 0))
+                                                        <span class="price-chip-luxury chat" title="استشارة محادثة شات">
+                                                            <i class="bi bi-chat-dots"></i> {{ number_format($service->chat_price ?? $service->price, 0) }} {{ \App\Models\Setting::currencySymbol() }}
+                                                        </span>
+                                                    @endif
+                                                @endif
+                                            </div>
+                                        </td>
+
+                                        {{-- 4. Status --}}
+                                        <td class="py-3">
+                                            @if($service->is_active)
+                                                <span class="badge-status-pill active"><span class="dot"></span> مفعّلة</span>
+                                            @else
+                                                <span class="badge-status-pill inactive"><span class="dot"></span> معطلة</span>
+                                            @endif
+                                        </td>
+
+                                        {{-- 5. Actions --}}
+                                        <td class="pe-4 py-3 text-end">
+                                            <div class="d-flex align-items-center justify-content-end gap-1.5">
+                                                <button type="button" class="btn-action-luxury edit" data-bs-toggle="modal" data-bs-target="#editModal{{ $service->id }}" title="تعديل بيانات وأسعار الخدمة">
+                                                    <i class="bi bi-pencil-square"></i>
+                                                    <span>تعديل</span>
+                                                </button>
+
+                                                <button type="button" class="btn-action-luxury delete" data-bs-toggle="modal" data-bs-target="#deleteServiceModal{{ $service->id }}" title="حذف الخدمة">
+                                                    <i class="bi bi-trash3"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="5" class="text-center py-5 text-secondary">
+                                             <i class="bi bi-inbox fs-2 d-block text-muted mb-2"></i>
+                                             <span>لا توجد خدمات مضافة حالياً. أضف خدمتك الأولى من النموذج الجانبي.</span>
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- ── Secondary Column: Add Service Panel (Sticky on Left in RTL) ────── --}}
+        <div class="col-xl-5 col-lg-5 col-12" style="position: sticky; top: 1.5rem;">
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
                 <div class="card-header bg-white py-3 px-4 border-bottom border-light">
                     <h5 class="fw-black m-0 text-dark d-flex align-items-center gap-2" style="font-size: 1.05rem;">
@@ -605,149 +748,6 @@
                             <span>حفظ وإضافة الخدمة الجديدة</span>
                         </button>
                     </form>
-                </div>
-            </div>
-        </div>
-
-        {{-- ── Right Column: Services List & Management Table ───────── --}}
-        <div class="col-xl-7 col-lg-7 col-12">
-            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-                <div class="card-header bg-white py-3 px-4 border-bottom border-light">
-                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                        <div>
-                            <h5 class="fw-black m-0 text-dark d-flex align-items-center gap-2" style="font-size: 1.1rem;">
-                                <i class="bi bi-collection-fill text-primary"></i>
-                                <span>قائمة الخدمات الطبية المعتمدة</span>
-                            </h5>
-                            <p class="text-secondary small m-0 mt-0.5">تدعم اللغتين العربية والإنجليزية وتتزامن تلقائياً مع التطبيق والموقع.</p>
-                        </div>
-                        
-                        {{-- Segmented Category Filter Capsule --}}
-                        <div class="category-segment-capsule">
-                            <button type="button" class="service-filter-btn active" onclick="filterServicesTable('all', this)">
-                                <i class="bi bi-grid-fill"></i> الجميع ({{ count($services) }})
-                            </button>
-                            <button type="button" class="service-filter-btn" onclick="filterServicesTable('online', this)">
-                                <i class="bi bi-laptop"></i> أونلاين ({{ $services->whereIn('type', ['online', 'both'])->count() }})
-                            </button>
-                            <button type="button" class="service-filter-btn" onclick="filterServicesTable('clinic', this)">
-                                <i class="bi bi-hospital"></i> عيادة ({{ $services->whereIn('type', ['clinic', 'both'])->count() }})
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="bg-light text-secondary" style="font-size: 0.8rem; letter-spacing: 0.3px;">
-                                <tr>
-                                    <th class="ps-4 py-3">الخدمة (عربي / EN)</th>
-                                    <th class="py-3">المدة</th>
-                                    <th class="py-3">الأسعار والقنوات</th>
-                                    <th class="py-3">الحالة</th>
-                                    <th class="pe-4 py-3 text-end">الإجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($services as $service)
-                                    @php
-                                        $chType = $service->getChannelType();
-                                    @endphp
-                                    <tr class="service-row" data-type="{{ $service->type }}">
-                                        {{-- 1. Service Title + Icon --}}
-                                        <td class="ps-4 py-3">
-                                            <div class="d-flex align-items-center gap-3">
-                                                <div class="rounded-3 d-flex align-items-center justify-content-center shadow-xs" 
-                                                     style="width:44px; height:44px; min-width:44px; background: linear-gradient(135deg, rgba(64, 85, 165, 0.1), rgba(109, 143, 214, 0.15)); border: 1px solid rgba(64, 85, 165, 0.18);">
-                                                    @if($service->icon_url)
-                                                        <img src="{{ $service->icon_url }}" alt="icon" style="width:26px; height:26px; object-fit:contain; border-radius:6px;">
-                                                    @else
-                                                        <i class="bi {{ $service->icon_name }} fs-4 text-primary"></i>
-                                                    @endif
-                                                </div>
-                                                <div>
-                                                    <div class="fw-black text-dark fs-6 mb-0.5">{{ $service->title_ar ?: $service->title }}</div>
-                                                    @if($service->title_en)
-                                                        <div class="text-primary small fw-bold mb-0.5" dir="ltr" style="font-size:0.75rem;">
-                                                            <i class="bi bi-translate me-1"></i> {{ $service->title_en }}
-                                                        </div>
-                                                    @endif
-                                                    <div class="text-secondary small text-truncate" style="max-width: 220px;">{{ $service->description_ar ?: ($service->description ?: 'استشارة نفسية معتمدة') }}</div>
-                                                </div>
-                                            </div>
-                                        </td>
-
-                                        {{-- 2. Duration --}}
-                                        <td class="py-3">
-                                            <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1 fw-bold" style="font-size:0.76rem;">
-                                                <i class="bi bi-clock-history me-1 text-primary"></i> {{ $service->duration }} دقيقة
-                                            </span>
-                                        </td>
-
-                                        {{-- 3. Channel Pricing Chips --}}
-                                        <td class="py-3">
-                                            <div class="d-flex flex-wrap gap-1 align-items-center">
-                                                @if($service->type === 'clinic' || (!is_null($service->clinic_price) && (float)$service->clinic_price > 0))
-                                                    <span class="price-chip-luxury clinic" title="كشف في العيادة">
-                                                        <i class="bi bi-hospital"></i> {{ number_format($service->clinic_price ?? $service->price, 0) }} {{ \App\Models\Setting::currencySymbol() }}
-                                                    </span>
-                                                @endif
-
-                                                @if($service->type !== 'clinic')
-                                                    @if($chType === 'video' || (!is_null($service->video_price) && (float)$service->video_price > 0))
-                                                        <span class="price-chip-luxury video" title="استشارة فيديو أونلاين">
-                                                            <i class="bi bi-camera-video"></i> {{ number_format($service->video_price ?? $service->price, 0) }} {{ \App\Models\Setting::currencySymbol() }}
-                                                        </span>
-                                                    @endif
-                                                    @if($chType === 'voice' || (!is_null($service->voice_price) && (float)$service->voice_price > 0))
-                                                        <span class="price-chip-luxury voice" title="استشارة صوت أونلاين">
-                                                            <i class="bi bi-telephone"></i> {{ number_format($service->voice_price ?? $service->price, 0) }} {{ \App\Models\Setting::currencySymbol() }}
-                                                        </span>
-                                                    @endif
-                                                    @if($chType === 'chat' || (!is_null($service->chat_price) && (float)$service->chat_price > 0))
-                                                        <span class="price-chip-luxury chat" title="استشارة محادثة شات">
-                                                            <i class="bi bi-chat-dots"></i> {{ number_format($service->chat_price ?? $service->price, 0) }} {{ \App\Models\Setting::currencySymbol() }}
-                                                        </span>
-                                                    @endif
-                                                @endif
-                                            </div>
-                                        </td>
-
-                                        {{-- 4. Status --}}
-                                        <td class="py-3">
-                                            @if($service->is_active)
-                                                <span class="badge-status-pill active"><span class="dot"></span> مفعّلة</span>
-                                            @else
-                                                <span class="badge-status-pill inactive"><span class="dot"></span> معطلة</span>
-                                            @endif
-                                        </td>
-
-                                        {{-- 5. Actions --}}
-                                        <td class="pe-4 py-3 text-end">
-                                            <div class="d-flex align-items-center justify-content-end gap-1.5">
-                                                <button type="button" class="btn-action-luxury edit" data-bs-toggle="modal" data-bs-target="#editModal{{ $service->id }}" title="تعديل بيانات وأسعار الخدمة">
-                                                    <i class="bi bi-pencil-square"></i>
-                                                    <span>تعديل</span>
-                                                </button>
-
-                                                <button type="button" class="btn-action-luxury delete" data-bs-toggle="modal" data-bs-target="#deleteServiceModal{{ $service->id }}" title="حذف الخدمة">
-                                                    <i class="bi bi-trash3"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="text-center py-5 text-secondary">
-                                            <i class="bi bi-inbox fs-2 d-block text-muted mb-2"></i>
-                                            <span>لا توجد خدمات مضافة حالياً. أضف خدمتك الأولى من النموذج الجانبي.</span>
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
                 </div>
             </div>
         </div>
