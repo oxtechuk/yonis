@@ -366,7 +366,7 @@
                                 "services"
                             ]
                         },
-                        "description": "يعيد كائناً منظماً وشاملاً:\n- clinic_services: قائمة خدمات العيادة بسعر الكشف الخاص بالعيادة (clinic_price)\n- online_services: قائمة خدمات الأونلاين مع تحديد سعر كل قناة بشكل منفصل (video_price، voice_price، chat_price) ومصفوفة channels كاملة.\n- channels_enabled: حالة تفعيل كل نوع من لوحة التحكم."
+                        "description": "يعيد كائناً منظماً وشاملاً باللغتين (Arabic & English):\n- title_ar & title_en: اسم الخدمة بالعربية والإنجليزية لتطبيقات الموبايل.\n- description_ar & description_en: وصف ومميزات الجلسة باللغتين.\n- clinic_services: قائمة خدمات العيادة بسعر الكشف الخاص بالعيادة (clinic_price)\n- online_services: قائمة خدمات الأونلاين مع تحديد سعر كل قناة بشكل منفصل (video_price، voice_price، chat_price) ومصفوفة channels كاملة بالأسماء العربية والإنجليزية.\n- channels_enabled: حالة تفعيل كل نوع من لوحة التحكم."
                     }
                 },
                 {

@@ -589,7 +589,11 @@ class AdminDashboardController extends Controller
     public function storeService(Request $request)
     {
         $request->validate([
-            'title' => 'required|string|max:255',
+            'title_ar' => 'nullable|string|max:255',
+            'title_en' => 'nullable|string|max:255',
+            'title' => 'nullable|string|max:255',
+            'description_ar' => 'nullable|string',
+            'description_en' => 'nullable|string',
             'description' => 'nullable|string',
             'type' => 'nullable|in:clinic,online',
             'channel' => 'nullable|string|in:all,video,voice,chat,clinic',
@@ -602,6 +606,11 @@ class AdminDashboardController extends Controller
             'video_price' => 'nullable|numeric|min:0',
             'price' => 'nullable|numeric|min:0',
         ]);
+
+        $titleAr = $request->title_ar ?: ($request->title ?: 'استشارة تخصصية');
+        $titleEn = $request->title_en ?: null;
+        $descAr = $request->description_ar ?: $request->description;
+        $descEn = $request->description_en ?: null;
 
         $channel = $request->channel ?? 'all';
         $type = ($channel === 'clinic' || $request->type === 'clinic') ? 'clinic' : 'online';
@@ -643,8 +652,12 @@ class AdminDashboardController extends Controller
         }
 
         Service::create([
-            'title' => $request->title,
-            'description' => $request->description,
+            'title' => $titleAr,
+            'title_ar' => $titleAr,
+            'title_en' => $titleEn,
+            'description' => $descAr,
+            'description_ar' => $descAr,
+            'description_en' => $descEn,
             'icon' => $icon,
             'type' => $type,
             'price' => $price,
@@ -657,7 +670,7 @@ class AdminDashboardController extends Controller
             'is_active' => $request->has('is_active'),
         ]);
 
-        return redirect()->back()->with('success', 'تم إضافة الخدمة وتحديد أيقونتها وأسعارها بنجاح.');
+        return redirect()->back()->with('success', 'تم إضافة الخدمة باللغتين وتحديد أيقونتها وأسعارها بنجاح.');
     }
 
     /**
@@ -666,7 +679,11 @@ class AdminDashboardController extends Controller
     public function updateService(Request $request, $id)
     {
         $request->validate([
-            'title' => 'required|string|max:255',
+            'title_ar' => 'nullable|string|max:255',
+            'title_en' => 'nullable|string|max:255',
+            'title' => 'nullable|string|max:255',
+            'description_ar' => 'nullable|string',
+            'description_en' => 'nullable|string',
             'description' => 'nullable|string',
             'type' => 'nullable|in:clinic,online',
             'channel' => 'nullable|string|in:all,video,voice,chat,clinic',
@@ -681,6 +698,11 @@ class AdminDashboardController extends Controller
         ]);
 
         $service = Service::findOrFail($id);
+
+        $titleAr = $request->title_ar ?: ($request->title ?: $service->title);
+        $titleEn = $request->title_en !== null ? $request->title_en : $service->title_en;
+        $descAr = $request->description_ar !== null ? $request->description_ar : ($request->description !== null ? $request->description : $service->description);
+        $descEn = $request->description_en !== null ? $request->description_en : $service->description_en;
 
         $channel = $request->channel ?? 'all';
         $type = ($channel === 'clinic' || $request->type === 'clinic') ? 'clinic' : 'online';
@@ -722,8 +744,12 @@ class AdminDashboardController extends Controller
         }
 
         $service->update([
-            'title' => $request->title,
-            'description' => $request->description,
+            'title' => $titleAr,
+            'title_ar' => $titleAr,
+            'title_en' => $titleEn,
+            'description' => $descAr,
+            'description_ar' => $descAr,
+            'description_en' => $descEn,
             'icon' => $icon,
             'type' => $type,
             'price' => $price,
@@ -736,7 +762,7 @@ class AdminDashboardController extends Controller
             'is_active' => $request->has('is_active'),
         ]);
 
-        return redirect()->back()->with('success', 'تم تحديث بيانات الخدمة وتحديد أيقونتها وأسعارها بنجاح.');
+        return redirect()->back()->with('success', 'تم تحديث بيانات الخدمة باللغتين وتحديد أيقونتها وأسعارها بنجاح.');
     }
 
     /**

@@ -123,7 +123,11 @@ class DatabaseSeeder extends Seeder
 
         $s1 = Service::create([
             'title' => 'جلسة استشارة نفسية وتقييم أولي - 30 دقيقة',
+            'title_ar' => 'جلسة استشارة نفسية وتقييم أولي - 30 دقيقة',
+            'title_en' => 'Psychological Assessment & Initial Consultation - 30 Min',
             'description' => 'جلسة استشارية أولية لتشخيص الحالة النفسية، تقييم أعراض التوتر والقلق، ووضع الخطة العلاجية المناسبة.',
+            'description_ar' => 'جلسة استشارية أولية لتشخيص الحالة النفسية، تقييم أعراض التوتر والقلق، ووضع الخطة العلاجية المناسبة.',
+            'description_en' => 'Initial assessment session to diagnose psychological symptoms, evaluate anxiety/stress, and build a tailored treatment plan.',
             'type' => 'both',
             'price' => 50.00,
             'clinic_price' => 50.00,
@@ -137,7 +141,11 @@ class DatabaseSeeder extends Seeder
 
         $s2 = Service::create([
             'title' => 'جلسة علاج معرفي سلوكي مكثفة (CBT) - 45 دقيقة',
+            'title_ar' => 'جلسة علاج معرفي سلوكي مكثفة (CBT) - 45 دقيقة',
+            'title_en' => 'Intensive Cognitive Behavioral Therapy (CBT) - 45 Min',
             'description' => 'جلسة علاجية متعمقة تركز على تعديل الأنماط الفكرية السلبية وعلاج نوبات الهلع والاكتئاب والوسواس القهري.',
+            'description_ar' => 'جلسة علاجية متعمقة تركز على تعديل الأنماط الفكرية السلبية وعلاج نوبات الهلع والاكتئاب والوسواس القهري.',
+            'description_en' => 'In-depth therapy session focusing on modifying negative thought patterns, managing panic attacks, depression, and OCD.',
             'type' => 'both',
             'price' => 75.00,
             'clinic_price' => 75.00,
@@ -151,7 +159,11 @@ class DatabaseSeeder extends Seeder
 
         $s3 = Service::create([
             'title' => 'استشارة العلاقات الأسرية والزوجية - 60 دقيقة',
+            'title_ar' => 'استشارة العلاقات الأسرية والزوجية - 60 دقيقة',
+            'title_en' => 'Couples & Family Relationship Counseling - 60 Min',
             'description' => 'جلسة إرشادية مخصصة للزوجين لحل الخلافات، تحسين مهارات التواصل، وإعادة بناء التفاهم والاستقرار العاطفي.',
+            'description_ar' => 'جلسة إرشادية مخصصة للزوجين لحل الخلافات، تحسين مهارات التواصل، وإعادة بناء التفاهم والاستقرار العاطفي.',
+            'description_en' => 'Specialized counseling for couples to resolve conflicts, improve communication, and restore emotional harmony.',
             'type' => 'both',
             'price' => 100.00,
             'clinic_price' => 100.00,
@@ -165,7 +177,11 @@ class DatabaseSeeder extends Seeder
 
         $s4 = Service::create([
             'title' => 'جلسة دعم نفسي وإرشاد سريع - 15 دقيقة',
+            'title_ar' => 'جلسة دعم نفسي وإرشاد سريع - 15 دقيقة',
+            'title_en' => 'Quick Psychological Support & Guidance - 15 Min',
             'description' => 'استشارة سريعة وفورية للحصول على توجيه عاجل في أوقات التوتر وضغوط العمل ونوبات القلق المفاجئة.',
+            'description_ar' => 'استشارة سريعة وفورية للحصول على توجيه عاجل في أوقات التوتر وضغوط العمل ونوبات القلق المفاجئة.',
+            'description_en' => 'Immediate consultation for urgent guidance during acute stress, work burnout, and sudden anxiety.',
             'type' => 'both',
             'price' => 30.00,
             'clinic_price' => 30.00,

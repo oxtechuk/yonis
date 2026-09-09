@@ -169,10 +169,22 @@ class ApiController extends Controller
             return in_array($s->type, ['clinic', 'both'], true);
         })->map(function ($s) use ($currencyCode, $currencySymbol) {
             $clinicPrice = (float) ($s->clinic_price ?? $s->price);
+            $titleAr = $s->title_ar ?: ($s->title ?? '');
+            $titleEn = $s->title_en ?: $titleAr;
+            $descAr = $s->description_ar ?: ($s->description ?? '');
+            $descEn = $s->description_en ?: '';
+
             return [
                 'id' => $s->id,
                 'title' => $s->title,
+                'title_ar' => $titleAr,
+                'title_en' => $titleEn,
+                'name' => $s->title,
+                'name_ar' => $titleAr,
+                'name_en' => $titleEn,
                 'description' => $s->description,
+                'description_ar' => $descAr,
+                'description_en' => $descEn,
                 'icon' => $s->icon_name,
                 'icon_url' => $s->icon_url,
                 'duration' => $s->duration,
@@ -208,6 +220,8 @@ class ApiController extends Controller
                 $channels[] = [
                     'channel' => 'video',
                     'name' => 'مكالمة فيديو أونلاين',
+                    'name_ar' => 'مكالمة فيديو أونلاين',
+                    'name_en' => 'Online Video Call',
                     'price' => $p,
                     'currency' => $currencyCode,
                     'currency_symbol' => $currencySymbol,
@@ -221,6 +235,8 @@ class ApiController extends Controller
                 $channels[] = [
                     'channel' => 'voice',
                     'name' => 'استشارة صوتية',
+                    'name_ar' => 'استشارة صوتية',
+                    'name_en' => 'Voice Consultation',
                     'price' => $p,
                     'currency' => $currencyCode,
                     'currency_symbol' => $currencySymbol,
@@ -234,6 +250,8 @@ class ApiController extends Controller
                 $channels[] = [
                     'channel' => 'chat',
                     'name' => 'محادثة نصية (شات)',
+                    'name_ar' => 'محادثة نصية (شات)',
+                    'name_en' => 'Chat Consultation',
                     'price' => $p,
                     'currency' => $currencyCode,
                     'currency_symbol' => $currencySymbol,
@@ -245,15 +263,29 @@ class ApiController extends Controller
             $primaryPrice = !empty($channels) ? $channels[0]['price'] : (float)$s->price;
             $channelType = count($channels) === 1 ? $channels[0]['channel'] : 'all';
 
+            $titleAr = $s->title_ar ?: ($s->title ?? '');
+            $titleEn = $s->title_en ?: $titleAr;
+            $descAr = $s->description_ar ?: ($s->description ?? '');
+            $descEn = $s->description_en ?: '';
+
             return [
                 'id' => $s->id,
                 'title' => $s->title,
+                'title_ar' => $titleAr,
+                'title_en' => $titleEn,
+                'name' => $s->title,
+                'name_ar' => $titleAr,
+                'name_en' => $titleEn,
                 'description' => $s->description,
+                'description_ar' => $descAr,
+                'description_en' => $descEn,
                 'icon' => $s->icon_name,
                 'icon_url' => $s->icon_url,
                 'duration' => $s->duration,
                 'booking_type' => 'online',
                 'channel_type' => $channelType,
+                'channel_label_ar' => $s->getChannelLabel(),
+                'channel_label_en' => $s->getChannelLabelEn(),
                 'currency' => $currencyCode,
                 'currency_symbol' => $currencySymbol,
                 'type' => $s->type,

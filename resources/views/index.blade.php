@@ -665,8 +665,8 @@
                                     </div>
 
                                     {{-- Title & Description --}}
-                                    <h4 class="service-card-title">{{ $service->title }}</h4>
-                                    <p class="service-card-desc">{{ $service->description }}</p>
+                                    <h4 class="service-card-title">{{ $service->getLocalizedTitle() }}</h4>
+                                    <p class="service-card-desc">{{ $service->getLocalizedDescription() }}</p>
 
                                     {{-- Multi-channel price tags or single price --}}
                                     <div class="pricing-amount-box">
@@ -729,7 +729,7 @@
                     @foreach($clinicServices as $index => $service)
                         <div class="swiper-slide h-auto">
                             <div class="service-card-new clinic-card-luxury h-100 d-flex flex-column justify-content-between {{ $index === 0 ? 'popular' : '' }}"
-                                 onclick="selectServiceAndOpenModal({{ $service->id }}, '{{ $service->title }}', {{ $service->clinic_price ?? $service->price }}, {{ $service->duration }}, 'clinic')">
+                                 onclick="selectServiceAndOpenModal({{ $service->id }}, '{{ addslashes($service->getLocalizedTitle()) }}', {{ $service->clinic_price ?? $service->price }}, {{ $service->duration }}, 'clinic')">
                                 
                                 <div class="d-flex flex-column flex-grow-1">
                                     {{-- Header: Icon + Badges --}}
@@ -754,8 +754,8 @@
                                     </div>
 
                                     {{-- Title & Description --}}
-                                    <h4 class="service-card-title">{{ $service->title }}</h4>
-                                    <p class="service-card-desc">{{ $service->description }}</p>
+                                    <h4 class="service-card-title">{{ $service->getLocalizedTitle() }}</h4>
+                                    <p class="service-card-desc">{{ $service->getLocalizedDescription() }}</p>
 
                                     {{-- Main Price Box --}}
                                     <div class="pricing-amount-box">

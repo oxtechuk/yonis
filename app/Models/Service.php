@@ -9,7 +9,11 @@ class Service extends Model
 {
     protected $fillable = [
         'title',
+        'title_ar',
+        'title_en',
         'description',
+        'description_ar',
+        'description_en',
         'icon',
         'type',
         'price',
@@ -25,6 +29,13 @@ class Service extends Model
     protected $appends = [
         'icon_url',
         'icon_name',
+        'title_ar',
+        'title_en',
+        'description_ar',
+        'description_en',
+        'channel_type',
+        'channel_label',
+        'display_price',
     ];
 
     protected $casts = [
@@ -35,6 +46,62 @@ class Service extends Model
         'voice_price' => 'decimal:2',
         'video_price' => 'decimal:2',
     ];
+
+    /**
+     * Get Arabic Title
+     */
+    public function getTitleArAttribute(): string
+    {
+        return $this->attributes['title_ar'] ?? ($this->attributes['title'] ?? '');
+    }
+
+    /**
+     * Get English Title
+     */
+    public function getTitleEnAttribute(): ?string
+    {
+        return $this->attributes['title_en'] ?? null;
+    }
+
+    /**
+     * Get Arabic Description
+     */
+    public function getDescriptionArAttribute(): ?string
+    {
+        return $this->attributes['description_ar'] ?? ($this->attributes['description'] ?? null);
+    }
+
+    /**
+     * Get English Description
+     */
+    public function getDescriptionEnAttribute(): ?string
+    {
+        return $this->attributes['description_en'] ?? null;
+    }
+
+    /**
+     * Localized Title based on current locale or given locale
+     */
+    public function getLocalizedTitle(?string $locale = null): string
+    {
+        $loc = $locale ?: app()->getLocale();
+        if ($loc === 'en' && !empty($this->title_en)) {
+            return $this->title_en;
+        }
+        return $this->title_ar ?: ($this->title ?? '');
+    }
+
+    /**
+     * Localized Description based on current locale or given locale
+     */
+    public function getLocalizedDescription(?string $locale = null): ?string
+    {
+        $loc = $locale ?: app()->getLocale();
+        if ($loc === 'en' && !empty($this->description_en)) {
+            return $this->description_en;
+        }
+        return $this->description_ar ?: ($this->description ?? '');
+    }
 
     /**
      * Get price for a specific consultation channel
@@ -97,6 +164,26 @@ class Service extends Model
                 return 'شات فقط';
             default:
                 return 'متعدد القنوات';
+        }
+    }
+
+    /**
+     * Get English label for the channel
+     */
+    public function getChannelLabelEn(): string
+    {
+        $channel = $this->getChannelType();
+        switch ($channel) {
+            case 'clinic':
+                return 'Clinic In-Person';
+            case 'video':
+                return 'Video Only';
+            case 'voice':
+                return 'Voice Only';
+            case 'chat':
+                return 'Chat Only';
+            default:
+                return 'Multi-Channel';
         }
     }
 
@@ -188,5 +275,3 @@ class Service extends Model
         return Setting::formatPrice($this->getDisplayPrice());
     }
 }
-
-

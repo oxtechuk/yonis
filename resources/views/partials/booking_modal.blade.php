@@ -18,10 +18,10 @@
     $defaultPayMethod = $payZainEnabled ? 'zaincash' : ($paySuperkiEnabled ? 'superki' : ($payCardEnabled ? 'card' : 'zaincash'));
 @endphp
 
-{{-- ═══ REUSABLE BOOKING POPUP MODAL WITH INTERACTIVE FLOW ═══ --}}
-<div class="modal fade" id="bookingModal" tabindex="-1" aria-hidden="true">
+{{-- ═══ REUSABLE BOOKING POPUP MODAL WITH INTERACTIVE MULTI-STEP FLOW ═══ --}}
+<div class="modal fade" id="bookingModal" tabindex="-1" aria-hidden="true" dir="rtl">
     <div class="modal-dialog modal-dialog-centered mobile-app-modal-dialog">
-        <div class="modal-content mobile-app-modal-content position-relative">
+        <div class="modal-content mobile-app-modal-content position-relative text-end">
             
             {{-- Header --}}
             <div class="mobile-app-header">
@@ -35,10 +35,12 @@
             {{-- Body --}}
             <div class="mobile-app-body">
                 
-                {{-- ═══ SCREEN 1: Type, Service, Duration & Options ═══ --}}
+                {{-- ═══════════════════════════════════════════════════════════
+                     الخطوة الأولى (Step 1): العنوان والاسم والتاريخ والوقت
+                     ═══════════════════════════════════════════════════════════ --}}
                 <div id="app-screen-1">
                     
-                    {{-- 1. Booking Type Selection (Online vs Clinic) --}}
+                    {{-- 1. نوع الحجز المطلوب --}}
                     <div class="mb-3">
                         <div class="app-section-title">نوع الحجز المطلوب</div>
                         <div class="d-flex gap-2">
@@ -51,10 +53,10 @@
                         </div>
                     </div>
 
-                    {{-- 2. Service Selection Dropdown --}}
+                    {{-- 2. اختيار الخدمة أو الجلسة --}}
                     <div class="mb-3">
                         <div class="app-section-title">اختر الخدمة أو الجلسة</div>
-                        <select class="form-select app-input w-100 fw-bold" id="app_service_select" onchange="onModalServiceChanged(this)">
+                        <select class="form-select app-input w-100 fw-bold text-end" id="app_service_select" onchange="onModalServiceChanged(this)">
                             @foreach($modalServices as $s)
                                 <option value="{{ $s->id }}" 
                                         data-title="{{ $s->title }}" 
@@ -72,7 +74,7 @@
                         </select>
                     </div>
 
-                    {{-- 3. Consultation Duration Display --}}
+                    {{-- 3. مدة الاستشارة --}}
                     <div class="mb-3">
                         <div class="d-flex justify-content-between align-items-center mb-1.5">
                             <div class="app-section-title mb-0">
@@ -82,256 +84,43 @@
                                 {{ $modalServices->first()->duration ?? 45 }} {{ __('messages.minutes') }}
                             </span>
                         </div>
-                      
                     </div>
 
-                    {{-- 4. Consultation Title / Notes --}}
+                    {{-- 4. عنوان وموضوع الاستشارة --}}
                     <div class="mb-3">
                         <div class="app-section-title">{{ __('messages.consultation_subject') }}</div>
-                        <input type="text" id="app_consultation_title" class="form-control app-input w-100" placeholder="{{ __('messages.consultation_subject_ph') }}" value="استشارة نفسية متخصصة" required>
+                        <input type="text" id="app_consultation_title" class="form-control app-input w-100 text-end" placeholder="{{ __('messages.consultation_subject_ph') }}" value="استشارة نفسية متخصصة" required>
                     </div>
 
-                    <div class="mb-3">
-                        <div class="app-section-title">{{ __('messages.consultation_details') }}</div>
-                        <textarea id="app_consultation_details" class="form-control app-input w-100" rows="2" placeholder="{{ __('messages.consultation_details_ph') }}"></textarea>
-                    </div>
-
-                    {{-- Summary Totals & Terms --}}
-                    <div class="bg-white p-2.5 rounded-4 border mb-2.5">
-                        <div class="d-flex justify-content-between align-items-center fs-6">
-                            <span class="fw-bold text-dark">{{ __('messages.order_total') }}:</span>
-                            <span class="fw-black fs-5" style="color:var(--primary-color);" id="app-required-price">50 {{ \App\Models\Setting::currencySymbol() }}</span>
-                        </div>
-                    </div>
-
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" id="app_terms_check" checked>
-                        <label class="form-check-label small fw-bold text-secondary" for="app_terms_check">
-                            {{ $isArLocale ? 'أوافق على الشروط والسرية الطبية التامة' : 'I agree to the Terms & Privacy Policy' }}
-                        </label>
-                    </div>
-
-                    {{-- Bottom Action Bar for Screen 1 --}}
-                    <div class="mobile-app-bottom-bar">
-                        <div>
-                            <div class="app-total-label">{{ __('messages.order_total') }}</div>
-                            <div class="app-total-value" id="app-bottom-total">50 {{ \App\Models\Setting::currencySymbol() }}</div>
-                        </div>
-                        <button type="button" class="btn-app-primary d-flex align-items-center gap-2" onclick="goToAppScreen2()">
-                            <span>{{ __('messages.next') }}: اختيار الموعد والدفع</span>
-                            <i class="bi bi-arrow-left"></i>
-                        </button>
-                    </div>
-
-                </div>{{-- End Screen 1 --}}
-
-                {{-- ═══ SCREEN 2: Date, Slot & WhatsApp with Country Code ═══ --}}
-                <div id="app-screen-2" class="d-none">
-                    
-                    {{-- Calendar View --}}
-                    <div class="app-calendar-box">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="changeAppMonth(-1)"><i class="bi bi-chevron-right"></i></button>
-                            <div class="app-calendar-month mb-0" id="app-calendar-month-title">{{ date('F Y') }}</div>
-                            <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="changeAppMonth(1)"><i class="bi bi-chevron-left"></i></button>
-                        </div>
-                        <div class="app-calendar-weekdays">
-                            <div>أحد</div><div>إثن</div><div>ثلا</div><div>أرب</div><div>خميس</div><div>جمع</div><div>سبت</div>
-                        </div>
-                        <div class="app-calendar-days" id="app-calendar-days-grid"></div>
-                    </div>
-
-                    {{-- Available Time Slots --}}
-                    <div class="mb-3">
-                        <div class="app-section-title"><i class="bi bi-clock me-1 text-primary"></i> {{ __('messages.select_time') }}</div>
-                        <div class="app-slots-grid" id="app-slots-grid">
-                            <div class="app-slot-pill selected" onclick="selectAppSlot('09:00 AM', this)">09:00 ص</div>
-                            <div class="app-slot-pill" onclick="selectAppSlot('10:00 AM', this)">10:00 ص</div>
-                            <div class="app-slot-pill" onclick="selectAppSlot('11:30 AM', this)">11:30 ص</div>
-                            <div class="app-slot-pill" onclick="selectAppSlot('01:00 PM', this)">01:00 م</div>
-                            <div class="app-slot-pill" onclick="selectAppSlot('02:30 PM', this)">02:30 م</div>
-                            <div class="app-slot-pill" onclick="selectAppSlot('04:00 PM', this)">04:00 م</div>
-                        </div>
-                    </div>
-
-                    {{-- ═══ اختيار طريقة الدفع ═══ --}}
-                    @if($anyPaymentActive)
+                    {{-- 5. بيانات المريض للتواصل والتأكيد --}}
                     <div class="mb-3 pt-2 border-top">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <div class="app-section-title fs-6 fw-black text-dark mb-0">
-                                <i class="bi bi-wallet2 text-primary me-1"></i> طريقة الدفع
+                                <i class="bi bi-person-badge text-primary me-1"></i> بيانات المريض
                             </div>
-                          
-                        </div>
-                        
-                        {{-- تبويبات طرق الدفع --}}
-                        <div class="d-flex gap-2 mb-3" id="payment-method-tabs" role="tablist">
-                            @if($payZainEnabled)
-                            <button type="button" class="btn pay-tab-btn flex-fill {{ $defaultPayMethod === 'zaincash' ? 'active' : '' }}"
-                                    id="pay-tab-zaincash" onclick="switchPayTab('zaincash')"
-                                    style="{{ $defaultPayMethod === 'zaincash' ? 'background:linear-gradient(135deg,#7c3aed,#4c1d95);color:#fff;' : 'background:#e2e8f0;color:#475569;' }}border:none;border-radius:14px;padding:10px 6px;font-weight:700;font-size:.85rem;">
-                                 زين كاش
-                            </button>
-                            @endif
-                            @if($paySuperkiEnabled)
-                            <button type="button" class="btn pay-tab-btn flex-fill {{ $defaultPayMethod === 'superki' ? 'active' : '' }}"
-                                    id="pay-tab-superki" onclick="switchPayTab('superki')"
-                                    style="{{ $defaultPayMethod === 'superki' ? 'background:linear-gradient(135deg,#0284c7,#075985);color:#fff;' : 'background:#e2e8f0;color:#475569;' }}border:none;border-radius:14px;padding:10px 6px;font-weight:700;font-size:.85rem;">
-                                 SuperKi
-                            </button>
-                            @endif
-                            @if($payCardEnabled)
-                            <button type="button" class="btn pay-tab-btn flex-fill {{ $defaultPayMethod === 'card' ? 'active' : '' }}"
-                                    id="pay-tab-card" onclick="switchPayTab('card')"
-                                    style="{{ $defaultPayMethod === 'card' ? 'background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;' : 'background:#e2e8f0;color:#475569;' }}border:none;border-radius:14px;padding:10px 6px;font-weight:700;font-size:.85rem;">
-                                 فيزا وماستر كارد
-                            </button>
-                            @endif
-                        </div>
-
-                        {{-- ─── بانل زين كاش ─── --}}
-                        @if($payZainEnabled)
-                        <div id="pay-panel-zaincash" class="pay-panel {{ $defaultPayMethod !== 'zaincash' ? 'd-none' : '' }}">
-                            <div class="card border-0 rounded-4 p-3 bg-light shadow-none text-center">
-                                @if(!empty($payZainQr))
-                                    <div class="d-inline-block p-2 bg-white rounded-4 shadow-sm border mx-auto mb-2">
-                                        <img src="{{ $payZainQr }}" alt="ZainCash QR"
-                                             style="max-width:200px;max-height:200px;border-radius:10px;object-fit:contain;">
-                                    </div>
-                                    <p class="text-secondary small mb-0 px-2 fw-bold">{{ $payZainLabel }}</p>
-                                @else
-                                    <div class="p-3 text-muted">
-                                        <i class="bi bi-qr-code" style="font-size:2.8rem;opacity:.5;color:#7c3aed;"></i>
-                                        <p class="small mt-2 mb-1 fw-bold text-dark">دفع زين كاش عبر QR</p>
-                                        <p class="small text-muted mb-0">افتح تطبيق زين كاش وامسح الرمز لإتمام الدفع، ثم أرسل الإيصال عبر واتساب.</p>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-                        @endif
-
-                        {{-- ─── بانل SuperKi ─── --}}
-                        @if($paySuperkiEnabled)
-                        <div id="pay-panel-superki" class="pay-panel {{ $defaultPayMethod !== 'superki' ? 'd-none' : '' }}">
-                            <div class="card border-0 rounded-4 p-3 bg-light shadow-none text-center">
-                                @if(!empty($paySuperkiQr))
-                                    <div class="d-inline-block p-2 bg-white rounded-4 shadow-sm border mx-auto mb-2">
-                                        <img src="{{ $paySuperkiQr }}" alt="SuperKi QR"
-                                             style="max-width:200px;max-height:200px;border-radius:10px;object-fit:contain;">
-                                    </div>
-                                    <p class="text-secondary small mb-0 px-2 fw-bold">{{ $paySuperkiLabel }}</p>
-                                @else
-                                    <div class="p-3 text-muted">
-                                        <i class="bi bi-qr-code" style="font-size:2.8rem;opacity:.5;color:#0284c7;"></i>
-                                        <p class="small mt-2 mb-1 fw-bold text-dark">دفع SuperKi عبر QR</p>
-                                        <p class="small text-muted mb-0">افتح تطبيق SuperKi وامسح الرمز لإتمام الدفع، ثم أرسل الإيصال عبر واتساب.</p>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-                        @endif
-
-                        {{-- ─── بانل فيزا وماستر كارد ─── --}}
-                        @if($payCardEnabled)
-                        <div id="pay-panel-card" class="pay-panel {{ $defaultPayMethod !== 'card' ? 'd-none' : '' }}">
-                            <div class="card border-0 rounded-4 p-3 bg-light shadow-none mb-2">
-                                <div class="d-flex align-items-center justify-content-between mb-2 border-bottom pb-2">
-                                    <div class="fw-bold text-dark small">
-                                        <i class="bi bi-shield-check text-success me-1"></i> بوابة الدفع بالبطاقة الائتمانية
-                                    </div>
-                                    <div class="d-flex align-items-center gap-1">
-                                        <span class="badge bg-white px-2 py-1 shadow-sm border text-primary fw-black" style="font-size: 0.8rem;">VISA</span>
-                                        <span class="badge bg-white px-2 py-1 shadow-sm border text-danger fw-black" style="font-size: 0.8rem;">MasterCard</span>
-                                    </div>
-                                </div>
-                                <p class="text-secondary small mb-2">{{ $payCardInstructions }}</p>
-                                @if(!empty($payCardLink))
-                                <a href="{{ $payCardLink }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-3 fw-bold w-100 py-2">
-                                    <i class="bi bi-box-arrow-up-right me-1"></i> فتح رابط الدفع الإلكتروني المباشر
-                                </a>
-                                @endif
-                            </div>
-                        </div>
-                        @endif
-
-                        {{-- ═══ حقول إثبات التحويل المالي (رقم التحويل وسكرين شوت الإيصال) ═══ --}}
-                        <div class="p-3 rounded-4 mt-3" style="background:#f8fafc; border: 1.5px dashed #cbd5e1;">
-                            <div class="d-flex align-items-center justify-content-between mb-1.5">
-                                <label class="form-label fw-bold text-dark mb-0 small">
-                                    <i class="bi bi-phone-vibrate text-primary me-1"></i> رقم هاتف المحوّل / رقم التحويل
-                                </label>
-                                <span class="badge bg-light text-muted border small" style="font-size: 0.7rem;">اختياري</span>
-                            </div>
-                            <div class="position-relative mb-1">
-                                <input type="tel" id="app_transfer_number" class="form-control app-input w-100 pe-4" 
-                                       placeholder="رقم الهاتف / المحفظة التي تم التحويل منها">
-                                <i class="bi bi-hash position-absolute top-50 translate-middle-y end-0 me-3 text-secondary"></i>
-                            </div>
-                            <div class="form-text text-muted small mb-3" style="font-size: 0.78rem;">
-                                <i class="bi bi-info-circle text-primary me-1"></i> في حال تركه فارغاً، سيتم اعتماد رقم هاتفك المسجل أعلاه تلقائياً.
-                            </div>
-
-                            {{-- Upload Screenshot Area --}}
-                            <div class="d-flex align-items-center justify-content-between mb-1.5">
-                                <label class="form-label fw-bold text-dark mb-0 small">
-                                    <i class="bi bi-image text-success me-1"></i> إرفاق سكرين شوت إشعار التحويل
-                                </label>
-                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 small" style="font-size: 0.7rem;">يسرّع التأكيد</span>
-                            </div>
-
-                            {{-- Custom Upload Box --}}
-                            <div id="receiptUploadBox" class="text-center p-3 rounded-3 bg-white border position-relative" style="cursor: pointer; transition: all 0.2s ease;" onclick="document.getElementById('app_receipt_file').click()">
-                                <input type="file" id="app_receipt_file" class="d-none" accept="image/*" onchange="onReceiptImageSelected(this)">
-                                
-                                {{-- Placeholder View --}}
-                                <div id="receiptPlaceholderView">
-                                    <i class="bi bi-cloud-arrow-up-fill text-primary fs-3 d-block mb-1"></i>
-                                    <div class="fw-bold small text-dark mb-0.5">اضغط هنا لاختيار صورة الإيصال أو الإشعار</div>
-                                    <div class="text-muted" style="font-size: 0.75rem;">يدعم JPG, PNG, WEBP (حتى 10MB)</div>
-                                </div>
-
-                                {{-- Preview View --}}
-                                <div id="receiptPreviewView" class="d-none align-items-center justify-content-between gap-2 text-start">
-                                    <div class="d-flex align-items-center gap-2 overflow-hidden">
-                                        <img id="receiptPreviewImg" src="" alt="Receipt Preview" class="rounded-2 border" style="width: 48px; height: 48px; object-fit: cover;">
-                                        <div class="overflow-hidden">
-                                            <div class="fw-bold small text-dark text-truncate" id="receiptFileName">إشعار_التحويل.png</div>
-                                            <div class="text-success small" style="font-size: 0.75rem;"><i class="bi bi-check-circle-fill me-1"></i> تم إرفاق الصورة بنجاح</div>
-                                        </div>
-                                    </div>
-                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-circle p-1.5" onclick="event.stopPropagation(); removeReceiptImage();" title="حذف الصورة" style="width:30px;height:30px; display:flex; align-items:center; justify-content:center;">
-                                        <i class="bi bi-trash3-fill"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="alert alert-light border rounded-4 p-2.5 mt-3 mb-0 d-flex align-items-center gap-2 small text-secondary">
-                            <i class="bi bi-info-circle-fill text-primary fs-5 flex-shrink-0"></i>
-                            <div>امسح رمز QR أعلاه لإتمام التحويل، ثم اضغط <strong>تأكيد الحجز</strong> لإرسال الإيصال وتثبيت الموعد.</div>
-                        </div>
-                    </div>
-                    @endif
-                    {{-- Registration Section --}}
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div class="app-section-title fs-5 fw-black text-dark mb-0">{{ __('messages.register') }}</div>
                             <span id="app_user_status_badge" class="badge bg-light text-muted border small d-none"></span>
                         </div>
                         
+                        {{-- الاسم الكامل --}}
                         <div class="mb-2.5">
-                            <label class="form-label small fw-bold text-secondary mb-1">{{ __('messages.full_name') }}</label>
-                            <div class="position-relative">
-                                <input type="text" id="app_user_name" class="form-control app-input w-100 pe-4" placeholder="{{ __('messages.full_name') }}" value="{{ Auth::check() ? Auth::user()->name : '' }}" oninput="savePatientBookingToStorage()" required>
-                                <i class="bi bi-person position-absolute top-50 translate-middle-y end-0 me-3 text-secondary"></i>
+                            <label class="form-label small fw-bold text-secondary mb-1">{{ __('messages.full_name') }} <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted ps-3 pe-2" style="border-radius: 0 16px 16px 0;">
+                                    <i class="bi bi-person fs-5"></i>
+                                </span>
+                                <input type="text" id="app_user_name" class="form-control app-input border-start-0 text-end ps-3" 
+                                       style="border-radius: 16px 0 0 16px;" 
+                                       placeholder="{{ __('messages.full_name') }}" 
+                                       value="{{ Auth::check() ? Auth::user()->name : '' }}" 
+                                       oninput="savePatientBookingToStorage()" required>
                             </div>
                         </div>
 
-                        {{-- WhatsApp with Unicode Country Flag Picker --}}
+                        {{-- رقم واتساب مع اختيار الدولة --}}
                         <div class="mb-2.5">
-                            <label class="form-label small fw-bold text-secondary mb-1">{{ __('messages.whatsapp_number') }}</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0 pe-2 ps-2 fs-5" id="app_country_flag_badge" style="border-radius: 0 16px 16px 0; user-select: none;">
+                            <label class="form-label small fw-bold text-secondary mb-1">{{ __('messages.whatsapp_number') }} <span class="text-danger">*</span></label>
+                            <div class="input-group" dir="ltr">
+                                <span class="input-group-text bg-light border-end-0 pe-2 ps-2 fs-5" id="app_country_flag_badge" style="border-radius: 16px 0 0 16px; user-select: none;">
                                     🇮🇶
                                 </span>
                                 <select class="form-select bg-light fw-bold text-dark border-start-0 border-end-0 ps-1 pe-2" id="app_country_code" style="max-width: 140px; cursor:pointer; font-size:0.86rem;" onchange="onModalCountryCodeChanged(this)">
@@ -369,43 +158,311 @@
                                     <option value="+39" data-flag="🇮🇹">🇮🇹 +39 (إيطاليا)</option>
                                     <option value="+34" data-flag="🇪🇸">🇪🇸 +34 (إسبانيا)</option>
                                 </select>
-                                <input type="tel" id="app_user_phone" class="form-control app-input rounded-start-4" placeholder="7701234567" value="{{ Auth::check() ? preg_replace('/^\+964/', '', Auth::user()->phone ?? '') : '' }}" oninput="savePatientBookingToStorage(); checkUserRegistrationStatus();" required>
+                                <input type="tel" id="app_user_phone" class="form-control app-input" style="border-radius: 0 16px 16px 0;" placeholder="7701234567" value="{{ Auth::check() ? preg_replace('/^\+964/', '', Auth::user()->phone ?? '') : '' }}" oninput="savePatientBookingToStorage(); checkUserRegistrationStatus();" required>
                             </div>
                         </div>
 
-                        {{-- Email Field --}}
+                        {{-- البريد الإلكتروني --}}
                         <div class="mb-2.5">
                             <label class="form-label small fw-bold text-secondary mb-1">البريد الإلكتروني (لتأكيد الموعد واستلام التفاصيل)</label>
-                            <div class="position-relative">
-                                <input type="email" id="app_user_email" class="form-control app-input w-100 pe-4" placeholder="name@example.com" value="{{ Auth::check() ? Auth::user()->email : '' }}" oninput="savePatientBookingToStorage()">
-                                <i class="bi bi-envelope position-absolute top-50 translate-middle-y end-0 me-3 text-secondary"></i>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted ps-3 pe-2" style="border-radius: 0 16px 16px 0;">
+                                    <i class="bi bi-envelope fs-5"></i>
+                                </span>
+                                <input type="email" id="app_user_email" class="form-control app-input border-start-0 text-end ps-3" 
+                                       style="border-radius: 16px 0 0 16px;" 
+                                       placeholder="name@example.com" 
+                                       value="{{ Auth::check() ? Auth::user()->email : '' }}" 
+                                       oninput="savePatientBookingToStorage()">
                             </div>
                         </div>
 
+                        {{-- كلمة المرور للمستخدم الجديد --}}
                         <div class="mb-2.5" id="app_password_wrapper" style="{{ Auth::check() ? 'display:none;' : '' }}">
-                            <label class="form-label small fw-bold text-secondary mb-1" id="app_password_label">{{ __('messages.password') }}</label>
-                            <div class="position-relative">
-                                <input type="password" id="app_user_password" class="form-control app-input w-100 pe-4" placeholder="{{ __('messages.password') }}" minlength="6">
-                                <i class="bi bi-lock position-absolute top-50 translate-middle-y end-0 me-3 text-secondary"></i>
+                            <label class="form-label small fw-bold text-secondary mb-1" id="app_password_label">{{ __('messages.password') }} <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted ps-3 pe-2" style="border-radius: 0 16px 16px 0;">
+                                    <i class="bi bi-lock fs-5"></i>
+                                </span>
+                                <input type="password" id="app_user_password" class="form-control app-input border-start-0 text-end ps-3" 
+                                       style="border-radius: 16px 0 0 16px;" 
+                                       placeholder="{{ __('messages.password') }}" minlength="6">
                             </div>
-                            <div class="form-text text-muted small" id="app_password_hint">يرجى تعيين كلمة مرور لإنشاء حسابك ومتابعة مواعيدك.</div>
+                            <div class="form-text text-muted small text-end" id="app_password_hint">يرجى تعيين كلمة مرور لإنشاء حسابك ومتابعة مواعيدك.</div>
                         </div>
                     </div>
 
+                    {{-- 6. اختيار التاريخ والوقت --}}
+                    <div class="mb-3 pt-2 border-top">
+                        <div class="app-section-title fs-6 fw-black text-dark mb-2">
+                            <i class="bi bi-calendar3 text-primary me-1"></i> تحديد الموعد والتاريخ
+                        </div>
+
+                        {{-- صندوق التقويم --}}
+                        <div class="app-calendar-box">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="changeAppMonth(-1)"><i class="bi bi-chevron-right"></i></button>
+                                <div class="app-calendar-month mb-0" id="app-calendar-month-title">{{ date('F Y') }}</div>
+                                <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="changeAppMonth(1)"><i class="bi bi-chevron-left"></i></button>
+                            </div>
+                            <div class="app-calendar-weekdays">
+                                <div>أحد</div><div>إثن</div><div>ثلا</div><div>أرب</div><div>خميس</div><div>جمع</div><div>سبت</div>
+                            </div>
+                            <div class="app-calendar-days" id="app-calendar-days-grid"></div>
+                        </div>
+
+                        {{-- الأوقات المتاحة --}}
+                        <div class="mb-3">
+                            <div class="app-section-title"><i class="bi bi-clock me-1 text-primary"></i> {{ __('messages.select_time') }}</div>
+                            <div class="app-slots-grid" id="app-slots-grid">
+                                <div class="app-slot-pill selected" onclick="selectAppSlot('09:00 AM', this)">09:00 ص</div>
+                                <div class="app-slot-pill" onclick="selectAppSlot('10:00 AM', this)">10:00 ص</div>
+                                <div class="app-slot-pill" onclick="selectAppSlot('11:30 AM', this)">11:30 ص</div>
+                                <div class="app-slot-pill" onclick="selectAppSlot('01:00 PM', this)">01:00 م</div>
+                                <div class="app-slot-pill" onclick="selectAppSlot('02:30 PM', this)">02:30 م</div>
+                                <div class="app-slot-pill" onclick="selectAppSlot('04:00 PM', this)">04:00 م</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Bottom Action Bar for Screen 1 --}}
+                    <div class="mobile-app-bottom-bar">
+                        <div>
+                            <div class="app-total-label">{{ __('messages.order_total') }}</div>
+                            <div class="app-total-value" id="app-bottom-total">{{ $modalServices->first()->price ?? 50 }} {{ \App\Models\Setting::currencySymbol() }}</div>
+                        </div>
+                        <button type="button" class="btn-app-primary d-flex align-items-center gap-2" onclick="goToAppScreen2()">
+                            <span>التالي: اختيار طريقة الدفع</span>
+                            <i class="bi bi-arrow-left"></i>
+                        </button>
+                    </div>
+
+                </div>{{-- End Screen 1 --}}
+
+                {{-- ═══════════════════════════════════════════════════════════
+                     الخطوة الثانية (Step 2): الملخص وتفاصيل الاستشارة والدفع
+                     ═══════════════════════════════════════════════════════════ --}}
+                <div id="app-screen-2" class="d-none">
+                    
+                    {{-- كارت ملخص الموعد المختار --}}
+                    <div class="card border rounded-4 p-3 mb-3 bg-white shadow-sm">
+                        <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 fw-bold">
+                                <i class="bi bi-check-circle-fill me-1"></i> ملخص الحجز
+                            </span>
+                            <span class="fw-black fs-5" style="color:var(--primary-color);" id="app-required-price">50 {{ \App\Models\Setting::currencySymbol() }}</span>
+                        </div>
+                        <div class="small text-secondary mb-1">
+                            <strong class="text-dark"><i class="bi bi-tag-fill text-primary me-1"></i> الخدمة:</strong>
+                            <span id="step2_summary_service" class="fw-bold text-dark">استشارة نفسية</span>
+                        </div>
+                        <div class="small text-secondary mb-1">
+                            <strong class="text-dark"><i class="bi bi-calendar-event text-primary me-1"></i> الموعد:</strong>
+                            <span id="step2_summary_datetime" class="fw-bold text-primary font-monospace">—</span>
+                        </div>
+                        <div class="small text-secondary">
+                            <strong class="text-dark"><i class="bi bi-person-fill text-primary me-1"></i> المريض:</strong>
+                            <span id="step2_summary_patient" class="fw-bold text-dark">—</span>
+                        </div>
+                    </div>
+
+                    {{-- تفاصيل وملاحظات الاستشارة --}}
+                    <div class="mb-3">
+                        <div class="app-section-title">{{ __('messages.consultation_details') }} <span class="badge bg-light text-muted border small ms-1" style="font-size:0.72rem;">اختياري</span></div>
+                        <textarea id="app_consultation_details" class="form-control app-input w-100 text-end" rows="2" placeholder="{{ __('messages.consultation_details_ph') }}"></textarea>
+                    </div>
+
+                    {{-- ═══ اختيار طريقة الدفع ═══ --}}
+                    @if($anyPaymentActive)
+                    <div class="mb-3 pt-2 border-top">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="app-section-title fs-6 fw-black text-dark mb-0">
+                                <i class="bi bi-wallet2 text-primary me-1"></i> طريقة الدفع
+                            </div>
+                        </div>
+                        
+                        {{-- تبويبات طرق الدفع --}}
+                        <div class="d-flex gap-2 mb-3" id="payment-method-tabs" role="tablist">
+                            @if($payZainEnabled)
+                            <button type="button" class="btn pay-tab-btn flex-fill {{ $defaultPayMethod === 'zaincash' ? 'active' : '' }}"
+                                    id="pay-tab-zaincash" onclick="switchPayTab('zaincash')"
+                                    style="{{ $defaultPayMethod === 'zaincash' ? 'background:linear-gradient(135deg,#7c3aed,#4c1d95);color:#fff;' : 'background:#e2e8f0;color:#475569;' }}border:none;border-radius:14px;padding:10px 6px;font-weight:700;font-size:.85rem;">
+                                 زين كاش
+                            </button>
+                            @endif
+                            @if($paySuperkiEnabled)
+                            <button type="button" class="btn pay-tab-btn flex-fill {{ $defaultPayMethod === 'superki' ? 'active' : '' }}"
+                                    id="pay-tab-superki" onclick="switchPayTab('superki')"
+                                    style="{{ $defaultPayMethod === 'superki' ? 'background:linear-gradient(135deg,#0284c7,#075985);color:#fff;' : 'background:#e2e8f0;color:#475569;' }}border:none;border-radius:14px;padding:10px 6px;font-weight:700;font-size:.85rem;">
+                                 SuperKi
+                            </button>
+                            @endif
+                            @if($payCardEnabled)
+                            <button type="button" class="btn pay-tab-btn flex-fill {{ $defaultPayMethod === 'card' ? 'active' : '' }}"
+                                    id="pay-tab-card" onclick="switchPayTab('card')"
+                                    style="{{ $defaultPayMethod === 'card' ? 'background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;' : 'background:#e2e8f0;color:#475569;' }}border:none;border-radius:14px;padding:10px 6px;font-weight:700;font-size:.85rem;">
+                                 فيزا وماستر كارد
+                            </button>
+                            @endif
+                        </div>
+
+                        {{-- ─── بانل زين كاش ─── --}}
+                        @if($payZainEnabled)
+                        <div id="pay-panel-zaincash" class="pay-panel {{ $defaultPayMethod !== 'zaincash' ? 'd-none' : '' }}">
+                            <div class="card border-0 rounded-4 p-3 bg-light shadow-none text-center">
+                                @if(!empty($payZainQr))
+                                    <div class="d-inline-block p-2 bg-white rounded-4 shadow-sm border mx-auto mb-2">
+                                        <img src="{{ $payZainQr }}" alt="ZainCash QR"
+                                             style="max-width:190px;max-height:190px;border-radius:10px;object-fit:contain;">
+                                    </div>
+                                    <p class="text-secondary small mb-0 px-2 fw-bold" dir="rtl" style="text-align:center;">{{ $payZainLabel }}</p>
+                                @else
+                                    <div class="p-3 text-muted">
+                                        <i class="bi bi-qr-code" style="font-size:2.8rem;opacity:.5;color:#7c3aed;"></i>
+                                        <p class="small mt-2 mb-1 fw-bold text-dark" dir="rtl">دفع زين كاش عبر <bdi dir="ltr">QR</bdi></p>
+                                        <p class="small text-muted mb-0" dir="rtl">افتح تطبيق زين كاش وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال.</p>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                        @endif
+
+                        {{-- ─── بانل SuperKi ─── --}}
+                        @if($paySuperkiEnabled)
+                        <div id="pay-panel-superki" class="pay-panel {{ $defaultPayMethod !== 'superki' ? 'd-none' : '' }}">
+                            <div class="card border-0 rounded-4 p-3 bg-light shadow-none text-center">
+                                @if(!empty($paySuperkiQr))
+                                    <div class="d-inline-block p-2 bg-white rounded-4 shadow-sm border mx-auto mb-2">
+                                        <img src="{{ $paySuperkiQr }}" alt="SuperKi QR"
+                                             style="max-width:190px;max-height:190px;border-radius:10px;object-fit:contain;">
+                                    </div>
+                                    <p class="text-secondary small mb-0 px-2 fw-bold" dir="rtl" style="text-align:center;">{{ $paySuperkiLabel }}</p>
+                                @else
+                                    <div class="p-3 text-muted">
+                                        <i class="bi bi-qr-code" style="font-size:2.8rem;opacity:.5;color:#0284c7;"></i>
+                                        <p class="small mt-2 mb-1 fw-bold text-dark" dir="rtl">دفع <bdi dir="ltr">SuperKi</bdi> عبر <bdi dir="ltr">QR</bdi></p>
+                                        <p class="small text-muted mb-0" dir="rtl">افتح تطبيق SuperKi وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال.</p>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                        @endif
+
+                        {{-- ─── بانل فيزا وماستر كارد ─── --}}
+                        @if($payCardEnabled)
+                        <div id="pay-panel-card" class="pay-panel {{ $defaultPayMethod !== 'card' ? 'd-none' : '' }}">
+                            <div class="card border-0 rounded-4 p-3 bg-light shadow-none mb-2">
+                                <div class="d-flex align-items-center justify-content-between mb-2 border-bottom pb-2">
+                                    <div class="fw-bold text-dark small">
+                                        <i class="bi bi-shield-check text-success me-1"></i> بوابة الدفع بالبطاقة الائتمانية
+                                    </div>
+                                    <div class="d-flex align-items-center gap-1" dir="ltr">
+                                        <span class="badge bg-white px-2 py-1 shadow-sm border text-primary fw-black" style="font-size: 0.8rem;">VISA</span>
+                                        <span class="badge bg-white px-2 py-1 shadow-sm border text-danger fw-black" style="font-size: 0.8rem;">MasterCard</span>
+                                    </div>
+                                </div>
+                                <p class="text-secondary small mb-2" dir="rtl">{{ $payCardInstructions }}</p>
+                                @if(!empty($payCardLink))
+                                <a href="{{ $payCardLink }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-3 fw-bold w-100 py-2">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i> فتح رابط الدفع الإلكتروني المباشر
+                                </a>
+                                @endif
+                            </div>
+                        </div>
+                        @endif
+
+                        {{-- ═══ حقول إثبات التحويل المالي (رقم التحويل وسكرين شوت الإيصال) ═══ --}}
+                        <div class="p-3 rounded-4 mt-3" style="background:#f8fafc; border: 1.5px dashed #cbd5e1;" dir="rtl">
+                            <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                <label class="form-label fw-bold text-dark mb-0 small">
+                                    <i class="bi bi-phone-vibrate text-primary me-1"></i> رقم هاتف المحوّل / رقم التحويل
+                                </label>
+                                <span class="badge bg-light text-muted border small" style="font-size: 0.7rem;">اختياري</span>
+                            </div>
+                            <div class="input-group mb-1">
+                                <span class="input-group-text bg-white border-end-0 text-muted ps-3 pe-2" style="border-radius: 0 16px 16px 0;">
+                                    <i class="bi bi-hash fs-5"></i>
+                                </span>
+                                <input type="tel" id="app_transfer_number" class="form-control app-input border-start-0 text-end ps-3" 
+                                       style="border-radius: 16px 0 0 16px;"
+                                       placeholder="رقم الهاتف / المحفظة التي تم التحويل منها">
+                            </div>
+                            <div class="form-text text-muted small mb-3 text-end" style="font-size: 0.78rem;">
+                                <i class="bi bi-info-circle text-primary me-1"></i> في حال تركه فارغاً، سيتم اعتماد رقم هاتفك المسجل تلقائياً.
+                            </div>
+
+                            {{-- Upload Screenshot Area --}}
+                            <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                <label class="form-label fw-bold text-dark mb-0 small">
+                                    <i class="bi bi-image text-success me-1"></i> إرفاق سكرين شوت إشعار التحويل
+                                </label>
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 small" style="font-size: 0.7rem;">يسرّع التأكيد</span>
+                            </div>
+
+                            {{-- Custom Upload Box --}}
+                            <div id="receiptUploadBox" class="text-center p-3 rounded-3 bg-white border position-relative" style="cursor: pointer; transition: all 0.2s ease;" onclick="document.getElementById('app_receipt_file').click()">
+                                <input type="file" id="app_receipt_file" class="d-none" accept="image/*" onchange="onReceiptImageSelected(this)">
+                                
+                                {{-- Placeholder View --}}
+                                <div id="receiptPlaceholderView">
+                                    <i class="bi bi-cloud-arrow-up-fill text-primary fs-3 d-block mb-1"></i>
+                                    <div class="fw-bold small text-dark mb-0.5">اضغط هنا لاختيار صورة الإيصال أو الإشعار</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">
+                                        يدعم <bdi dir="ltr">JPG, PNG, WEBP</bdi> (حتى 10MB)
+                                    </div>
+                                </div>
+
+                                {{-- Preview View --}}
+                                <div id="receiptPreviewView" class="d-none align-items-center justify-content-between gap-2 text-start">
+                                    <div class="d-flex align-items-center gap-2 overflow-hidden">
+                                        <img id="receiptPreviewImg" src="" alt="Receipt Preview" class="rounded-2 border" style="width: 48px; height: 48px; object-fit: cover;">
+                                        <div class="overflow-hidden text-end">
+                                            <div class="fw-bold small text-dark text-truncate" id="receiptFileName">إشعار_التحويل.png</div>
+                                            <div class="text-success small" style="font-size: 0.75rem;"><i class="bi bi-check-circle-fill me-1"></i> تم إرفاق الصورة بنجاح</div>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-circle p-1.5" onclick="event.stopPropagation(); removeReceiptImage();" title="حذف الصورة" style="width:30px;height:30px; display:flex; align-items:center; justify-content:center;">
+                                        <i class="bi bi-trash3-fill"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Alert box with proper bidi wrapping --}}
+                        <div class="alert alert-light border rounded-4 p-2.5 mt-3 mb-0 d-flex align-items-center gap-2 small text-secondary" dir="rtl" style="text-align: right;">
+                            <i class="bi bi-info-circle-fill text-primary fs-5 flex-shrink-0"></i>
+                            <div style="line-height: 1.6;">
+                                امسح رمز <bdi dir="ltr" class="fw-bold">QR</bdi> أعلاه لإتمام التحويل، ثم اضغط <strong>تأكيد الحجز</strong> لإرسال الإيصال وتثبيت الموعد.
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
+                    {{-- Terms check --}}
+                    <div class="form-check mb-3 mt-3">
+                        <input class="form-check-input" type="checkbox" id="app_terms_check" checked>
+                        <label class="form-check-label small fw-bold text-secondary" for="app_terms_check">
+                            {{ $isArLocale ? 'أوافق على الشروط والسرية الطبية التامة' : 'I agree to the Terms & Privacy Policy' }}
+                        </label>
+                    </div>
 
                     {{-- Bottom Action Bar for Screen 2 --}}
                     <div class="mobile-app-bottom-bar">
-                        <button type="button" class="btn btn-outline-secondary rounded-3 px-3" onclick="goToAppScreen1()">
-                            <i class="bi bi-arrow-right me-1"></i> {{ __('messages.back') }}
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-bold d-flex align-items-center gap-1.5" onclick="goToAppScreen1()">
+                            <i class="bi bi-arrow-right"></i>
+                            <span>السابق</span>
                         </button>
-                        <button type="button" class="btn-app-primary flex-fill" id="app-submit-pay-btn" onclick="executeAppBooking()">
-                            <i class="bi bi-check-circle-fill me-1"></i> تأكيد الحجز وإرسال الإيصال (<span id="app-btn-price-display">50 {{ \App\Models\Setting::currencySymbol() }}</span>)
+                        <button type="button" class="btn-app-primary flex-fill d-flex align-items-center justify-content-center gap-2" id="app-submit-pay-btn" onclick="executeAppBooking()">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>تأكيد الحجز وإرسال الإيصال (<span id="app-btn-price-display">{{ $modalServices->first()->price ?? 50 }} {{ \App\Models\Setting::currencySymbol() }}</span>)</span>
                         </button>
                     </div>
 
                 </div>{{-- End Screen 2 --}}
 
-                {{-- ═══ SCREEN 3: تأكيد تسجيل الحجز وبطاقة الموعد الفاخرة ═══ --}}
+                {{-- ═══════════════════════════════════════════════════════════
+                     الخطوة الثالثة (Screen 3): تأكيد تسجيل الحجز وبطاقة الموعد الفاخرة
+                     ═══════════════════════════════════════════════════════════ --}}
                 <div id="app-screen-3" class="d-none">
                     <div class="text-center py-1">
                         {{-- Top Glowing Animated Status Icon --}}
@@ -418,10 +475,10 @@
                         <h5 class="fw-black text-dark mb-2" style="font-size: 1.15rem;">تم تسجيل طلب الحجز بنجاح!</h5>
                         
                         {{-- إشعار المراجعة والتأكيد الأنيق --}}
-                        <div class="luxury-notice-box">
+                        <div class="luxury-notice-box" dir="rtl">
                             <div class="d-flex align-items-start gap-2">
                                 <i class="bi bi-info-circle-fill text-warning fs-5 flex-shrink-0 mt-0.5"></i>
-                                <div style="line-height:1.55;font-size:0.83rem;flex-grow:1;">
+                                <div style="line-height:1.55;font-size:0.83rem;flex-grow:1;text-align:right;">
                                     <div class="fw-bold" style="color:#b45309;">تنبيه المراجعة والتدقيق:</div>
                                     <div style="color:#78350f;">
                                         حجزك الآن <strong>قيد المراجعة</strong> من قبل الإدارة. بعد التحقق من الدفع، سيصلك <strong>رقم التأكيد النهائي</strong> وتفاصيل الموعد مباشرة.
@@ -431,7 +488,7 @@
                         </div>
 
                         {{-- بطاقة تذكرة الموعد الإلكترونية الفاخرة --}}
-                        <div class="luxury-voucher-card">
+                        <div class="luxury-voucher-card" dir="rtl">
                             {{-- رأس التذكرة --}}
                             <div class="voucher-header">
                                 <div class="d-flex align-items-center gap-1.5">
@@ -530,6 +587,7 @@ const monthNamesAr = [
 const waNumber = '{{ preg_replace("/\D/", "", $waRaw) }}';
 let appUserIsRegistered = {{ Auth::check() ? 'true' : 'false' }};
 let checkPhoneTimeout = null;
+const appCurrencySymbol = '{{ \App\Models\Setting::currencySymbol() }}';
 
 function setModalBookingType(type, btn) {
     appState.bookingType = type;
@@ -570,11 +628,9 @@ function onModalServiceChanged(selectEl) {
     const dur = parseInt(opt.getAttribute('data-duration')) || 45;
     appState.duration = dur;
 
-    // Update dynamic duration badge & display text
+    // Update dynamic duration badge
     const badge = document.getElementById('app_modal_duration_badge');
-    const text = document.getElementById('app_modal_duration_text');
     if (badge) badge.textContent = dur + ' ' + '{{ __("messages.minutes") }}';
-    if (text) text.textContent = dur + ' ' + '{{ __("messages.minutes") }}';
     
     const p = appState.bookingType === 'clinic'
         ? (opt.getAttribute('data-clinic') || opt.getAttribute('data-price'))
@@ -584,27 +640,13 @@ function onModalServiceChanged(selectEl) {
     const titleInput = document.getElementById('app_consultation_title');
     if (titleInput) titleInput.value = appState.title;
 
-    // Refresh slots if screen 2 is visible
-    if (!document.getElementById('app-screen-2').classList.contains('d-none')) {
-        fetchModalSlots(appState.date);
-    }
+    // Refresh slots
+    fetchModalSlots(appState.date);
 }
-
-function selectAppDuration(duration, price, el) {
-    appState.duration = duration;
-    const badge = document.getElementById('app_modal_duration_badge');
-    const text = document.getElementById('app_modal_duration_text');
-    if (badge) badge.textContent = duration + ' ' + '{{ __("messages.minutes") }}';
-    if (text) text.textContent = duration + ' ' + '{{ __("messages.minutes") }}';
-    if (price) updateModalPrice(price);
-}
-
-const appCurrencySymbol = '{{ \App\Models\Setting::currencySymbol() }}';
 
 function updateModalPrice(price) {
     appState.price = price;
     const pText = price + ' ' + appCurrencySymbol;
-    if (document.getElementById('app-session-price')) document.getElementById('app-session-price').textContent = pText;
     if (document.getElementById('app-required-price')) document.getElementById('app-required-price').textContent = pText;
     if (document.getElementById('app-bottom-total')) document.getElementById('app-bottom-total').textContent = pText;
     if (document.getElementById('app-btn-price-display')) document.getElementById('app-btn-price-display').textContent = pText;
@@ -639,82 +681,6 @@ function switchPayTab(method) {
     }
 }
 
-function formatCardNumber(input) {
-    let v = input.value.replace(/\D/g, '').slice(0, 16);
-    let formatted = v.match(/.{1,4}/g)?.join(' ') || v;
-    input.value = formatted;
-}
-
-function formatCardExpiry(input) {
-    let v = input.value.replace(/\D/g, '').slice(0, 4);
-    if (v.length >= 3) {
-        input.value = v.slice(0, 2) + '/' + v.slice(2);
-    } else {
-        input.value = v;
-    }
-}
-
-// ─── Patient confirms payment manually ─────────────────────────────────────
-function confirmPaymentByPatient() {
-    const btn = document.getElementById('app-confirm-payment-btn');
-    if (!btn) return;
-    if (!appState.bookingRef) {
-        alert('لم يتم تسجيل رقم الحجز بعد. يرجى المحاولة لاحقاً.');
-        return;
-    }
-
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> جارٍ الإرسال...';
-
-    fetch(`/booking/${appState.bookingRef}/confirm-payment`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content || '',
-            'Accept': 'application/json',
-        },
-        body: JSON.stringify({ booking_ref: appState.bookingRef }),
-    })
-    .then(r => r.json())
-    .then(data => {
-        // Show confirmation screen
-        document.getElementById('pay-confirm-section')?.classList.add('d-none');
-        document.querySelectorAll('.pay-panel').forEach(p => p.classList.add('d-none'));
-        document.getElementById('payment-method-tabs')?.classList.add('d-none');
-        document.getElementById('pay-confirmed-screen')?.classList.remove('d-none');
-    })
-    .catch(() => {
-        // Even on error, show confirmation (optimistic UX)
-        document.getElementById('pay-confirm-section')?.classList.add('d-none');
-        document.getElementById('pay-confirmed-screen')?.classList.remove('d-none');
-    });
-}
-
-// ─── SpaceRemit success callback ───────────────────────────────────────────
-function confirmPaymentAfterSpaceRemit(code) {
-    if (appState.bookingRef) {
-        fetch(`/booking/${appState.bookingRef}/confirm-payment`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content || '',
-                'Accept': 'application/json',
-            },
-            body: JSON.stringify({ booking_ref: appState.bookingRef, spaceremit_code: code }),
-        }).catch(() => {});
-    }
-    document.getElementById('pay-confirm-section')?.classList.add('d-none');
-    document.getElementById('pay-confirmed-screen')?.classList.remove('d-none');
-}
-
-
-
-function autoFillStripeTestCard() {
-    const cards = document.querySelectorAll('.app-payment-card');
-    if (cards.length > 1) selectAppPayment('stripe_card', cards[1]);
-    alert('تم تحديد دفع Stripe بالبطاقة التجريبية (Test Card: 4242 4242 4242 4242 | CVC: 123 | Exp: 12/34)');
-}
-
 function selectServiceAndOpenModal(id, title, price, duration, categoryType) {
     const selectedType = categoryType || 'online';
     setModalBookingType(selectedType);
@@ -725,9 +691,7 @@ function selectServiceAndOpenModal(id, title, price, duration, categoryType) {
     appState.title = title || (selectedType === 'clinic' ? 'كشف واستشارة بالعيادة' : 'استشارة نفسية أونلاين');
 
     const badge = document.getElementById('app_modal_duration_badge');
-    const text = document.getElementById('app_modal_duration_text');
     if (badge) badge.textContent = dur + ' ' + '{{ __("messages.minutes") }}';
-    if (text) text.textContent = dur + ' ' + '{{ __("messages.minutes") }}';
     
     const select = document.getElementById('app_service_select');
     if (select) {
@@ -749,6 +713,8 @@ function selectServiceAndOpenModal(id, title, price, duration, categoryType) {
         modalBody.scrollTop = 0;
     }
     restorePatientBookingData();
+    renderAppCalendar();
+    fetchModalSlots(appState.date);
 
     const modalEl = document.getElementById('bookingModal');
     if (modalEl) {
@@ -759,6 +725,12 @@ function selectServiceAndOpenModal(id, title, price, duration, categoryType) {
 
 function goToAppScreen2() {
     const titleInput = document.getElementById('app_consultation_title');
+    const nameInput = document.getElementById('app_user_name');
+    const phoneInput = document.getElementById('app_user_phone');
+    const passInput = document.getElementById('app_user_password');
+    const countryCodeSelect = document.getElementById('app_country_code');
+    const countryCode = countryCodeSelect ? countryCodeSelect.value : '+964';
+
     const title = titleInput ? titleInput.value.trim() : 'استشارة نفسية';
     if (!title) {
         alert('يرجى كتابة موضوع الاستشارة للمتابعة.');
@@ -766,9 +738,46 @@ function goToAppScreen2() {
         return;
     }
     appState.title = title;
-    const detailsInput = document.getElementById('app_consultation_details');
-    if (detailsInput) appState.details = detailsInput.value;
 
+    const name = nameInput ? nameInput.value.trim() : '';
+    if (!name) {
+        alert('يرجى كتابة الاسم الكامل للمتابعة.');
+        if (nameInput) nameInput.focus();
+        return;
+    }
+
+    const rawPhone = phoneInput ? phoneInput.value.trim().replace(/^0+/, '') : '';
+    if (!rawPhone || rawPhone.length < 6) {
+        alert('يرجى كتابة رقم هاتف الواتساب للمتابعة.');
+        if (phoneInput) phoneInput.focus();
+        return;
+    }
+
+    if (!appState.slot) {
+        alert('يرجى اختيار وقت متاح للموعد من قائمة الأوقات.');
+        return;
+    }
+
+    const password = passInput ? passInput.value.trim() : '';
+    if (!appUserIsRegistered && (!password || password.length < 6)) {
+        alert('يرجى إدخال كلمة مرور الحساب (6 خانات على الأقل) لإنشاء حسابك ومتابعة الموعد.');
+        if (passInput) passInput.focus();
+        return;
+    }
+
+    savePatientBookingToStorage();
+
+    // Populate Screen 2 summary
+    const summaryService = document.getElementById('step2_summary_service');
+    if (summaryService) summaryService.textContent = appState.title;
+
+    const summaryDatetime = document.getElementById('step2_summary_datetime');
+    if (summaryDatetime) summaryDatetime.textContent = `${appState.date} • ${appState.slot}`;
+
+    const summaryPatient = document.getElementById('step2_summary_patient');
+    if (summaryPatient) summaryPatient.textContent = `${name} (${countryCode}${rawPhone})`;
+
+    // Transition to Screen 2
     document.getElementById('app-screen-1').classList.add('d-none');
     document.getElementById('app-screen-2').classList.remove('d-none');
     const modalBody = document.querySelector('.mobile-app-body');
@@ -776,8 +785,6 @@ function goToAppScreen2() {
         modalBody.classList.remove('screen-3-active');
         modalBody.scrollTop = 0;
     }
-    renderAppCalendar();
-    fetchModalSlots(appState.date);
 }
 
 function goToAppScreen1() {
@@ -1092,17 +1099,25 @@ function executeAppBooking() {
     const phoneInput = document.getElementById('app_user_phone');
     const emailInput = document.getElementById('app_user_email');
     const passInput = document.getElementById('app_user_password');
+    const detailsInput = document.getElementById('app_consultation_details');
     const transferNumInput = document.getElementById('app_transfer_number');
     const receiptFileInput = document.getElementById('app_receipt_file');
     const countryCode = document.getElementById('app_country_code') ? document.getElementById('app_country_code').value : '+964';
+    const termsCheck = document.getElementById('app_terms_check');
+
+    if (termsCheck && !termsCheck.checked) {
+        alert('يرجى الموافقة على الشروط والسرية الطبية للمتابعة.');
+        return;
+    }
 
     const name = nameInput ? nameInput.value.trim() : '';
     let rawPhone = phoneInput ? phoneInput.value.trim().replace(/^0+/, '') : '';
     const email = emailInput ? emailInput.value.trim() : '';
     const password = passInput ? passInput.value.trim() : '';
+    const details = detailsInput ? detailsInput.value.trim() : '';
 
     if (!name || !rawPhone) {
-        alert('يرجى كتابة الاسم ورقم الهاتف.');
+        alert('يرجى التأكد من كتابة الاسم ورقم الهاتف.');
         return;
     }
 
@@ -1144,7 +1159,7 @@ function executeAppBooking() {
     if (email) formData.append('email', email);
     if (password) formData.append('password', password);
     if (appState.title) formData.append('title', appState.title);
-    if (appState.details) formData.append('notes', appState.details);
+    if (details) formData.append('notes', details);
     formData.append('payment_method', appState.paymentMethod || 'zaincash');
     formData.append('transfer_number', transferNumber);
 
@@ -1228,11 +1243,13 @@ function executeAppBooking() {
 // Modal lifecycle and auto-restore
 document.addEventListener('DOMContentLoaded', function() {
     restorePatientBookingData();
+    renderAppCalendar();
+    fetchModalSlots(appState.date);
 
     const modalEl = document.getElementById('bookingModal');
     if (modalEl) {
         modalEl.addEventListener('show.bs.modal', function() {
-            // Always return to screen 1 on opening modal (so second booking doesn't get stuck)
+            // Always return to screen 1 on opening modal
             document.getElementById('app-screen-1')?.classList.remove('d-none');
             document.getElementById('app-screen-2')?.classList.add('d-none');
             document.getElementById('app-screen-3')?.classList.add('d-none');
@@ -1242,6 +1259,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 modalBody.scrollTop = 0;
             }
             restorePatientBookingData();
+            renderAppCalendar();
+            fetchModalSlots(appState.date);
         });
     }
 });

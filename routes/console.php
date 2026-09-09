@@ -37,7 +37,7 @@ Artisan::command('clinic:seed-content', function () {
         $this->info("✅ Service ID 3 created successfully with custom channel prices.");
     }
 
-    // Ensure all services have channel prices
+    // Ensure all services have channel prices and bilingual fields
     foreach (\App\Models\Service::all() as $srv) {
         $base = (float) $srv->price;
         $updates = [];
@@ -45,11 +45,13 @@ Artisan::command('clinic:seed-content', function () {
         if (is_null($srv->video_price)) $updates['video_price'] = $base;
         if (is_null($srv->voice_price)) $updates['voice_price'] = round($base * 0.9, 2);
         if (is_null($srv->chat_price)) $updates['chat_price'] = round($base * 0.75, 2);
+        if (empty($srv->title_ar)) $updates['title_ar'] = $srv->title;
+        if (empty($srv->description_ar)) $updates['description_ar'] = $srv->description;
         if (!empty($updates)) {
             $srv->update($updates);
         }
     }
-    $this->info("✅ All services validated with channel prices.");
+    $this->info("✅ All services validated with channel prices and bilingual fields.");
 
     // 2. Add New Reels
     $reels = [

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'إدارة وتصنيف الخدمات الطبية والأسعار')
+@section('title', 'إدارة وتصنيف الخدمات الطبية والأسعار (عربي / English)')
 
 @section('styles')
 <style>
@@ -52,14 +52,14 @@
     /* Channel Selector Visual Cards */
     .channel-selector-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
         gap: 8px;
     }
     .channel-select-card {
         border: 1.5px solid #E2E8F0;
         background: #F8FAFC;
         border-radius: 14px;
-        padding: 10px 8px;
+        padding: 10px 6px;
         text-align: center;
         cursor: pointer;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -288,11 +288,20 @@
         border-color: #CBD5E1;
         box-shadow: 0 2px 10px rgba(0,0,0,0.03);
     }
+
+    /* Bilingual Pill Tab */
+    .lang-badge-pill {
+        font-size: 0.72rem;
+        font-weight: 800;
+        padding: 2px 8px;
+        border-radius: 6px;
+        letter-spacing: 0.3px;
+    }
 </style>
 @endsection
 
 @section('content')
-<div class="container-fluid px-0">
+<div class="container-fluid px-0" dir="rtl">
 
     {{-- ═══ Top Summary KPI Stats ═══ --}}
     <div class="row g-3 mb-4">
@@ -346,14 +355,14 @@
     <div class="row g-4 align-items-start">
 
         {{-- ── Left Column: Add Service Panel ───────────────────────── --}}
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="position: sticky; top: 90px;">
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
                 <div class="card-header bg-white py-3 px-4 border-bottom border-light">
                     <h5 class="fw-black m-0 text-dark d-flex align-items-center gap-2" style="font-size: 1.05rem;">
                         <span class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width:28px; height:28px; background: linear-gradient(135deg, var(--srv-primary), var(--srv-primary-dark)); font-size:0.85rem;">
                             <i class="bi bi-plus-lg"></i>
                         </span>
-                        <span>إضافة خدمة وتحديد تصنيفها</span>
+                        <span>إضافة خدمة جديدة (عربي / English)</span>
                     </h5>
                 </div>
 
@@ -476,7 +485,7 @@
                                         <i class="bi bi-cloud-arrow-up-fill fs-4 text-primary"></i>
                                         <span class="small fw-bold text-dark" id="addIconFileName">اختر صورة أو أيقونة مخصصة</span>
                                     </div>
-                                    <p class="text-secondary mb-0" style="font-size: 0.72rem;">يدعم ملفات PNG أو SVG الشفافة (حجم مثالي 128x128)</p>
+                                    <p class="text-secondary mb-0" style="font-size: 0.72rem;">يدعم PNG أو SVG الشفافة (128x128)</p>
                                     <input type="file" id="addIconFileInput" name="icon_file" class="d-none" accept="image/*" onchange="previewAddIconFile(this)">
                                 </label>
                                 <div id="addIconFilePreviewContainer" class="d-none align-items-center gap-2 mt-2 p-2 bg-light rounded-3">
@@ -486,25 +495,46 @@
                             </div>
                         </div>
 
-                        {{-- 3. Service Title & Duration --}}
+                        {{-- 3. Bilingual Titles & Duration --}}
                         <div class="mb-3 pt-2 border-top">
-                            <label class="form-label small fw-bold text-dark mb-1">اسم الخدمة (عربي)</label>
-                            <input type="text" name="title" class="form-control rounded-3 py-2" placeholder="مثال: استشارة فردية - فيديو أونلاين" required>
-                        </div>
-
-                        <div class="row g-2 mb-3">
-                            <div class="col-12">
-                                <label class="form-label small fw-bold text-dark mb-1">مدة الجلسة (بالدقائق)</label>
-                                <div class="input-group">
-                                    <input type="number" name="duration" class="form-control rounded-start-3 py-2" placeholder="45" required min="5" value="{{ \App\Models\Setting::get('default_consultation_duration', '45') }}">
-                                    <span class="input-group-text bg-light text-secondary small fw-bold rounded-end-3">دقيقة</span>
-                                </div>
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <label class="form-label small fw-bold text-dark mb-0">اسم الخدمة (عربي)</label>
+                                <span class="badge bg-primary-subtle text-primary lang-badge-pill">AR</span>
                             </div>
+                            <input type="text" name="title_ar" class="form-control rounded-3 py-2 text-end" placeholder="مثال: استشارة فردية - فيديو أونلاين" required>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label small fw-bold text-dark mb-1">الوصف والتفاصيل</label>
-                            <textarea name="description" class="form-control rounded-3" rows="2" placeholder="اكتب هنا تفاصيل ومميزات الجلسة..."></textarea>
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <label class="form-label small fw-bold text-dark mb-0">Service Title (English)</label>
+                                <span class="badge bg-secondary-subtle text-secondary lang-badge-pill">EN</span>
+                            </div>
+                            <input type="text" name="title_en" class="form-control rounded-3 py-2" dir="ltr" placeholder="e.g. Individual Consultation - Online Video">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-dark mb-1">مدة الجلسة (بالدقائق)</label>
+                            <div class="input-group">
+                                <input type="number" name="duration" class="form-control rounded-start-3 py-2 text-end" placeholder="45" required min="5" value="{{ \App\Models\Setting::get('default_consultation_duration', '45') }}">
+                                <span class="input-group-text bg-light text-secondary small fw-bold rounded-end-3">دقيقة</span>
+                            </div>
+                        </div>
+
+                        {{-- Bilingual Descriptions --}}
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <label class="form-label small fw-bold text-dark mb-0">الوصف والتفاصيل (عربي)</label>
+                                <span class="badge bg-primary-subtle text-primary lang-badge-pill">AR</span>
+                            </div>
+                            <textarea name="description_ar" class="form-control rounded-3 text-end" rows="2" placeholder="اكتب هنا تفاصيل ومميزات الجلسة بالعربية..."></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <label class="form-label small fw-bold text-dark mb-0">Description & Details (English)</label>
+                                <span class="badge bg-secondary-subtle text-secondary lang-badge-pill">EN</span>
+                            </div>
+                            <textarea name="description_en" class="form-control rounded-3" dir="ltr" rows="2" placeholder="Write consultation details in English..."></textarea>
                         </div>
 
                         {{-- 4. Pricing Tiers (Dynamic based on selected channels) --}}
@@ -580,7 +610,7 @@
         </div>
 
         {{-- ── Right Column: Services List & Management Table ───────── --}}
-        <div class="col-lg-8">
+        <div class="col-lg-7">
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
                 <div class="card-header bg-white py-3 px-4 border-bottom border-light">
                     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
@@ -589,7 +619,7 @@
                                 <i class="bi bi-collection-fill text-primary"></i>
                                 <span>قائمة الخدمات الطبية المعتمدة</span>
                             </h5>
-                            <p class="text-secondary small m-0 mt-0.5">يمكنك تعديل أي خدمة أو تحديث أسعارها أو تفعيلها/تعطيلها بسهولة.</p>
+                            <p class="text-secondary small m-0 mt-0.5">تدعم اللغتين العربية والإنجليزية وتتزامن تلقائياً مع التطبيق والموقع.</p>
                         </div>
                         
                         {{-- Segmented Category Filter Capsule --}}
@@ -612,7 +642,7 @@
                         <table class="table table-hover align-middle mb-0">
                             <thead class="bg-light text-secondary" style="font-size: 0.8rem; letter-spacing: 0.3px;">
                                 <tr>
-                                    <th class="ps-4 py-3">الخدمة والتصنيف</th>
+                                    <th class="ps-4 py-3">الخدمة (عربي / EN)</th>
                                     <th class="py-3">المدة</th>
                                     <th class="py-3">الأسعار والقنوات</th>
                                     <th class="py-3">الحالة</th>
@@ -637,8 +667,13 @@
                                                     @endif
                                                 </div>
                                                 <div>
-                                                    <div class="fw-black text-dark fs-6 mb-0.5">{{ $service->title }}</div>
-                                                    <div class="text-secondary small text-truncate" style="max-width: 260px;">{{ $service->description ?: 'استشارة نفسية متخصصة ومعتمدة' }}</div>
+                                                    <div class="fw-black text-dark fs-6 mb-0.5">{{ $service->title_ar ?: $service->title }}</div>
+                                                    @if($service->title_en)
+                                                        <div class="text-primary small fw-bold mb-0.5" dir="ltr" style="font-size:0.75rem;">
+                                                            <i class="bi bi-translate me-1"></i> {{ $service->title_en }}
+                                                        </div>
+                                                    @endif
+                                                    <div class="text-secondary small text-truncate" style="max-width: 240px;">{{ $service->description_ar ?: ($service->description ?: 'استشارة نفسية معتمدة') }}</div>
                                                 </div>
                                             </div>
                                         </td>
@@ -704,15 +739,15 @@
                                     </tr>
 
                                     {{-- ═══ Edit Modal for Service ═══ --}}
-                                    <div class="modal fade" id="editModal{{ $service->id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal fade" id="editModal{{ $service->id }}" tabindex="-1" aria-hidden="true" dir="rtl">
                                         <div class="modal-dialog modal-lg modal-dialog-centered">
-                                            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                                            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden text-end">
                                                 <div class="modal-header bg-white border-bottom py-3 px-4">
                                                     <h5 class="modal-title fw-black text-dark fs-6 d-flex align-items-center gap-2">
                                                         <i class="bi bi-pencil-square text-primary"></i>
-                                                        <span>تعديل الخدمة: {{ $service->title }}</span>
+                                                        <span>تعديل الخدمة: {{ $service->title_ar ?: $service->title }}</span>
                                                     </h5>
-                                                    <button type="button" class="btn-close ms-0" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    <button type="button" class="btn-close ms-0 me-auto" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
 
                                                 <form action="{{ route('admin.services.update', $service->id) }}" method="POST" enctype="multipart/form-data">
@@ -815,21 +850,47 @@
                                                             </div>
                                                         </div>
 
-                                                        {{-- Inputs --}}
+                                                        {{-- Bilingual Inputs in Modal --}}
                                                         <div class="row g-3 mb-3 pt-2 border-top">
-                                                            <div class="col-md-8">
-                                                                <label class="form-label small fw-bold">اسم الخدمة</label>
-                                                                <input type="text" name="title" class="form-control rounded-3 py-2" value="{{ $service->title }}" required>
+                                                            <div class="col-md-6">
+                                                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                                                    <label class="form-label small fw-bold mb-0">اسم الخدمة (عربي)</label>
+                                                                    <span class="badge bg-primary-subtle text-primary lang-badge-pill">AR</span>
+                                                                </div>
+                                                                <input type="text" name="title_ar" class="form-control rounded-3 py-2 text-end" value="{{ $service->title_ar ?: $service->title }}" required>
                                                             </div>
-                                                            <div class="col-md-4">
-                                                                <label class="form-label small fw-bold">المدة (بالدقائق)</label>
-                                                                <input type="number" name="duration" class="form-control rounded-3 py-2" value="{{ $service->duration }}" required min="5">
+                                                            <div class="col-md-6">
+                                                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                                                    <label class="form-label small fw-bold mb-0">Service Title (English)</label>
+                                                                    <span class="badge bg-secondary-subtle text-secondary lang-badge-pill">EN</span>
+                                                                </div>
+                                                                <input type="text" name="title_en" class="form-control rounded-3 py-2" dir="ltr" value="{{ $service->title_en }}">
                                                             </div>
                                                         </div>
 
                                                         <div class="mb-3">
-                                                            <label class="form-label small fw-bold">شرح وتفاصيل الخدمة</label>
-                                                            <textarea name="description" class="form-control rounded-3" rows="2">{{ $service->description }}</textarea>
+                                                            <label class="form-label small fw-bold">المدة (بالدقائق)</label>
+                                                            <div class="input-group">
+                                                                <input type="number" name="duration" class="form-control rounded-start-3 py-2 text-end" value="{{ $service->duration }}" required min="5">
+                                                                <span class="input-group-text bg-light fw-bold rounded-end-3">دقيقة</span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row g-3 mb-3">
+                                                            <div class="col-md-6">
+                                                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                                                    <label class="form-label small fw-bold mb-0">شرح وتفاصيل الخدمة (عربي)</label>
+                                                                    <span class="badge bg-primary-subtle text-primary lang-badge-pill">AR</span>
+                                                                </div>
+                                                                <textarea name="description_ar" class="form-control rounded-3 text-end" rows="2">{{ $service->description_ar ?: $service->description }}</textarea>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                                                    <label class="form-label small fw-bold mb-0">Description & Details (English)</label>
+                                                                    <span class="badge bg-secondary-subtle text-secondary lang-badge-pill">EN</span>
+                                                                </div>
+                                                                <textarea name="description_en" class="form-control rounded-3" dir="ltr" rows="2">{{ $service->description_en }}</textarea>
+                                                            </div>
                                                         </div>
 
                                                         {{-- Pricing Section --}}
@@ -873,12 +934,12 @@
                                     </div>
 
                                     {{-- ═══ Delete Confirmation Modal ═══ --}}
-                                    <div class="modal fade" id="deleteServiceModal{{ $service->id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal fade" id="deleteServiceModal{{ $service->id }}" tabindex="-1" aria-hidden="true" dir="rtl">
                                         <div class="modal-dialog modal-dialog-centered">
-                                            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                                            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden text-end">
                                                 <div class="modal-header bg-danger text-white py-3 px-4">
                                                     <h5 class="modal-title fw-bold fs-6"><i class="bi bi-exclamation-triangle-fill me-1"></i> تأكيد حذف الخدمة</h5>
-                                                    <button type="button" class="btn-close btn-close-white ms-0" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    <button type="button" class="btn-close btn-close-white ms-0 me-auto" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
                                                 <div class="modal-body p-4 text-center">
                                                     <div class="rounded-circle bg-danger bg-opacity-10 text-danger mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 1.75rem;">
@@ -886,7 +947,7 @@
                                                     </div>
                                                     <h5 class="fw-black text-dark mb-2">هل أنت متأكد من حذف هذه الخدمة؟</h5>
                                                     <p class="text-secondary small mb-3">
-                                                        سيتم حذف الخدمة <strong>«{{ $service->title }}»</strong> ولن تظهر بعد الآن في خيارات الحجز.
+                                                        سيتم حذف الخدمة <strong>«{{ $service->title_ar ?: $service->title }}»</strong> ولن تظهر بعد الآن في خيارات الحجز.
                                                     </p>
                                                 </div>
                                                 <div class="modal-footer bg-light border-top justify-content-center gap-2 py-3 px-4">
