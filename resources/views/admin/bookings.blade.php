@@ -489,15 +489,18 @@
             .then(res => res.json())
             .then(data => {
                 document.getElementById('modal-slots-loader').classList.add('d-none');
-                if (data.length === 0) {
+                const slots = Array.isArray(data) ? data : (data.available_slots || data.slots || []);
+                if (slots.length === 0) {
                     document.getElementById('modal-slots-empty').classList.remove('d-none');
                     return;
                 }
 
-                data.forEach(slot => {
+                slots.forEach(slot => {
+                    const timeValue = (typeof slot === 'object' && slot !== null) ? (slot.start || slot.time_formatted || '') : slot;
+                    const timeLabel = (typeof slot === 'object' && slot !== null) ? (slot.time_formatted || slot.start || '') : slot;
                     const col = document.createElement('div');
                     col.className = 'col';
-                    col.innerHTML = `<div class="slot-btn" onclick="selectModalSlot('${slot.start}', this)">${slot.start}</div>`;
+                    col.innerHTML = `<div class="slot-btn" onclick="selectModalSlot('${timeValue}', this)">${timeLabel}</div>`;
                     document.getElementById('modal-slots-container').appendChild(col);
                 });
             })
@@ -509,11 +512,12 @@
     }
 
     function selectModalSlot(time, element) {
+        const timeValue = (typeof time === 'object' && time !== null) ? (time.start || time.time_formatted || '') : String(time || '');
         const active = document.querySelector('#modal-slots-container .slot-btn.selected');
         if (active) active.classList.remove('selected');
 
         element.classList.add('selected');
-        document.getElementById('modal-selected-time').value = time;
+        document.getElementById('modal-selected-time').value = timeValue;
         document.getElementById('modal-submit-btn').disabled = false;
     }
 
@@ -535,15 +539,18 @@
             .then(res => res.json())
             .then(data => {
                 loader.classList.add('d-none');
-                if (data.length === 0) {
+                const slots = Array.isArray(data) ? data : (data.available_slots || data.slots || []);
+                if (slots.length === 0) {
                     emptyAlert.classList.remove('d-none');
                     return;
                 }
 
-                data.forEach(slot => {
+                slots.forEach(slot => {
+                    const timeValue = (typeof slot === 'object' && slot !== null) ? (slot.start || slot.time_formatted || '') : slot;
+                    const timeLabel = (typeof slot === 'object' && slot !== null) ? (slot.time_formatted || slot.start || '') : slot;
                     const col = document.createElement('div');
                     col.className = 'col';
-                    col.innerHTML = `<div class="slot-btn" onclick="selectRescheduleSlot(${bookingId}, '${slot.start}', this)">${slot.start}</div>`;
+                    col.innerHTML = `<div class="slot-btn" onclick="selectRescheduleSlot(${bookingId}, '${timeValue}', this)">${timeLabel}</div>`;
                     container.appendChild(col);
                 });
             })
@@ -555,11 +562,12 @@
     }
 
     function selectRescheduleSlot(bookingId, time, element) {
+        const timeValue = (typeof time === 'object' && time !== null) ? (time.start || time.time_formatted || '') : String(time || '');
         const active = document.querySelector(`#reschedule-slots-container-${bookingId} .slot-btn.selected`);
         if (active) active.classList.remove('selected');
 
         element.classList.add('selected');
-        document.getElementById(`reschedule-selected-time-${bookingId}`).value = time;
+        document.getElementById(`reschedule-selected-time-${bookingId}`).value = timeValue;
         document.getElementById(`reschedule-submit-btn-${bookingId}`).disabled = false;
     }
 </script>

@@ -1607,14 +1607,18 @@ function fetchModalSlots(dateStr) {
         .then(res => res.json())
         .then(data => {
             grid.innerHTML = '';
-            if (data.success && data.slots && data.slots.length > 0) {
-                data.slots.forEach((slot, idx) => {
+            const rawSlots = data.available_slots || data.slots || (Array.isArray(data) ? data : []);
+            if (rawSlots && rawSlots.length > 0) {
+                rawSlots.forEach((slot, idx) => {
+                    const slotValue = (typeof slot === 'object' && slot !== null) ? (slot.start || slot.time_formatted || '') : String(slot || '');
+                    const slotDisplay = (typeof slot === 'object' && slot !== null) ? (slot.time_formatted || slot.start || '') : (_i18n.is_ar ? String(slot).replace('AM', _i18n.slot_am).replace('PM', _i18n.slot_pm) : String(slot));
+                    
                     const pill = document.createElement('div');
                     pill.className = `app-slot-pill ${idx === 0 ? 'selected' : ''}`;
-                    pill.textContent = slot;
-                    pill.onclick = () => selectAppSlot(slot, pill);
+                    pill.textContent = slotDisplay;
+                    pill.onclick = () => selectAppSlot(slotValue, pill);
                     grid.appendChild(pill);
-                    if (idx === 0) appState.slot = slot;
+                    if (idx === 0) appState.slot = slotValue;
                 });
             } else {
                 const defaultSlots = ['09:00 AM', '10:00 AM', '11:30 AM', '01:00 PM', '02:30 PM', '04:00 PM'];
@@ -1643,9 +1647,10 @@ function fetchModalSlots(dateStr) {
 }
 
 function selectAppSlot(slot, el) {
+    const slotValue = (typeof slot === 'object' && slot !== null) ? (slot.start || slot.time_formatted || '') : String(slot || '');
     document.querySelectorAll('.app-slot-pill.selected').forEach(p => p.classList.remove('selected'));
-    el.classList.add('selected');
-    appState.slot = slot;
+    if (el) el.classList.add('selected');
+    appState.slot = slotValue;
 }
 
 function goToAppScreen2() {
@@ -1748,6 +1753,9 @@ function executeAppBooking() {
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
 
+    const finalDate = typeof appState.date === 'string' ? appState.date : (appState.date?.date || '');
+    const finalSlot = typeof appState.slot === 'string' ? appState.slot : (appState.slot?.start || appState.slot?.time_formatted || '');
+
     const formData = new FormData();
     formData.append('service_id', appState.serviceId);
     formData.append('booking_type', appState.bookingType);
@@ -1755,8 +1763,8 @@ function executeAppBooking() {
     formData.append('phone', fullPhone);
     formData.append('email', email);
     formData.append('title', title);
-    formData.append('date', appState.date);
-    formData.append('slot', appState.slot);
+    formData.append('date', finalDate);
+    formData.append('slot', finalSlot);
     formData.append('payment_method', appState.paymentMethod);
     formData.append('transfer_number', transferNumber);
     if (password) formData.append('password', password);

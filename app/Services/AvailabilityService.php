@@ -24,7 +24,13 @@ class AvailabilityService
             return [];
         }
 
-        $date = Carbon::parse($dateStr);
+        try {
+            $date = Carbon::parse($dateStr);
+            $dateStr = $date->format('Y-m-d');
+        } catch (\Exception $e) {
+            $date = Carbon::today();
+            $dateStr = $date->format('Y-m-d');
+        }
         $today = Carbon::today();
 
         // 1. Prevent booking in the past
@@ -147,7 +153,13 @@ class AvailabilityService
             ];
         }
 
-        $date = Carbon::parse($dateStr);
+        try {
+            $date = Carbon::parse($dateStr);
+            $dateStr = $date->format('Y-m-d');
+        } catch (\Exception $e) {
+            $date = Carbon::today();
+            $dateStr = $date->format('Y-m-d');
+        }
         $today = Carbon::today();
 
         if ($date->lt($today)) {

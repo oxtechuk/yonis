@@ -384,7 +384,21 @@ class ApiController extends Controller
             ]);
         }
 
-        $dateStr = $request->input('date', date('Y-m-d'));
+        $dateStr = $request->input('date');
+        if (is_array($dateStr)) {
+            $dateStr = $dateStr['date'] ?? reset($dateStr);
+        }
+        if (!$dateStr || $dateStr === '[object Object]') {
+            $dateStr = date('Y-m-d');
+        } else {
+            try {
+                $parsedDate = Carbon::parse($dateStr);
+                $dateStr = $parsedDate->format('Y-m-d');
+            } catch (\Exception $e) {
+                $dateStr = date('Y-m-d');
+            }
+        }
+
         if (strtotime($dateStr) < strtotime(date('Y-m-d'))) {
             $dateStr = date('Y-m-d');
         }
@@ -828,13 +842,30 @@ class ApiController extends Controller
         $duration = $service->duration;
         $calculatedPrice = $service->getPriceForChannel($consultationType);
 
-        $timeString = str_replace(['ص', 'م'], ['AM', 'PM'], $request->start_time);
-        $startTime = Carbon::parse(trim($timeString));
-        $endTime = $startTime->copy()->addMinutes($duration);
+        $rawStartTime = $request->start_time;
+        if (is_array($rawStartTime)) {
+            $rawStartTime = $rawStartTime['start'] ?? $rawStartTime['time_formatted'] ?? reset($rawStartTime);
+        }
+        if ($rawStartTime === '[object Object]' || empty($rawStartTime)) {
+            return response()->json(['success' => false, 'message' => 'يرجى اختيار وقت صالح للجلسة.'], 422);
+        }
 
+        $timeString = str_replace(['ص', 'م'], ['AM', 'PM'], (string)$rawStartTime);
+        try {
+            $startTime = Carbon::parse(trim($timeString));
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'تنسيق الوقت غير صالح.'], 422);
+        }
+
+        try {
+            $dateStr = Carbon::parse($request->date)->format('Y-m-d');
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'تنسيق التاريخ غير صالح.'], 422);
+        }
+
+        $endTime = $startTime->copy()->addMinutes($duration);
         $startTimeStr = $startTime->format('H:i:s');
         $endTimeStr = $endTime->format('H:i:s');
-        $dateStr = Carbon::parse($request->date)->format('Y-m-d');
 
         // External payment link (Gumroad fallback if service payment_url not configured)
         $defaultPaymentUrl = 'https://younisalmurshed.gumroad.com/l/srjlvw?wanted=true';
@@ -1280,12 +1311,30 @@ class ApiController extends Controller
         $service = $booking->service;
         $duration = $service ? $service->duration : 30;
 
-        $startTime = Carbon::parse($request->start_time);
-        $endTime = $startTime->copy()->addMinutes($duration);
+        $rawStartTime = $request->start_time;
+        if (is_array($rawStartTime)) {
+            $rawStartTime = $rawStartTime['start'] ?? $rawStartTime['time_formatted'] ?? reset($rawStartTime);
+        }
+        if ($rawStartTime === '[object Object]' || empty($rawStartTime)) {
+            return response()->json(['success' => false, 'message' => 'يرجى اختيار وقت صالح للجلسة.'], 422);
+        }
 
+        $timeString = str_replace(['ص', 'م'], ['AM', 'PM'], (string)$rawStartTime);
+        try {
+            $startTime = Carbon::parse(trim($timeString));
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'تنسيق الوقت غير صالح.'], 422);
+        }
+
+        try {
+            $dateStr = Carbon::parse($request->date)->format('Y-m-d');
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'تنسيق التاريخ غير صالح.'], 422);
+        }
+
+        $endTime = $startTime->copy()->addMinutes($duration);
         $startTimeStr = $startTime->format('H:i:s');
         $endTimeStr = $endTime->format('H:i:s');
-        $dateStr = Carbon::parse($request->date)->format('Y-m-d');
 
         // Overlap check
         $overlapExists = Booking::where('date', $dateStr)

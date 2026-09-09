@@ -131,6 +131,26 @@ class BookingController extends Controller
             $request->merge(['start_time' => $request->input('slot')]);
         }
 
+        $rawStartTime = $request->input('start_time');
+        if (is_array($rawStartTime)) {
+            $rawStartTime = $rawStartTime['start'] ?? $rawStartTime['time_formatted'] ?? reset($rawStartTime);
+            $request->merge(['start_time' => $rawStartTime]);
+        }
+
+        $rawDate = $request->input('date');
+        if (is_array($rawDate)) {
+            $rawDate = $rawDate['date'] ?? reset($rawDate);
+            $request->merge(['date' => $rawDate]);
+        }
+
+        if ($request->input('start_time') === '[object Object]' || empty($request->input('start_time'))) {
+            return response()->json(['success' => false, 'message' => 'يرجى اختيار توقيت متاح للجلسة.'], 422);
+        }
+
+        if ($request->input('date') === '[object Object]' || empty($request->input('date'))) {
+            return response()->json(['success' => false, 'message' => 'يرجى اختيار تاريخ صالح للجلسة.'], 422);
+        }
+
         // Validation rules
         $rules = [
             'service_id' => 'required|exists:services,id',
@@ -153,13 +173,22 @@ class BookingController extends Controller
         $service = Service::findOrFail($request->service_id);
         $duration = $service->duration;
 
-        $timeString = str_replace(['ص', 'م'], ['AM', 'PM'], $request->start_time);
-        $startTime = Carbon::parse(trim($timeString));
-        $endTime = $startTime->copy()->addMinutes($duration);
+        $timeString = str_replace(['ص', 'م'], ['AM', 'PM'], (string)$request->start_time);
+        try {
+            $startTime = Carbon::parse(trim($timeString));
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'تنسيق الوقت غير صالح.'], 422);
+        }
 
+        try {
+            $dateStr = Carbon::parse($request->date)->format('Y-m-d');
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'تنسيق التاريخ غير صالح.'], 422);
+        }
+
+        $endTime = $startTime->copy()->addMinutes($duration);
         $startTimeStr = $startTime->format('H:i:s');
         $endTimeStr = $endTime->format('H:i:s');
-        $dateStr = Carbon::parse($request->date)->format('Y-m-d');
 
         return DB::transaction(function () use ($request, $service, $dateStr, $startTimeStr, $endTimeStr) {
             $patient = Auth::user();
@@ -281,17 +310,47 @@ class BookingController extends Controller
      */
     public function confirmPayment(Request $request, string $bookingRef)
     {
-        $booking = Booking::where('booking_reference', $bookingRef)
-            ->whereIn('status', ['AwaitingPayment', 'Pending'])
+        $ref = trim($bookingRef ?: ($request->input('booking_ref') ?? ''));
+
+        // Lookup booking by reference, uppercase reference, or ID
+        $booking = Booking::where('booking_reference', $ref)
+            ->orWhere('booking_reference', strtoupper($ref))
+            ->orWhere('id', is_numeric($ref) ? $ref : 0)
             ->first();
+
+        // Fallback lookup by request body if URL param was template string like {{booking_ref}}
+        if (!$booking && $request->filled('booking_ref')) {
+            $bodyRef = trim($request->input('booking_ref'));
+            $booking = Booking::where('booking_reference', $bodyRef)
+                ->orWhere('booking_reference', strtoupper($bodyRef))
+                ->orWhere('id', is_numeric($bodyRef) ? $bodyRef : 0)
+                ->first();
+        }
 
         if (!$booking) {
             return response()->json([
                 'success' => false,
-                'message' => 'الحجز غير موجود أو تم تأكيده مسبقاً.',
+                'message' => 'الحجز غير موجود. يرجى التأكد من الرقم المرجعي للحجز أو إرسال طلب الحجز أولاً.',
             ], 404);
         }
 
+        if (in_array($booking->status, ['Confirmed', 'Completed'])) {
+            return response()->json([
+                'success' => true,
+                'message' => 'تم تأكيد هذا الحجز وقبول الدفع مسبقاً من قِبل الإدارة.',
+                'booking_reference' => $booking->booking_reference,
+                'status' => $booking->status,
+            ], 200);
+        }
+
+        if (str_contains($booking->status, 'Cancelled')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'عذراً، هذا الحجز ملغي ولا يمكن تأكيد الدفع له.',
+            ], 422);
+        }
+
+        // Acceptable statuses: AwaitingPayment, Pending, PendingPaymentReview
         $booking->status = 'PendingPaymentReview';
 
         $paymentMethod = $request->input('payment_method') ?: $booking->payment_method;

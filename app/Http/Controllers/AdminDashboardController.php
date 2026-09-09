@@ -359,12 +359,32 @@ class AdminDashboardController extends Controller
 
         return DB::transaction(function () use ($request) {
             $service = Service::findOrFail($request->service_id);
-            $startTime = Carbon::parse($request->start_time);
+
+            $rawStartTime = $request->start_time;
+            if (is_array($rawStartTime)) {
+                $rawStartTime = $rawStartTime['start'] ?? $rawStartTime['time_formatted'] ?? reset($rawStartTime);
+            }
+            if ($rawStartTime === '[object Object]' || empty($rawStartTime)) {
+                return redirect()->back()->with('error', 'يرجى اختيار وقت صالح للجلسة.');
+            }
+
+            $timeString = str_replace(['ص', 'م'], ['AM', 'PM'], (string)$rawStartTime);
+            try {
+                $startTime = Carbon::parse(trim($timeString));
+            } catch (\Exception $e) {
+                return redirect()->back()->with('error', 'تنسيق الوقت غير صالح.');
+            }
+
+            try {
+                $dateStr = Carbon::parse($request->date)->format('Y-m-d');
+            } catch (\Exception $e) {
+                return redirect()->back()->with('error', 'تنسيق التاريخ غير صالح.');
+            }
+
             $endTime = $startTime->copy()->addMinutes($service->duration);
 
             $startTimeStr = $startTime->format('H:i:s');
             $endTimeStr = $endTime->format('H:i:s');
-            $dateStr = Carbon::parse($request->date)->format('Y-m-d');
 
             // Double booking check
             $overlapExists = Booking::where('date', $dateStr)
@@ -480,12 +500,31 @@ class AdminDashboardController extends Controller
         $service = $booking->service;
         $duration = $service ? $service->duration : 30;
 
-        $startTime = Carbon::parse($request->start_time);
+        $rawStartTime = $request->start_time;
+        if (is_array($rawStartTime)) {
+            $rawStartTime = $rawStartTime['start'] ?? $rawStartTime['time_formatted'] ?? reset($rawStartTime);
+        }
+        if ($rawStartTime === '[object Object]' || empty($rawStartTime)) {
+            return redirect()->back()->with('error', 'يرجى اختيار وقت صالح للجلسة.');
+        }
+
+        $timeString = str_replace(['ص', 'م'], ['AM', 'PM'], (string)$rawStartTime);
+        try {
+            $startTime = Carbon::parse(trim($timeString));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'تنسيق الوقت غير صالح.');
+        }
+
+        try {
+            $dateStr = Carbon::parse($request->date)->format('Y-m-d');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'تنسيق التاريخ غير صالح.');
+        }
+
         $endTime = $startTime->copy()->addMinutes($duration);
 
         $startTimeStr = $startTime->format('H:i:s');
         $endTimeStr = $endTime->format('H:i:s');
-        $dateStr = Carbon::parse($request->date)->format('Y-m-d');
 
         // Check for double booking overlap excluding current booking
         $overlapExists = Booking::where('date', $dateStr)
