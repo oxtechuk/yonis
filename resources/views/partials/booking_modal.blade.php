@@ -861,24 +861,10 @@
                     <i class="bi bi-x-lg"></i>
                 </button>
                 <div class="d-flex align-items-center gap-3">
-                    <div class="header-phone-badge">
-                        @php 
-                            $modalLogo = \App\Models\Setting::get('site_logo');
-                            $hasLogo = $modalLogo && file_exists(public_path('storage/' . $modalLogo));
-                        @endphp
-                        @if($hasLogo)
-                            <img src="{{ asset('storage/' . $modalLogo) }}" alt="Dr. Yonis" style="width:36px;height:36px;object-fit:cover;border-radius:10px;">
-                        @else
-                            <div class="d-flex align-items-center justify-content-center text-white" style="width:36px;height:36px;background:rgba(255,255,255,0.15);border-radius:10px;font-size:1.15rem;">
-                                <i class="bi bi-person-fill"></i>
-                            </div>
-                        @endif
-                        <div class="video-tag"><i class="bi bi-camera-video-fill"></i></div>
-                    </div>
+                   
                     <div>
                         <div class="header-title-text">
                             <span id="bookingModalMainTitle">{{ $isArLocale ? 'جلسة فورية' : 'Instant Session' }}</span>
-                            <span style="color: #facc15;">⚡</span>
                         </div>
                         <p class="header-sub-text">{{ $isArLocale ? 'احجز استشارة مع الطبيب خلال دقائق' : 'Book a consultation with the doctor in minutes' }}</p>
                     </div>
@@ -1981,7 +1967,7 @@ function executeAppBooking() {
         return data;
     })
     .then(resData => {
-        setModalStep(4);
+        setModalStep(3);
 
         document.getElementById('app-screen-1')?.classList.add('d-none');
         document.getElementById('app-screen-2')?.classList.add('d-none');
