@@ -5,165 +5,195 @@
 
 @section('title', ($isAr ? 'الشروط والأحكام وسياسة الاستخدام' : 'Terms & Conditions of Service') . ' - ' . \App\Models\Setting::get('doctor_name', 'يونس المرشد'))
 
-@section('meta_description', $isAr ? 'تعرف على الشروط والأحكام وسياسة حجز وإلغاء المواعيد لموقع وتطبيق المعالج النفسي يونس المرشد.' : 'Terms of Service and Appointment Cancellation Policy for Therapist Yonis Al-Murshid Platform.')
+@section('meta_description', $isAr ? 'الشروط والأحكام الرسمية وسياسة حجز وإلغاء الاستشارات النفسية لموقع وتطبيق المعالج النفسي يونس المرشد.' : 'Official Terms & Conditions and Booking Policies for Therapist Yonis Al-Murshid Platform.')
 
 @section('content')
-<div class="legal-page-wrapper py-5" style="background: linear-gradient(180deg, #f8faff 0%, #ffffff 100%); min-height: 85vh;">
+<div class="legal-page-wrapper py-5" style="background-color: #f8fafc; min-height: 85vh;">
     <div class="container py-lg-4">
         
-        {{-- Hero Header --}}
+        {{-- Document Header --}}
         <div class="text-center max-w-750 mx-auto mb-5">
-            <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill bg-primary bg-opacity-10 text-primary fw-bold small mb-3 border border-primary border-opacity-20 shadow-sm">
-                <i class="bi bi-file-earmark-ruled-fill fs-6"></i>
-                <span>{{ $isAr ? 'شروط الخدمة وسياسة الحجوزات الرسمية' : 'Official Terms & Booking Policies' }}</span>
-            </div>
-            <h1 class="fw-black text-dark mb-3 display-6" style="letter-spacing: -0.5px;">
+            <h1 class="fw-bold text-dark mb-3" style="font-size: 2.1rem; letter-spacing: -0.5px;">
                 {{ $isAr ? 'الشروط والأحكام وسياسة الاستخدام' : 'Terms & Conditions of Service' }}
             </h1>
-            <p class="text-secondary lead fs-6 mb-2">
-                {{ $isAr ? 'تحدد هذه الاتفاقية شروط استخدام الموقع الإلكتروني وتطبيق الهاتف المحمول وآلية حجز وإلغاء المواعيد الاستشارية.' : 'This agreement governs your use of the website and mobile app, including booking, payment, and cancellation policies.' }}
+            <p class="text-secondary mb-2" style="font-size: 1.05rem; line-height: 1.7;">
+                {{ $isAr 
+                    ? 'اتفاقية تقديم الخدمات الاستشارية النفسية وضوابط الحجز والإلغاء المعتمدة عبر الموقع والتطبيق.' 
+                    : 'Agreement governing consultation services, booking procedures, and cancellation policies.' }}
             </p>
-            <div class="text-muted small d-flex align-items-center justify-content-center gap-3 mt-2">
-                <span><i class="bi bi-calendar-check me-1 text-primary"></i> {{ $isAr ? 'آخر تحديث: ' . date('Y/m/d') : 'Last Updated: ' . date('F Y') }}</span>
-                <span>•</span>
-                <span><i class="bi bi-patch-check-fill me-1 text-success"></i> {{ $isAr ? 'سارية على جميع المراجعين' : 'Applies to all clients' }}</span>
+            <div class="text-muted small mt-2">
+                <span>{{ $isAr ? 'تاريخ آخر تحديث: ' . date('Y/m/d') : 'Last Updated: ' . date('F d, Y') }}</span>
             </div>
         </div>
 
-        {{-- Main Content Container --}}
+        {{-- Main Legal Document Container --}}
         <div class="row justify-content-center">
             <div class="col-lg-10 col-xl-9">
-                <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white position-relative overflow-hidden">
+                <div class="card border rounded-4 p-4 p-md-5 bg-white shadow-xs">
                     
-                    {{-- Decorative Top Line --}}
-                    <div class="position-absolute top-0 start-0 w-100" style="height: 5px; background: linear-gradient(90deg, #3B52A4, #0284c7, #3B52A4);"></div>
-
-                    {{-- Custom Admin Content if provided --}}
+                    {{-- Custom Admin Override Content if provided --}}
                     @php
                         $customTerms = \App\Models\Setting::get('terms_conditions_content', '');
                     @endphp
 
                     @if(!empty($customTerms))
-                        <div class="legal-custom-body mb-4">
+                        <div class="legal-custom-body" style="font-size: 1.05rem; line-height: 1.9; color: #334155;">
                             {!! nl2br(e($customTerms)) !!}
                         </div>
                     @else
-                        {{-- Structured Default Legal Policy --}}
-                        <div class="legal-content">
+                        {{-- Formal Legal Articles --}}
+                        <div class="legal-document-body" style="font-size: 1.05rem; line-height: 1.9; color: #334155;">
 
-                            {{-- 1. Acceptance of Terms --}}
-                            <div class="legal-section mb-5">
-                                <div class="d-flex align-items-center gap-3 mb-3">
-                                    <div class="legal-icon-box bg-primary bg-opacity-10 text-primary rounded-3 p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
-                                        <i class="bi bi-check2-square fs-5"></i>
-                                    </div>
-                                    <h3 class="fw-bold text-dark h5 mb-0">{{ $isAr ? '1. الموافقة على الشروط' : '1. Acceptance of Terms' }}</h3>
-                                </div>
-                                <p class="text-secondary leading-relaxed mb-0">
+                            {{-- Article 1 --}}
+                            <div class="mb-5 pb-4 border-bottom">
+                                <h2 class="fw-bold text-dark mb-3" style="font-size: 1.35rem;">
+                                    {{ $isAr ? 'المادة الأولى: الموافقة والأهلية القانونية' : 'Article 1: Acceptance & Eligibility' }}
+                                </h2>
+                                <p class="mb-0">
                                     {{ $isAr 
-                                        ? 'باستخدامك للموقع أو تسجيل الدخول إلى تطبيق الهاتف المحمول أو حجز أي جلسة استشارية، فإنك تقر وتوافق على الالتزام الكامل بهذه الشروط والأحكام وسياسة الخصوصية المرتبطة بها.' 
-                                        : 'By accessing the website, logging into our mobile app, or booking any consultation session, you agree to be bound by these Terms & Conditions and the accompanying Privacy Policy.' }}
+                                        ? 'يعد استخدامك للموقع الإلكتروني أو تطبيق الهاتف المحمول أو حجز أي موعد استشاري إقراراً صريحاً وموافقة تامة وغير مشروطة على الالتزام بكافة بنود هذه الاتفاقية وسياسة الخصوصية التابعة لها. إذا كنت لا توافق على أي بند من هذه الشروط، يرجى الامتناع عن استخدام المنصة.' 
+                                        : 'By accessing the website, mobile app, or booking an appointment, you explicitly agree to comply with all terms of this Agreement and the accompanying Privacy Policy. If you do not agree with any provision, please refrain from using the platform.' }}
                                 </p>
                             </div>
 
-                            {{-- 2. Consultation Nature & Scope --}}
-                            <div class="legal-section mb-5">
-                                <div class="d-flex align-items-center gap-3 mb-3">
-                                    <div class="legal-icon-box bg-info bg-opacity-10 text-info rounded-3 p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
-                                        <i class="bi bi-chat-heart-fill fs-5"></i>
-                                    </div>
-                                    <h3 class="fw-bold text-dark h5 mb-0">{{ $isAr ? '2. طبيعة الاستشارات والجلسات' : '2. Consultation Services' }}</h3>
-                                </div>
-                                <p class="text-secondary leading-relaxed mb-0">
+                            {{-- Article 2 --}}
+                            <div class="mb-5 pb-4 border-bottom">
+                                <h2 class="fw-bold text-dark mb-3" style="font-size: 1.35rem;">
+                                    {{ $isAr ? 'المادة الثانية: طبيعة الخدمات والاستشارات النفسية' : 'Article 2: Nature of Consultation Services' }}
+                                </h2>
+                                <p class="mb-2">
                                     {{ $isAr 
-                                        ? 'يقدم المعالج النفسي يونس المرشد جلسات إرشاد وتوجيه وعلاج نفسي معرفي سلوكي عبر الإنترنت (أونلاين عبر الصوت أو الفيديو أو المحادثة) أو حضورياً في العيادة. هذه الخدمات لا تغني عن الطوارئ الطبية العاجلة أو الحالات الإسعافية الحادة.' 
-                                        : 'Therapist Yonis Al-Murshid provides psychological counseling and CBT sessions online (audio, video, or chat) or in-clinic. These services are not a substitute for emergency psychiatric crisis intervention.' }}
+                                        ? 'يقدم المعالج النفسي يونس المرشد جلسات استشارية متخصصة في الإرشاد النفسي، وتطوير الذات، والعلاج المعرفي السلوكي (CBT)، والجلسات الزوجية والأسرية وفق الضوابط التالية:' 
+                                        : 'Therapist Yonis Al-Murshid provides specialized consultations in psychological counseling, personal development, and CBT under the following guidelines:' }}
                                 </p>
-                            </div>
-
-                            {{-- 3. Booking & Local Payment Flow --}}
-                            <div class="legal-section mb-5 p-4 rounded-4" style="background: #f8fafc; border: 1px solid #e2e8f0;">
-                                <div class="d-flex align-items-center gap-3 mb-3">
-                                    <div class="legal-icon-box bg-primary text-white rounded-3 p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
-                                        <i class="bi bi-wallet2 fs-5"></i>
-                                    </div>
-                                    <div>
-                                        <h3 class="fw-bold text-dark h5 mb-0">{{ $isAr ? '3. آلية الحجز والتحويل المحلي' : '3. Booking & Local Payment Procedures' }}</h3>
-                                        <span class="badge bg-primary bg-opacity-10 text-primary small mt-1">{{ $isAr ? 'تأكيد الموعد بعد مراجعة الإشعار' : 'Confirmed Upon Receipt Review' }}</span>
-                                    </div>
-                                </div>
-                                <ul class="text-secondary small mb-0 ps-3">
-                                    <li class="mb-2"><strong>{{ $isAr ? 'التحويل المحلي المباشر:' : 'Direct Local Transfers:' }}</strong> {{ $isAr ? 'يتم سداد رسوم الاستشارة عبر محافظ الدفع المحلية المعتمدة (زين كاش، سوبر كي، أو تحويل مالي محلي) وفق البيانات الظاهرة عند إتمام الحجز.' : 'Consultation fees are paid via local wallets (ZainCash, SuperKi, or local transfers) as specified during checkout.' }}</li>
-                                    <li class="mb-2"><strong>{{ $isAr ? 'تأكيد الحجز:' : 'Confirmation:' }}</strong> {{ $isAr ? 'يعتبر الحجز مؤكداً ونهائياً بمجرد إرفاق إشعار التحويل وتأكيده من قبل إدارة العيادة، ويتم إرسال تذكرة الموعد وتفاصيل الرابط تلقائياً.' : 'Bookings are finalized once transfer confirmation is verified by the clinic, after which session details and links are automatically sent.' }}</li>
-                                    <li><strong>{{ $isAr ? 'الالتزام بالموعد المحدد:' : 'Punctuality:' }}</strong> {{ $isAr ? 'يرجى التواجد في الموعد المحدد للجلسة بدقة لضمان الاستفادة الكاملة من الوقت المخصص.' : 'Clients are requested to attend promptly at the scheduled appointment time.' }}</li>
+                                <ul class="mb-0" style="padding-right: 1.5rem; padding-left: 1.5rem;">
+                                    <li class="mb-2">
+                                        {{ $isAr ? 'تقدم الاستشارات إما حضورياً في مقر العيادة أو عن بُعد عبر القنوات الرقمية المعتمدة (فيديو، مكالمة صوتية، أو محادثة كتابية).' : 'Consultations are conducted in-clinic or remotely via authorized digital channels (video, voice, or chat).' }}
+                                    </li>
+                                    <li>
+                                        <strong>{{ $isAr ? 'تنويه الطوارئ:' : 'Emergency Disclaimer:' }}</strong> 
+                                        {{ $isAr ? 'الخدمات المقدمة عبر المنصة ليست بديلاً عن الرعاية الطبية الطارئة أو الحالات الإسعافية الحادة أو التفكير في إيذاء النفس. في هذه الحالات الحرجة، يرجى التوجه فوراً لأقرب مستشفى أو الاتصال بخدمات الطوارئ الطبية المحلية.' : 'Our services do not constitute emergency psychiatric intervention. In acute crisis situations or thoughts of self-harm, please visit the nearest hospital or contact local emergency services immediately.' }}
+                                    </li>
                                 </ul>
                             </div>
 
-                            {{-- 4. Cancellation & Rescheduling Policy --}}
-                            <div class="legal-section mb-5">
-                                <div class="d-flex align-items-center gap-3 mb-3">
-                                    <div class="legal-icon-box bg-warning bg-opacity-10 text-warning rounded-3 p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
-                                        <i class="bi bi-arrow-repeat fs-5"></i>
-                                    </div>
-                                    <h3 class="fw-bold text-dark h5 mb-0">{{ $isAr ? '4. سياسة الإلغاء وإعادة الجدولة' : '4. Cancellation & Rescheduling Policy' }}</h3>
-                                </div>
+                            {{-- Article 3 --}}
+                            <div class="mb-5 pb-4 border-bottom">
+                                <h2 class="fw-bold text-dark mb-3" style="font-size: 1.35rem;">
+                                    {{ $isAr ? 'المادة الثالثة: إجراءات الحجز وسداد الرسوم' : 'Article 3: Booking & Payment Procedures' }}
+                                </h2>
+                                <p class="mb-2">
+                                    {{ $isAr 
+                                        ? 'تتم عملية حجز وتأكيد المواعيد وفق الخطوات التنظيمية التالية:' 
+                                        : 'Appointment reservations and confirmations follow these established procedures:' }}
+                                </p>
+                                <ul class="mb-0" style="padding-right: 1.5rem; padding-left: 1.5rem;">
+                                    <li class="mb-2">
+                                        <strong>{{ $isAr ? 'اختيار الموعد والخدمة:' : 'Selection:' }}</strong> 
+                                        {{ $isAr ? 'يقوم المراجع باختيار نوع الخدمة والوقت المناسب له من خلال جدول المواعيد المتاح.' : 'The client selects the desired service and available timeslot from the clinic schedule.' }}
+                                    </li>
+                                    <li class="mb-2">
+                                        <strong>{{ $isAr ? 'السداد المالي المحلي:' : 'Payment Transfer:' }}</strong> 
+                                        {{ $isAr ? 'يتم سداد تكلفة الجلسة عبر المحافظ المالية المحلية المعتمدة (زين كاش، سوبر كي، أو تحويل محلي مباشر).' : 'Session fees are paid via authorized local wallets (ZainCash, SuperKi, or local transfers).' }}
+                                    </li>
+                                    <li>
+                                        <strong>{{ $isAr ? 'التأكيد والاعتماد:' : 'Confirmation:' }}</strong> 
+                                        {{ $isAr ? 'يصبح الحجز نهائياً بمجرد إرفاق إشعار التحويل والتحقق منه من قبل إدارة العيادة، حيث يتم إرسال رسالة التأكيد وتفاصيل الرابط تلقائياً.' : 'The appointment is finalized upon verification of the transfer receipt by clinic administration, triggering automated confirmation and session link delivery.' }}
+                                    </li>
+                                </ul>
+                            </div>
+
+                            {{-- Article 4 --}}
+                            <div class="mb-5 pb-4 border-bottom">
+                                <h2 class="fw-bold text-dark mb-3" style="font-size: 1.35rem;">
+                                    {{ $isAr ? 'المادة الرابعة: سياسة إعادة الجدولة والإلغاء' : 'Article 4: Rescheduling & Cancellation Policy' }}
+                                </h2>
                                 @php
                                     $minNotice = \App\Models\Setting::get('min_reschedule_notice_hours', '24');
                                     $maxResched = \App\Models\Setting::get('max_reschedule_allowed', '2');
                                 @endphp
-                                <p class="text-secondary leading-relaxed mb-2">
+                                <p class="mb-2">
                                     {{ $isAr 
-                                        ? "يمكن للمراجع طلب إعادة جدولة الموعد إلى وقت آخر متاح قبل موعد الجلسة بما لا يقل عن ($minNotice ساعة)، ويحق للمراجع إعادة الجدولة بحد أقصى ($maxResched مرات) لكل حجز لضمان تنظيم جداول العيادة." 
-                                        : "Clients may request appointment rescheduling at least ($minNotice hours) before session start time, up to a maximum of ($maxResched times) per booking." }}
+                                        ? 'حرصاً على تنظيم جدول مواعيد العيادة وحقوق المراجعين الآخرين، تخضع إعادة الجدولة والإلغاء للضوابط الآتية:' 
+                                        : 'To ensure smooth scheduling and respect for other clients, the following rescheduling guidelines apply:' }}
                                 </p>
-                                <p class="text-muted small mb-0">
+                                <ul class="mb-0" style="padding-right: 1.5rem; padding-left: 1.5rem;">
+                                    <li class="mb-2">
+                                        <strong>{{ $isAr ? 'مهلة إعادة الجدولة:' : 'Notice Period:' }}</strong> 
+                                        {{ $isAr ? "يحق للمراجع طلب تأجيل الموعد قبل بدء الجلسة بما لا يقل عن ($minNotice ساعة)، بحد أقصى ($maxResched مرات) لكل حجز." : "Clients may reschedule up to ($minNotice hours) prior to session start time, up to ($maxResched times) per booking." }}
+                                    </li>
+                                    <li>
+                                        <strong>{{ $isAr ? 'الغياب دون إشعار مسبق:' : 'No-Show Policy:' }}</strong> 
+                                        {{ $isAr ? 'في حال عدم حضور الجلسة في الموعد المحدد أو الإلغاء في وقت يقل عن المهلة المقررة، تعتبر الجلسة منفذة ولا يحق للمراجع المطالبة باسترداد الرسوم لتعويض حجز وقت المعالج.' : 'Failure to attend at the scheduled time without prior notice or cancellation below the required notice period renders the session non-refundable.' }}
+                                    </li>
+                                </ul>
+                            </div>
+
+                            {{-- Article 5 --}}
+                            <div class="mb-5 pb-4 border-bottom">
+                                <h2 class="fw-bold text-dark mb-3" style="font-size: 1.35rem;">
+                                    {{ $isAr ? 'المادة الخامسة: الالتزام بالمواعيد وحضور الجلسات' : 'Article 5: Punctuality & Attendance' }}
+                                </h2>
+                                <p class="mb-0">
                                     {{ $isAr 
-                                        ? 'في حال عدم الحضور دون إشعار مسبق أو الإلغاء في اللحظات الأخيرة، قد يتعذر استرداد الرسوم لتعويض حجز الموعد المخصص.' 
-                                        : 'No-shows without prior notice or last-minute cancellations may forfeit session fees.' }}
+                                        ? 'يتعين على المراجع الحضور في الوقت المحدد تماماً لبدء الجلسة. يبدأ احتساب وقت الجلسة من التوقيت المحجوز، ولن يتم تمديد مدة الجلسة في حال تأخر المراجع عن الحضور لضمان عدم الإخلال بمواعيد المراجعين اللاحقين.' 
+                                        : 'Clients are required to be present promptly at the scheduled time. Sessions start at the booked time and cannot be extended due to client tardiness to maintain timely service for subsequent appointments.' }}
                                 </p>
                             </div>
 
-                            {{-- 5. User Conduct & Code of Ethics --}}
-                            <div class="legal-section mb-5">
-                                <div class="d-flex align-items-center gap-3 mb-3">
-                                    <div class="legal-icon-box bg-danger bg-opacity-10 text-danger rounded-3 p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
-                                        <i class="bi bi-shield-exclamation fs-5"></i>
-                                    </div>
-                                    <h3 class="fw-bold text-dark h5 mb-0">{{ $isAr ? '5. قواعد الاستخدام والسلوك المهني' : '5. Code of Conduct & Intellectual Property' }}</h3>
-                                </div>
-                                <p class="text-secondary leading-relaxed mb-0">
+                            {{-- Article 6 --}}
+                            <div class="mb-5 pb-4 border-bottom">
+                                <h2 class="fw-bold text-dark mb-3" style="font-size: 1.35rem;">
+                                    {{ $isAr ? 'المادة السادسة: الملكية الفكرية وحظر التسجيل' : 'Article 6: Intellectual Property & Non-Recording' }}
+                                </h2>
+                                <p class="mb-2">
                                     {{ $isAr 
-                                        ? 'يمنع منعاً باتاً تسجيل جلسات الاستشارة الصوتية أو المرئية دون إذن خطي مسبق، كما يمنع استخدام محتوى الموقع ومقاطع الفيديو التوعوية لأغراض تجارية دون موافقة رسمية من المعالج.' 
-                                        : 'Recording consultation sessions without prior written consent is strictly prohibited. All materials, videos, and platform content are protected by copyright.' }}
+                                        ? 'حفاظاً على حقوق الملكية الفكرية والأخلاقيات المهنية، يلتزم الطرفان بالآتي:' 
+                                        : 'In protection of intellectual property and professional ethics, all parties adhere to:' }}
+                                </p>
+                                <ul class="mb-0" style="padding-right: 1.5rem; padding-left: 1.5rem;">
+                                    <li class="mb-2">
+                                        {{ $isAr ? 'يُحظر تماماً على المراجع تسجيل جلسات الاستشارة (صوتياً أو مرئياً) أو التقاط صور شاشة أو نشر أي جزء منها دون إذن خطي مسبق ومعتمد من المعالج.' : 'Recording consultation sessions (audio or video), screen capturing, or publishing session excerpts without prior written consent is strictly prohibited.' }}
+                                    </li>
+                                    <li>
+                                        {{ $isAr ? 'كافة المواد المكتوبة والتسجيلات الإرشادية والمقاطع التوعوية المنشورة على المنصة محمية بحقوق الملكية الفكرية الخاصة بالمعالج يونس المرشد.' : 'All educational materials, articles, and media on the platform are protected intellectual property of Therapist Yonis Al-Murshid.' }}
+                                    </li>
+                                </ul>
+                            </div>
+
+                            {{-- Article 7 --}}
+                            <div class="mb-5 pb-4 border-bottom">
+                                <h2 class="fw-bold text-dark mb-3" style="font-size: 1.35rem;">
+                                    {{ $isAr ? 'المادة السابعة: القانون واجب التطبيق والاختصاص القضائي' : 'Article 7: Governing Law & Jurisdiction' }}
+                                </h2>
+                                <p class="mb-0">
+                                    {{ $isAr 
+                                        ? 'تخضع هذه الشروط والأحكام وتفسر وفقاً للأنظمة والقوانين المهنية المعمول بها، ويتم السعي لحل أي نزاع بشكل ودي ومهني في إطار أخلاقيات العمل الطبي والنفسي.' 
+                                        : 'These Terms & Conditions are governed by and construed in accordance with applicable professional regulations, and any disputes shall be addressed through amicable and professional mediation.' }}
                                 </p>
                             </div>
 
-                            {{-- 6. Contact Us --}}
-                            <div class="legal-section p-4 bg-light rounded-4 border">
-                                <div class="d-flex align-items-center gap-3 mb-3">
-                                    <div class="legal-icon-box bg-dark text-white rounded-3 p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
-                                        <i class="bi bi-headset fs-5"></i>
-                                    </div>
-                                    <h3 class="fw-bold text-dark h5 mb-0">{{ $isAr ? '6. خدمة المراجعين والدعم الفني' : '6. Client Support & Inquiries' }}</h3>
-                                </div>
-                                <p class="text-secondary small mb-3">
+                            {{-- Article 8 --}}
+                            <div>
+                                <h2 class="fw-bold text-dark mb-3" style="font-size: 1.35rem;">
+                                    {{ $isAr ? 'المادة الثامنة: خدمة المراجعين والتواصل' : 'Article 8: Client Support & Inquiries' }}
+                                </h2>
+                                <p class="mb-3">
                                     {{ $isAr 
-                                        ? 'فريق الدعم وإدارة العيادة متواجدون لمساعدتك في أي استفسار يتعلق بحجزك أو شروط الخدمة:' 
-                                        : 'Our clinic management team is available to assist you with any questions regarding bookings or terms of service:' }}
+                                        ? 'لأي استفسارات بخصوص حجزك أو شروط تقديم الخدمة، يسعدنا تواصلك مع إدارة العيادة عبر القنوات الرسمية التالية:' 
+                                        : 'For any inquiries regarding your booking or terms of service, please contact our clinic administration:' }}
                                 </p>
-                                <div class="d-flex flex-wrap gap-3">
-                                    @php
-                                        $waNum = preg_replace('/[^0-9]/', '', \App\Models\Setting::get('whatsapp_number', '+9647700000000'));
-                                        $contactEmail = \App\Models\Setting::get('notification_email', 'dr.yonis@example.com');
-                                    @endphp
-                                    <a href="https://wa.me/{{ $waNum }}" target="_blank" class="btn btn-outline-success btn-sm rounded-pill px-3 py-2 fw-bold d-inline-flex align-items-center gap-2">
-                                        <i class="bi bi-whatsapp"></i>
-                                        <span>{{ $isAr ? 'دعم الواتساب' : 'WhatsApp Support' }}</span>
-                                    </a>
-                                    <a href="mailto:{{ $contactEmail }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-2 fw-bold d-inline-flex align-items-center gap-2">
-                                        <i class="bi bi-envelope"></i>
-                                        <span>{{ $contactEmail }}</span>
-                                    </a>
+                                @php
+                                    $waNum = preg_replace('/[^0-9]/', '', \App\Models\Setting::get('whatsapp_number', '+9647700000000'));
+                                    $contactEmail = \App\Models\Setting::get('notification_email', 'contact@younis-almurshid.com');
+                                    $doctorName = \App\Models\Setting::get('doctor_name', 'يونس المرشد');
+                                @endphp
+                                <div class="bg-light p-3 rounded-3 border">
+                                    <div class="mb-1"><strong>{{ $isAr ? 'العيادة:' : 'Clinic:' }}</strong> {{ $isAr ? 'عيادة المعالج النفسي د. ' . $doctorName : 'Therapist ' . $doctorName . ' Clinic' }}</div>
+                                    <div class="mb-1"><strong>{{ $isAr ? 'البريد الإلكتروني:' : 'Email:' }}</strong> <a href="mailto:{{ $contactEmail }}" class="text-decoration-none text-dark">{{ $contactEmail }}</a></div>
+                                    @if(!empty($waNum))
+                                        <div><strong>{{ $isAr ? 'هاتف / واتساب المواعيد:' : 'Phone / WhatsApp:' }}</strong> <a href="https://wa.me/{{ $waNum }}" target="_blank" class="text-decoration-none text-dark" dir="ltr">+{{ $waNum }}</a></div>
+                                    @endif
                                 </div>
                             </div>
 

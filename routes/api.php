@@ -3,29 +3,41 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ApiController;
+use App\Http\Controllers\BookingController;
 
 /*
 |--------------------------------------------------------------------------
-| API Routes for Mobile Client (Flutter & External Consumers)
+| API Routes for Mobile Client (Flutter / React Native / Web Clients)
 |--------------------------------------------------------------------------
 */
 
 // 1. Public Info Routes (Rate limited to 60 req/min)
 Route::middleware('throttle:60,1')->group(function () {
+    // Master Home API (Single-request complete feed)
     Route::get('/home', [ApiController::class, 'getHome']);
+
+    // Config & System Status
     Route::get('/config', [ApiController::class, 'getApiConfig']);
+
+    // Doctor Profile
     Route::get('/doctor/profile', [ApiController::class, 'getDoctorProfile']);
+
+    // Services (Unified with ?type=clinic or ?type=online filter)
     Route::get('/services', [ApiController::class, 'getServices']);
-    Route::get('/services/clinic', [ApiController::class, 'getClinicServices']);
-    Route::get('/services/online', [ApiController::class, 'getOnlineServices']);
+    Route::get('/services/clinic', [ApiController::class, 'getClinicServices']); // Alias
+    Route::get('/services/online', [ApiController::class, 'getOnlineServices']); // Alias
+
+    // Appointment Slots
     Route::get('/slots', [ApiController::class, 'getSlots']);
-    Route::get('/available-slots', [ApiController::class, 'getAvailableSlots']);
-    Route::get('/slots/available', [ApiController::class, 'getAvailableSlots']);
+    Route::get('/available-slots', [ApiController::class, 'getSlots']); // Alias
+    Route::get('/slots/available', [ApiController::class, 'getSlots']); // Alias
+
+    // Media & Social Proof
     Route::get('/reels', [ApiController::class, 'getReels']);
-    Route::get('/testimonials', [ApiController::class, 'getTestimonials']);
     Route::get('/reviews', [ApiController::class, 'getTestimonials']);
-    Route::post('/testimonials', [ApiController::class, 'storeTestimonial']);
+    Route::get('/testimonials', [ApiController::class, 'getTestimonials']); // Alias
     Route::post('/reviews', [ApiController::class, 'storeTestimonial']);
+    Route::post('/testimonials', [ApiController::class, 'storeTestimonial']); // Alias
 });
 
 // 2. Sensitive Public Auth & Checkout Routes (Strict Rate limited to 15 req/min)
@@ -39,10 +51,10 @@ Route::middleware('throttle:15,1')->group(function () {
     Route::post('/checkout/confirm', [ApiController::class, 'confirmCheckout']);
 
     // Patient confirms local payment (ZainCash / SuperKi) — public, no token needed
-    Route::post('/booking/{bookingRef}/confirm-payment', [\App\Http\Controllers\BookingController::class, 'confirmPayment']);
+    Route::post('/booking/{bookingRef}/confirm-payment', [BookingController::class, 'confirmPayment']);
 
     // SpaceRemit Webhook notification endpoint (IPN callback)
-    Route::post('/payment/spaceremit/webhook', [\App\Http\Controllers\BookingController::class, 'spaceremitWebhook']);
+    Route::post('/payment/spaceremit/webhook', [BookingController::class, 'spaceremitWebhook']);
 });
 
 // 3. Protected Routes (Bearer Token Auth via Sanctum with Rate Limiting)
@@ -54,11 +66,11 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
         return response()->json([
             'success' => true,
             'user' => [
-                'id' => $request->user()->id,
-                'name' => $request->user()->name,
+                'id'    => $request->user()->id,
+                'name'  => $request->user()->name,
                 'email' => $request->user()->email,
                 'phone' => $request->user()->phone,
-                'role' => $request->user()->role,
+                'role'  => $request->user()->role,
             ]
         ]);
     });

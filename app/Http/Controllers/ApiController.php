@@ -34,14 +34,39 @@ class ApiController extends Controller
     }
 
     /**
+     * Flexible Helper to find user by phone or email
+     */
+    private function findUserByIdentifier(?string $identifier): ?User
+    {
+        if (empty($identifier)) {
+            return null;
+        }
+
+        $digits = preg_replace('/\D/', '', $identifier);
+        $withoutZero = ltrim($digits, '0');
+        $last9 = strlen($withoutZero) >= 9 ? substr($withoutZero, -9) : $withoutZero;
+
+        return User::where('email', $identifier)
+            ->orWhere('phone', $identifier)
+            ->when(!empty($digits), function ($q) use ($identifier, $digits, $last9) {
+                $q->orWhere('phone', '+' . $digits)
+                  ->orWhere('phone', $digits);
+                if (strlen($last9) >= 7) {
+                    $q->orWhere('phone', 'like', '%' . $last9);
+                }
+            })
+            ->first();
+    }
+
+    /**
      * Mobile login API (Supports Login by Phone or Email)
      */
     public function login(Request $request)
     {
         $request->validate([
-            'login' => 'nullable|string', // phone or email
-            'phone' => 'nullable|string',
-            'email' => 'nullable|string',
+            'login'    => 'nullable|string', // phone or email
+            'phone'    => 'nullable|string',
+            'email'    => 'nullable|string',
             'password' => 'required|string',
         ]);
 
@@ -54,9 +79,7 @@ class ApiController extends Controller
             ], 422);
         }
 
-        $user = User::where('phone', $identifier)
-            ->orWhere('email', $identifier)
-            ->first();
+        $user = $this->findUserByIdentifier($identifier);
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
@@ -149,205 +172,177 @@ class ApiController extends Controller
     }
 
     /**
-     * Get all active services with clear separation between Clinic and Online channel pricing
+     * Get all active services with clean bilingual fields & channel pricing
      */
     public function getServices(Request $request)
     {
         $clinicEnabled = Setting::get('clinic_booking_enabled', '1') === '1';
         $onlineEnabled = Setting::get('online_booking_enabled', '1') === '1';
-        $chatEnabled = Setting::get('chat_enabled', '1') === '1';
-        $voiceEnabled = Setting::get('voice_enabled', '1') === '1';
-        $videoEnabled = Setting::get('video_enabled', '1') === '1';
+        $chatEnabled   = Setting::get('chat_enabled', '1') === '1';
+        $voiceEnabled  = Setting::get('voice_enabled', '1') === '1';
+        $videoEnabled  = Setting::get('video_enabled', '1') === '1';
 
-        $currencyCode = Setting::currencyCode();
+        $currencyCode   = Setting::currencyCode();
         $currencySymbol = Setting::currencySymbol();
 
         $allRaw = Service::where('is_active', true)->get();
 
-        // Format Clinic Services
-        $clinicServices = $allRaw->filter(function ($s) {
-            return in_array($s->type, ['clinic', 'both'], true);
-        })->map(function ($s) use ($currencyCode, $currencySymbol) {
-            $clinicPrice = (float) ($s->clinic_price ?? $s->price);
+        $formattedServices = $allRaw->map(function ($s) use ($clinicEnabled, $onlineEnabled, $chatEnabled, $voiceEnabled, $videoEnabled, $currencyCode, $currencySymbol) {
             $titleAr = $s->title_ar ?: ($s->title ?? '');
             $titleEn = $s->title_en ?: $titleAr;
-            $descAr = $s->description_ar ?: ($s->description ?? '');
-            $descEn = $s->description_en ?: '';
+            $descAr  = $s->description_ar ?: ($s->description ?? '');
+            $descEn  = $s->description_en ?: '';
 
-            return [
-                'id' => $s->id,
-                'title' => $s->title,
-                'title_ar' => $titleAr,
-                'title_en' => $titleEn,
-                'name' => $s->title,
-                'name_ar' => $titleAr,
-                'name_en' => $titleEn,
-                'description' => $s->description,
-                'description_ar' => $descAr,
-                'description_en' => $descEn,
-                'icon' => $s->icon_name,
-                'icon_url' => $s->icon_url,
-                'duration' => $s->duration,
-                'price' => $clinicPrice,
-                'clinic_price' => $clinicPrice,
-                'booking_type' => 'clinic',
-                'currency' => $currencyCode,
-                'currency_symbol' => $currencySymbol,
-                'type' => $s->type,
-                'location' => Setting::get('clinic_address', 'مقر العيادة - د. يونس المرشد'),
-            ];
-        })->values();
-
-        // Format Online Services with distinct channel prices (Voice, Chat, Video)
-        $onlineServices = $allRaw->filter(function ($s) {
-            return in_array($s->type, ['online', 'both'], true);
-        })->map(function ($s) use ($chatEnabled, $voiceEnabled, $videoEnabled, $currencyCode, $currencySymbol) {
             $channels = [];
 
-            $hasVideo = !is_null($s->video_price) && (float)$s->video_price > 0;
-            $hasVoice = !is_null($s->voice_price) && (float)$s->voice_price > 0;
-            $hasChat  = !is_null($s->chat_price) && (float)$s->chat_price > 0;
-
-            // If none explicitly set, enable channels based on base price
-            if (!$hasVideo && !$hasVoice && !$hasChat) {
-                $hasVideo = true;
-                $hasVoice = true;
-                $hasChat = true;
-            }
-
-            if ($hasVideo && $videoEnabled) {
-                $p = (float)($s->video_price ?: $s->price);
+            // 1. Clinic Channel
+            if (($s->type === 'clinic' || $s->type === 'both') && $clinicEnabled) {
+                $clinicPrice = (float) ($s->clinic_price ?? $s->price);
                 $channels[] = [
-                    'channel' => 'video',
-                    'name' => 'مكالمة فيديو أونلاين',
-                    'name_ar' => 'مكالمة فيديو أونلاين',
-                    'name_en' => 'Online Video Call',
-                    'price' => $p,
-                    'currency' => $currencyCode,
+                    'channel'         => 'clinic',
+                    'name_ar'         => 'كشف في العيادة',
+                    'name_en'         => 'In-Clinic Consultation',
+                    'price'           => $clinicPrice,
+                    'currency'        => $currencyCode,
                     'currency_symbol' => $currencySymbol,
-                    'duration' => $s->duration,
-                    'is_enabled' => true,
+                    'duration'        => $s->duration,
+                    'is_enabled'      => true,
                 ];
             }
 
-            if ($hasVoice && $voiceEnabled) {
-                $p = (float)($s->voice_price ?: $s->price);
-                $channels[] = [
-                    'channel' => 'voice',
-                    'name' => 'استشارة صوتية',
-                    'name_ar' => 'استشارة صوتية',
-                    'name_en' => 'Voice Consultation',
-                    'price' => $p,
-                    'currency' => $currencyCode,
-                    'currency_symbol' => $currencySymbol,
-                    'duration' => $s->duration,
-                    'is_enabled' => true,
-                ];
-            }
+            // 2. Online Channels
+            if ($s->type !== 'clinic' && $onlineEnabled) {
+                $hasVideo = !is_null($s->video_price) && (float)$s->video_price > 0;
+                $hasVoice = !is_null($s->voice_price) && (float)$s->voice_price > 0;
+                $hasChat  = !is_null($s->chat_price) && (float)$s->chat_price > 0;
 
-            if ($hasChat && $chatEnabled) {
-                $p = (float)($s->chat_price ?: $s->price);
-                $channels[] = [
-                    'channel' => 'chat',
-                    'name' => 'محادثة نصية (شات)',
-                    'name_ar' => 'محادثة نصية (شات)',
-                    'name_en' => 'Chat Consultation',
-                    'price' => $p,
-                    'currency' => $currencyCode,
-                    'currency_symbol' => $currencySymbol,
-                    'duration' => $s->duration,
-                    'is_enabled' => true,
-                ];
+                if (!$hasVideo && !$hasVoice && !$hasChat) {
+                    $hasVideo = true;
+                    $hasVoice = true;
+                    $hasChat  = true;
+                }
+
+                if ($hasVideo && $videoEnabled) {
+                    $channels[] = [
+                        'channel'         => 'video',
+                        'name_ar'         => 'مكالمة فيديو أونلاين',
+                        'name_en'         => 'Online Video Call',
+                        'price'           => (float)($s->video_price ?: $s->price),
+                        'currency'        => $currencyCode,
+                        'currency_symbol' => $currencySymbol,
+                        'duration'        => $s->duration,
+                        'is_enabled'      => true,
+                    ];
+                }
+
+                if ($hasVoice && $voiceEnabled) {
+                    $channels[] = [
+                        'channel'         => 'voice',
+                        'name_ar'         => 'استشارة صوتية',
+                        'name_en'         => 'Voice Consultation',
+                        'price'           => (float)($s->voice_price ?: $s->price),
+                        'currency'        => $currencyCode,
+                        'currency_symbol' => $currencySymbol,
+                        'duration'        => $s->duration,
+                        'is_enabled'      => true,
+                    ];
+                }
+
+                if ($hasChat && $chatEnabled) {
+                    $channels[] = [
+                        'channel'         => 'chat',
+                        'name_ar'         => 'محادثة نصية (شات)',
+                        'name_en'         => 'Chat Consultation',
+                        'price'           => (float)($s->chat_price ?: $s->price),
+                        'currency'        => $currencyCode,
+                        'currency_symbol' => $currencySymbol,
+                        'duration'        => $s->duration,
+                        'is_enabled'      => true,
+                    ];
+                }
             }
 
             $primaryPrice = !empty($channels) ? $channels[0]['price'] : (float)$s->price;
-            $channelType = count($channels) === 1 ? $channels[0]['channel'] : 'all';
-
-            $titleAr = $s->title_ar ?: ($s->title ?? '');
-            $titleEn = $s->title_en ?: $titleAr;
-            $descAr = $s->description_ar ?: ($s->description ?? '');
-            $descEn = $s->description_en ?: '';
+            $channelType = count($channels) === 1 ? $channels[0]['channel'] : ($s->type === 'clinic' ? 'clinic' : 'all');
 
             return [
-                'id' => $s->id,
-                'title' => $s->title,
-                'title_ar' => $titleAr,
-                'title_en' => $titleEn,
-                'name' => $s->title,
-                'name_ar' => $titleAr,
-                'name_en' => $titleEn,
-                'description' => $s->description,
-                'description_ar' => $descAr,
-                'description_en' => $descEn,
-                'icon' => $s->icon_name,
-                'icon_url' => $s->icon_url,
-                'duration' => $s->duration,
-                'booking_type' => 'online',
-                'channel_type' => $channelType,
+                'id'               => $s->id,
+                'title_ar'         => $titleAr,
+                'title_en'         => $titleEn,
+                'description_ar'   => $descAr,
+                'description_en'   => $descEn,
+                'icon'             => $s->icon_name,
+                'icon_url'         => $s->icon_url,
+                'duration'         => $s->duration,
+                'type'             => $s->type,
+                'channel_type'     => $channelType,
                 'channel_label_ar' => $s->getChannelLabel(),
                 'channel_label_en' => $s->getChannelLabelEn(),
-                'currency' => $currencyCode,
-                'currency_symbol' => $currencySymbol,
-                'type' => $s->type,
-                'price' => $primaryPrice,
-                'video_price' => $s->video_price !== null ? (float)$s->video_price : null,
-                'voice_price' => $s->voice_price !== null ? (float)$s->voice_price : null,
-                'chat_price' => $s->chat_price !== null ? (float)$s->chat_price : null,
-                'channels' => $channels,
+                'price'            => $primaryPrice,
+                'clinic_price'     => $s->clinic_price !== null ? (float)$s->clinic_price : null,
+                'video_price'      => $s->video_price !== null ? (float)$s->video_price : null,
+                'voice_price'      => $s->voice_price !== null ? (float)$s->voice_price : null,
+                'chat_price'       => $s->chat_price !== null ? (float)$s->chat_price : null,
+                'currency'         => $currencyCode,
+                'currency_symbol'  => $currencySymbol,
+                'channels'         => $channels,
             ];
-        })->values();
+        });
+
+        $clinicServices = $formattedServices->filter(fn($s) => in_array($s['type'], ['clinic', 'both'], true))->values();
+        $onlineServices = $formattedServices->filter(fn($s) => in_array($s['type'], ['online', 'both'], true))->values();
 
         // Filter by requested type if passed
         $requestedType = strtolower((string) $request->query('type', ''));
         if ($requestedType === 'clinic') {
             return response()->json([
-                'success' => true,
-                'type' => 'clinic',
-                'currency' => $currencyCode,
+                'success'         => true,
+                'type'            => 'clinic',
+                'currency'        => $currencyCode,
                 'currency_symbol' => $currencySymbol,
-                'is_enabled' => $clinicEnabled,
-                'total' => $clinicServices->count(),
-                'services' => $clinicServices,
+                'is_enabled'      => $clinicEnabled,
+                'total'           => $clinicServices->count(),
+                'services'        => $clinicServices,
             ]);
         }
 
         if ($requestedType === 'online') {
             return response()->json([
-                'success' => true,
-                'type' => 'online',
-                'currency' => $currencyCode,
-                'currency_symbol' => $currencySymbol,
-                'is_enabled' => $onlineEnabled,
+                'success'          => true,
+                'type'             => 'online',
+                'currency'         => $currencyCode,
+                'currency_symbol'  => $currencySymbol,
+                'is_enabled'       => $onlineEnabled,
                 'channels_enabled' => [
                     'video' => $videoEnabled,
                     'voice' => $voiceEnabled,
-                    'chat' => $chatEnabled,
+                    'chat'  => $chatEnabled,
                 ],
-                'total' => $onlineServices->count(),
-                'services' => $onlineServices,
+                'total'            => $onlineServices->count(),
+                'services'         => $onlineServices,
             ]);
         }
 
         return response()->json([
-            'success' => true,
-            'currency' => $currencyCode,
-            'currency_symbol' => $currencySymbol,
+            'success'          => true,
+            'currency'         => $currencyCode,
+            'currency_symbol'  => $currencySymbol,
             'channels_enabled' => [
                 'clinic' => $clinicEnabled,
                 'online' => $onlineEnabled,
-                'video' => $videoEnabled,
-                'voice' => $voiceEnabled,
-                'chat' => $chatEnabled,
+                'video'  => $videoEnabled,
+                'voice'  => $voiceEnabled,
+                'chat'   => $chatEnabled,
             ],
-            'clinic_services' => $clinicServices,
-            'online_services' => $onlineServices,
-            // Full list with icons
-            'services' => $allRaw,
+            'total'            => $formattedServices->count(),
+            'services'         => $formattedServices,
+            'clinic_services'  => $clinicServices,
+            'online_services'  => $onlineServices,
         ]);
     }
 
     /**
-     * Dedicated Clinic Services endpoint
+     * Dedicated Clinic Services endpoint (Alias)
      */
     public function getClinicServices(Request $request)
     {
@@ -356,7 +351,7 @@ class ApiController extends Controller
     }
 
     /**
-     * Dedicated Online Services endpoint with Voice/Chat/Video breakdown
+     * Dedicated Online Services endpoint (Alias)
      */
     public function getOnlineServices(Request $request)
     {
@@ -365,34 +360,27 @@ class ApiController extends Controller
     }
 
     /**
-     * Get slots (Available and Booked/Unavailable slots with rich status)
+     * Get available appointment slots
      */
     public function getSlots(Request $request)
     {
         $serviceId = $request->input('service_id');
-        $service = null;
-        if ($serviceId) {
-            $service = Service::find($serviceId);
-        }
-        if (!$service) {
-            $service = Service::where('is_active', true)->first();
-        }
+        $service = $serviceId ? Service::find($serviceId) : Service::where('is_active', true)->first();
 
         if (!$service) {
             return response()->json([
-                'success' => true,
-                'date' => date('Y-m-d'),
+                'success'          => true,
+                'date'             => date('Y-m-d'),
                 'is_day_available' => false,
-                'slots' => [],
-                'available_slots' => [],
-                'unavailable_slots' => [],
-                'booked_slots' => [],
-                'all_slots' => [],
-                'summary' => [
-                    'total_slots' => 0,
+                'summary'          => [
+                    'total_slots'     => 0,
                     'available_count' => 0,
-                    'booked_or_unavailable_count' => 0,
+                    'unavailable_count' => 0,
                 ],
+                'available_slots'  => [],
+                'unavailable_slots'=> [],
+                'all_slots'        => [],
+                'slots'            => [], // alias
             ]);
         }
 
@@ -409,28 +397,28 @@ class ApiController extends Controller
         $simpleSlots = array_map(function ($s) {
             return [
                 'start' => $s['start'],
-                'end' => $s['end'],
+                'end'   => $s['end'],
             ];
         }, $detailed['available_slots']);
 
         return response()->json([
-            'success' => true,
-            'date' => $detailed['date'],
-            'day_name' => $detailed['day_name'],
+            'success'          => true,
+            'date'             => $detailed['date'],
+            'day_name'         => $detailed['day_name'],
             'is_day_available' => $detailed['is_day_available'],
             'service' => [
-                'id' => $service->id,
-                'title' => $service->title,
-                'icon' => $service->icon_name,
-                'icon_url' => $service->icon_url,
-                'duration' => $service->duration,
+                'id'              => $service->id,
+                'title_ar'        => $service->title_ar ?: $service->title,
+                'title_en'        => $service->title_en ?: $service->title,
+                'duration'        => $service->duration,
+                'icon'            => $service->icon_name,
+                'icon_url'        => $service->icon_url,
             ],
-            'summary' => $detailed['summary'],
-            'available_slots' => $detailed['available_slots'],     // الحجوزات والمواعيد المتاحة فقط
-            'unavailable_slots' => $detailed['unavailable_slots'], // الحجوزات والمواعيد غير المتاحة مع سببها
-            'booked_slots' => $detailed['booked_slots'],           // الحجوزات المحجوزة مسبقاً
-            'all_slots' => $detailed['all_slots'],                 // كامل الجدول الزمني لليوم مع حالة كل موعد
-            'slots' => $simpleSlots,                               // متوافق مع الكود السابق
+            'summary'          => $detailed['summary'],
+            'available_slots'  => $detailed['available_slots'],
+            'unavailable_slots'=> $detailed['unavailable_slots'],
+            'all_slots'        => $detailed['all_slots'],
+            'slots'            => $simpleSlots, // Backward-compatible alias
         ]);
     }
 
@@ -623,29 +611,20 @@ class ApiController extends Controller
 
         return response()->json([
             'success' => true,
-            'config' => [
-                'api_enabled' => Setting::get('api_enabled', '1') === '1',
-                'stripe_enabled' => Setting::get('stripe_enabled', '0') === '1',
-                'clinic_booking_enabled' => Setting::get('clinic_booking_enabled', '1') === '1',
-                'online_booking_enabled' => Setting::get('online_booking_enabled', '1') === '1',
-                'chat_enabled' => Setting::get('chat_enabled', '1') === '1',
-                'voice_enabled' => Setting::get('voice_enabled', '1') === '1',
-                'video_enabled' => Setting::get('video_enabled', '1') === '1',
-                'currency' => Setting::currencyCode(),
-                'currency_code' => Setting::currencyCode(),
-                'currency_symbol' => Setting::currencySymbol(),
-                'default_payment_url' => Setting::get('default_payment_url', 'https://younisalmurshed.gumroad.com/l/srjlvw?wanted=true'),
-                'max_reschedule_allowed' => (int) Setting::get('max_reschedule_allowed', '2'),
-                'min_reschedule_notice_hours' => (int) Setting::get('min_reschedule_notice_hours', '24'),
-                'hero_images' => [
-                    'web' => $doctorProfile?->hero_image,
-                    'mobile' => $doctorProfile?->mobile_hero_image,
+            'config'  => [
+                'api_enabled'      => Setting::get('api_enabled', '1') === '1',
+                'currency'         => Setting::currencyCode(),
+                'currency_symbol'  => Setting::currencySymbol(),
+                'channels_enabled' => [
+                    'clinic' => Setting::get('clinic_booking_enabled', '1') === '1',
+                    'online' => Setting::get('online_booking_enabled', '1') === '1',
+                    'video'  => Setting::get('video_enabled', '1') === '1',
+                    'voice'  => Setting::get('voice_enabled', '1') === '1',
+                    'chat'   => Setting::get('chat_enabled', '1') === '1',
                 ],
-                'whatsapp_widget' => [
-                    'enabled' => Setting::get('whatsapp_widget_enabled', '1') === '1',
-                    'number' => Setting::get('whatsapp_number', '+9647800000000'),
-                    'default_message' => Setting::get('whatsapp_default_message', 'مرحباً دكتور يونس، أود الاستفسار عن حجز موعد استشارة.'),
-                    'greeting' => Setting::get('whatsapp_widget_greeting', 'أهلاً بك! 👋 معك عيادة الدكتور يونس المرشد. كيف يمكننا مساعدتك اليوم؟'),
+                'rescheduling' => [
+                    'min_notice_hours' => (int) Setting::get('min_reschedule_notice_hours', '24'),
+                    'max_allowed'      => (int) Setting::get('max_reschedule_allowed', '2'),
                 ],
                 'legal_links' => [
                     'app_rating_url'       => $appRatingUrl,
@@ -653,12 +632,14 @@ class ApiController extends Controller
                     'terms_conditions_url' => $termsConditionsUrl,
                     'terms_url'            => $termsConditionsUrl,
                 ],
-                'app_rating_url'          => $appRatingUrl,
-                'privacy_policy_url'      => $privacyPolicyUrl,
-                'terms_conditions_url'    => $termsConditionsUrl,
-                'terms_url'               => $termsConditionsUrl,
-                'payment' => [
-                    'default_method' => $defaultPaymentMethod,
+                'whatsapp_widget' => [
+                    'enabled'         => Setting::get('whatsapp_widget_enabled', '1') === '1',
+                    'number'          => Setting::get('whatsapp_number', '+9647800000000'),
+                    'default_message' => Setting::get('whatsapp_default_message', 'مرحباً دكتور يونس، أود الاستفسار عن حجز موعد استشارة.'),
+                    'greeting'        => Setting::get('whatsapp_widget_greeting', 'أهلاً بك! معك عيادة الدكتور يونس المرشد. كيف يمكننا مساعدتك اليوم؟'),
+                ],
+                'payment_methods' => [
+                    'default'  => $defaultPaymentMethod,
                     'zaincash' => [
                         'enabled' => $payZainEnabled,
                         'qr'      => Setting::getFileUrl('payment_zaincash_qr', ''),
@@ -675,7 +656,11 @@ class ApiController extends Controller
                         'instructions' => Setting::get('payment_card_instructions', 'يمكنك الدفع مباشرة باستخدام أي بطاقة فيزا أو ماستر كارد بأمان وسرية تامة.'),
                     ],
                     'whatsapp_number' => Setting::get('whatsapp_number', '+9647800000000'),
-                ]
+                ],
+                'hero_images' => [
+                    'web'    => $doctorProfile?->hero_image,
+                    'mobile' => $doctorProfile?->mobile_hero_image ?? $doctorProfile?->hero_image,
+                ],
             ]
         ]);
     }
@@ -687,43 +672,28 @@ class ApiController extends Controller
     {
         $phone = $request->input('phone');
         $email = $request->input('email');
+        $identifier = $phone ?: $email;
 
-        if (empty($phone) && empty($email)) {
+        if (empty($identifier)) {
             return response()->json([
                 'success' => false,
                 'message' => 'يرجى تزويد رقم الهاتف أو البريد الإلكتروني للتحقق من حالة الحساب.'
             ], 422);
         }
 
-        $user = User::query()
-            ->when(!empty($phone), function ($q) use ($phone) {
-                $digits = preg_replace('/\D/', '', $phone);
-                $withoutZero = ltrim($digits, '0');
-                $last9 = strlen($withoutZero) >= 9 ? substr($withoutZero, -9) : $withoutZero;
-
-                $q->where(function ($sub) use ($phone, $digits, $last9) {
-                    $sub->where('phone', $phone)
-                        ->orWhere('phone', '+' . $digits)
-                        ->orWhere('phone', $digits);
-                    if (strlen($last9) >= 7) {
-                        $sub->orWhere('phone', 'like', '%' . $last9);
-                    }
-                });
-            })
-            ->when(!empty($email), fn($q) => $q->orWhere('email', $email))
-            ->first();
+        $user = $this->findUserByIdentifier($identifier);
 
         if ($user) {
             return response()->json([
-                'success' => true,
-                'is_registered' => true,
-                'requires_account' => false,
+                'success'           => true,
+                'is_registered'     => true,
+                'requires_account'  => false,
                 'requires_password' => false,
-                'account_prompt' => null,
-                'message' => 'العميل مسجل مسبقاً في النظام.',
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
+                'account_prompt'    => null,
+                'message'           => 'العميل مسجل مسبقاً في النظام.',
+                'user'              => [
+                    'id'    => $user->id,
+                    'name'  => $user->name,
                     'phone' => $user->phone,
                     'email' => $user->email,
                 ]
@@ -731,13 +701,13 @@ class ApiController extends Controller
         }
 
         return response()->json([
-            'success' => true,
-            'is_registered' => false,
-            'requires_account' => true,
+            'success'           => true,
+            'is_registered'     => false,
+            'requires_account'  => true,
             'requires_password' => true,
-            'account_prompt' => 'يرجى إضافة حسابك وكلمة المرور لإتمام الحجز وإنشاء حسابك.',
-            'message' => 'عميل جديد - يتطلب إضافة بيانات الحساب وكلمة المرور.',
-            'user' => null
+            'account_prompt'    => 'يرجى إضافة حسابك وكلمة المرور لإتمام الحجز وإنشاء حسابك.',
+            'message'           => 'عميل جديد - يتطلب إضافة بيانات الحساب وكلمة المرور.',
+            'user'              => null
         ]);
     }
 
@@ -766,7 +736,7 @@ class ApiController extends Controller
                     }
                 }
             } catch (\Throwable $e) {
-                // Fallback to other detection methods
+                // Fallback
             }
         }
 
@@ -783,23 +753,7 @@ class ApiController extends Controller
         if (!$existingUser) {
             $checkPhone = $request->input('phone');
             $checkEmail = $request->input('email');
-            if (!empty($checkPhone)) {
-                $digits = preg_replace('/\D/', '', $checkPhone);
-                $withoutZero = ltrim($digits, '0');
-                $last9 = strlen($withoutZero) >= 9 ? substr($withoutZero, -9) : $withoutZero;
-
-                $existingUser = User::where(function ($sub) use ($checkPhone, $digits, $last9) {
-                    $sub->where('phone', $checkPhone)
-                        ->orWhere('phone', '+' . $digits)
-                        ->orWhere('phone', $digits);
-                    if (strlen($last9) >= 7) {
-                        $sub->orWhere('phone', 'like', '%' . $last9);
-                    }
-                })->first();
-            }
-            if (!$existingUser && !empty($checkEmail)) {
-                $existingUser = User::where('email', $checkEmail)->first();
-            }
+            $existingUser = $this->findUserByIdentifier($checkPhone ?: $checkEmail);
         }
 
         // 4. Fallback: Lookup by patient_id or user_id if provided in payload
