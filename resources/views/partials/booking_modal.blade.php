@@ -1170,11 +1170,9 @@
                             @endif
                         </div>
                         @endforeach
-                    </div>
-                    @endif
 
                         {{-- رقم هاتف المحول والإيصال --}}
-                        <div class="proof-upload-box">
+                        <div class="proof-upload-box mt-3">
                             <div class="d-flex align-items-center justify-content-between mb-1">
                                 <label class="input-row-label mb-0">
                                     <i class="bi bi-phone text-primary me-1"></i> {{ $isArLocale ? 'رقم هاتف المحوّل / رقم التحويل' : 'Sender Phone / Transfer #' }}
@@ -1216,6 +1214,7 @@
                                 </div>
                             </div>
                         </div>
+
                     </div>
                     @endif
 
