@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use App\Services\NotificationMailService;
+use Illuminate\Support\Facades\Log;
 use Stripe\Stripe;
 use Stripe\PaymentIntent;
 use Stripe\Refund;
@@ -1175,6 +1177,215 @@ class ApiController extends Controller
             ],
             'booking' => $booking->fresh(['service', 'patient', 'payment'])
         ]);
+    }
+
+    /**
+     * Confirm local / manual payment (ZainCash, SuperKi, Cash, etc.) from mobile app or web client.
+     * Supports multipart/form-data (with receipt_image file) or JSON.
+     */
+    public function confirmLocalPayment(Request $request, ?string $bookingRef = null)
+    {
+        $ref = trim($bookingRef ?: ($request->input('booking_reference') ?? $request->input('booking_ref') ?? $request->input('reference') ?? $request->input('id') ?? ''));
+
+        if (empty($ref)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'الرقم المرجعي للحجز مطلوب (booking_reference is required).'
+            ], 422);
+        }
+
+        // Lookup booking by reference (case-insensitive) or ID
+        $booking = Booking::where('booking_reference', $ref)
+            ->orWhere('booking_reference', strtoupper($ref))
+            ->orWhere('id', is_numeric($ref) ? (int)$ref : 0)
+            ->first();
+
+        // Fallback search if passed in body differently
+        if (!$booking && $request->filled('booking_reference')) {
+            $bodyRef = trim($request->input('booking_reference'));
+            $booking = Booking::where('booking_reference', $bodyRef)
+                ->orWhere('booking_reference', strtoupper($bodyRef))
+                ->first();
+        }
+
+        if (!$booking) {
+            return response()->json([
+                'success' => false,
+                'message' => 'الحجز غير موجود. يرجى التأكد من الرقم المرجعي للحجز أو إرسال طلب الحجز أولاً.'
+            ], 404);
+        }
+
+        // If booking already finalized
+        if (in_array($booking->status, ['Confirmed', 'Completed'])) {
+            $patient = $booking->patient;
+            $token = null;
+            if ($patient) {
+                try {
+                    $token = $patient->createToken('mobile-token')->plainTextToken;
+                } catch (\Throwable $e) {}
+            }
+            return response()->json([
+                'success' => true,
+                'message' => 'تم تأكيد هذا الحجز وقبول الدفع مسبقاً من قِبل الإدارة.',
+                'status' => $booking->status,
+                'booking_reference' => $booking->booking_reference,
+                'token' => $token,
+                'token_type' => 'Bearer',
+                'user' => $patient ? [
+                    'id'    => $patient->id,
+                    'name'  => $patient->name,
+                    'phone' => $patient->phone,
+                    'email' => $patient->email,
+                    'role'  => $patient->role,
+                ] : null,
+                'booking' => $booking->fresh(['service', 'patient', 'payment'])
+            ], 200);
+        }
+
+        if (str_contains($booking->status, 'Cancelled')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'عذراً، هذا الحجز ملغي ولا يمكن تأكيد الدفع له.'
+            ], 422);
+        }
+
+        // Update payment method & transfer number
+        $paymentMethod = $request->input('payment_method') ?: ($booking->payment_method ?: 'zaincash');
+        $transferNumber = $request->input('transfer_number') ?: $request->input('sender_phone') ?: $request->input('wallet_number') ?: $request->input('sender_account') ?: $booking->transfer_number;
+        $transRef = $request->input('transaction_reference') ?? $request->input('transaction_id') ?? $request->input('ref_number');
+        $notes = $request->input('notes');
+
+        $booking->payment_method = $paymentMethod;
+
+        if ($transferNumber) {
+            $booking->transfer_number = $transferNumber;
+        }
+
+        // Receipt image handling
+        if ($request->hasFile('receipt_image')) {
+            $file = $request->file('receipt_image');
+            $filename = 'receipt_' . time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('receipts', $filename, 'public');
+            $booking->receipt_image = 'storage/' . $path;
+        } elseif ($request->hasFile('receipt_file')) {
+            $file = $request->file('receipt_file');
+            $filename = 'receipt_' . time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('receipts', $filename, 'public');
+            $booking->receipt_image = 'storage/' . $path;
+        } elseif ($request->filled('receipt_image') && is_string($request->input('receipt_image'))) {
+            $booking->receipt_image = $request->input('receipt_image');
+        }
+
+        // Append notes if provided
+        if ($notes || $paymentMethod || $transferNumber || $transRef) {
+            $noteItems = [];
+            if ($notes) $noteItems[] = "ملاحظات: {$notes}";
+            if ($paymentMethod) $noteItems[] = "طريقة الدفع: {$paymentMethod}";
+            if ($transferNumber) $noteItems[] = "رقم التحويل: {$transferNumber}";
+            if ($transRef) $noteItems[] = "رقم العملية: {$transRef}";
+            $booking->notes = trim(($booking->notes ? $booking->notes . " | " : "") . implode(' - ', $noteItems));
+        }
+
+        // Set status to PendingPaymentReview
+        $booking->status = 'PendingPaymentReview';
+        $booking->save();
+
+        // Update or create payment record
+        $payment = $booking->payment;
+        if (!$payment) {
+            $payment = Payment::create([
+                'booking_id' => $booking->id,
+                'payment_intent_id' => $transRef ?: ($transferNumber ?: ($paymentMethod . '_' . Str::random(10))),
+                'amount' => $booking->price,
+                'currency' => strtolower(Setting::currencyCode()),
+                'status' => 'Pending',
+            ]);
+        } else {
+            $updateData = [];
+            if ($transRef) {
+                $updateData['payment_intent_id'] = $transRef;
+            } elseif ($transferNumber && empty($payment->payment_intent_id)) {
+                $updateData['payment_intent_id'] = $transferNumber;
+            }
+            if (!empty($updateData)) {
+                $payment->update($updateData);
+            }
+        }
+
+        // Process patient user account creation if guest (temp_user_data)
+        $patient = $booking->patient;
+        $isNewUser = false;
+        if (!$patient && !empty($booking->temp_user_data)) {
+            $temp = $booking->temp_user_data;
+            $phone = $temp['phone'] ?? null;
+            $email = $temp['email'] ?? null;
+            $name = $temp['name'] ?? 'عميل جديد';
+            $password = $request->input('password') ?? ($temp['password'] ?? '12345678');
+
+            $existingUser = null;
+            if ($phone) {
+                $existingUser = $this->findUserByIdentifier($phone);
+            }
+            if (!$existingUser && $email) {
+                $existingUser = $this->findUserByIdentifier($email);
+            }
+
+            if ($existingUser) {
+                $patient = $existingUser;
+                $isNewUser = false;
+            } else {
+                $userEmail = !empty($email) ? $email : ('patient_' . preg_replace('/\D/', '', (string)$phone) . '@yonis-app.com');
+                $patient = User::create([
+                    'name' => $name,
+                    'phone' => $phone,
+                    'email' => $userEmail,
+                    'password' => Hash::make($password),
+                    'role' => 'patient',
+                ]);
+                $isNewUser = true;
+            }
+
+            $booking->patient_id = $patient->id;
+            $booking->temp_user_data = null;
+            $booking->save();
+        }
+
+        // Generate Sanctum Bearer token for mobile authentication
+        $token = null;
+        if ($patient) {
+            try {
+                $token = $patient->createToken('mobile-token')->plainTextToken;
+            } catch (\Throwable $e) {
+                $token = null;
+            }
+        }
+
+        // Fail-safe email notifications
+        NotificationMailService::notifyDoctorNewBooking($booking, 'إشعار تحويل وتأكيد دفع محلي جديد');
+        NotificationMailService::notifyPatientBookingReceived($booking);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم استلام تفاصيل الدفع بنجاح. حجزك الآن قيد مراجعة وتأكيد الإدارة.',
+            'status' => 'PendingPaymentReview',
+            'booking_reference' => $booking->booking_reference,
+            'payment_method' => $booking->payment_method,
+            'transfer_number' => $booking->transfer_number,
+            'receipt_image' => $booking->receipt_image,
+            'receipt_image_url' => $booking->receipt_image_url,
+            'transaction_reference' => $transRef,
+            'token' => $token,
+            'token_type' => 'Bearer',
+            'user' => $patient ? [
+                'id'    => $patient->id,
+                'name'  => $patient->name,
+                'phone' => $patient->phone,
+                'email' => $patient->email,
+                'role'  => $patient->role,
+            ] : null,
+            'redirect_url' => route('patient.dashboard'),
+            'booking' => $booking->fresh(['service', 'patient', 'payment']),
+        ], 200);
     }
 
     /**

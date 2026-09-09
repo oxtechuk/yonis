@@ -60,6 +60,7 @@ Route::prefix('checkout')->group(function () {
     Route::match(['get', 'post'], '/check-user', [ApiController::class, 'checkUser']);
     Route::post('/initialize', [ApiController::class, 'initializeCheckout']);
     Route::post('/confirm', [ApiController::class, 'confirmCheckout']);
+    Route::post('/confirm-local', [ApiController::class, 'confirmLocalPayment']);
 });
 
 // Authentication Routes (Web Session Protected with Rate Limiting)

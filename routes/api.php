@@ -56,8 +56,12 @@ Route::middleware('throttle:15,1')->group(function () {
     Route::match(['get', 'post'], '/booking/check-user', [ApiController::class, 'checkUser']);
     Route::get('/booking/available-slots', [ApiController::class, 'getSlots']);
 
-    // Patient confirms local payment (ZainCash / SuperKi) — public, no token needed
-    Route::post('/booking/{bookingRef}/confirm-payment', [BookingController::class, 'confirmPayment']);
+    // Local & Manual Payment Confirmation Endpoints (ZainCash, SuperKi, Cash, etc.)
+    Route::post('/checkout/confirm-local', [ApiController::class, 'confirmLocalPayment']);
+    Route::post('/payment/confirm-local', [ApiController::class, 'confirmLocalPayment']);
+    Route::post('/payment/confirm', [ApiController::class, 'confirmLocalPayment']);
+    Route::post('/booking/confirm-payment', [ApiController::class, 'confirmLocalPayment']);
+    Route::post('/booking/{bookingRef}/confirm-payment', [ApiController::class, 'confirmLocalPayment']);
 
     // SpaceRemit Webhook notification endpoint (IPN callback)
     Route::post('/payment/spaceremit/webhook', [BookingController::class, 'spaceremitWebhook']);
