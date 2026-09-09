@@ -1,3 +1,6 @@
+@php
+    $isAr = $isAr ?? (app()->getLocale() === 'ar');
+@endphp
 @extends('layouts.app')
 
 @section('title', ($isAr ? 'سياسة الخصوصية وحماية البيانات' : 'Privacy & Data Protection Policy') . ' - ' . \App\Models\Setting::get('doctor_name', 'يونس المرشد'))

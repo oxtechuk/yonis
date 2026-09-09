@@ -38,7 +38,8 @@ class HomeController extends Controller
      */
     public function privacyPolicy()
     {
-        return view('legal.privacy');
+        $isAr = app()->getLocale() === 'ar';
+        return view('legal.privacy', compact('isAr'));
     }
 
     /**
@@ -46,6 +47,8 @@ class HomeController extends Controller
      */
     public function termsConditions()
     {
-        return view('legal.terms');
+        $isAr = app()->getLocale() === 'ar';
+        return view('legal.terms', compact('isAr'));
     }
 }
+

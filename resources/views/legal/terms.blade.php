@@ -1,3 +1,6 @@
+@php
+    $isAr = $isAr ?? (app()->getLocale() === 'ar');
+@endphp
 @extends('layouts.app')
 
 @section('title', ($isAr ? 'الشروط والأحكام وسياسة الاستخدام' : 'Terms & Conditions of Service') . ' - ' . \App\Models\Setting::get('doctor_name', 'يونس المرشد'))
