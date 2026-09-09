@@ -123,6 +123,30 @@ class Service extends Model
     }
 
     /**
+     * Accessor for channel_type
+     */
+    public function getChannelTypeAttribute(): string
+    {
+        return $this->getChannelType();
+    }
+
+    /**
+     * Accessor for channel_label
+     */
+    public function getChannelLabelAttribute(): string
+    {
+        return $this->getChannelLabel();
+    }
+
+    /**
+     * Accessor for display_price
+     */
+    public function getDisplayPriceAttribute(): float
+    {
+        return $this->getDisplayPrice();
+    }
+
+    /**
      * Determine the single channel or channels for this service
      * Returns: 'clinic', 'video', 'voice', 'chat', or 'all'
      */
