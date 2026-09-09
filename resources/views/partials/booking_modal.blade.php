@@ -621,43 +621,6 @@
                         </button>
                     </div>
 
-                </div>{{-- End Screen 2 --}}Image();" title="حذف الصورة" style="width:30px;height:30px; display:flex; align-items:center; justify-content:center;">
-                                        <i class="bi bi-trash3-fill"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Alert box with proper bidi wrapping --}}
-                        <div class="alert alert-light border rounded-4 p-2.5 mt-3 mb-0 d-flex align-items-center gap-2 small text-secondary" dir="rtl" style="text-align: right;">
-                            <i class="bi bi-info-circle-fill text-primary fs-5 flex-shrink-0"></i>
-                            <div style="line-height: 1.6;">
-                                امسح رمز <bdi dir="ltr" class="fw-bold">QR</bdi> أعلاه لإتمام التحويل، ثم اضغط <strong>تأكيد الحجز</strong> لإرسال الإيصال وتثبيت الموعد.
-                            </div>
-                        </div>
-                    </div>
-                    @endif
-
-                    {{-- Terms check --}}
-                    <div class="form-check mb-3 mt-3">
-                        <input class="form-check-input" type="checkbox" id="app_terms_check" checked>
-                        <label class="form-check-label small fw-bold text-secondary" for="app_terms_check">
-                            {{ $isArLocale ? 'أوافق على الشروط والسرية الطبية التامة' : 'I agree to the Terms & Privacy Policy' }}
-                        </label>
-                    </div>
-
-                    {{-- Bottom Action Bar for Screen 2 --}}
-                    <div class="mobile-app-bottom-bar">
-                        <button type="button" class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-bold d-flex align-items-center gap-1.5" onclick="goToAppScreen1()">
-                            <i class="bi bi-arrow-right"></i>
-                            <span>السابق</span>
-                        </button>
-                        <button type="button" class="btn-app-primary flex-fill d-flex align-items-center justify-content-center gap-2" id="app-submit-pay-btn" onclick="executeAppBooking()">
-                            <i class="bi bi-check-circle-fill"></i>
-                            <span>تأكيد الحجز وإرسال الإيصال (<span id="app-btn-price-display">{{ $modalServices->first()->price ?? 50 }} {{ \App\Models\Setting::currencySymbol() }}</span>)</span>
-                        </button>
-                    </div>
-
                 </div>{{-- End Screen 2 --}}
 
                 {{-- ═══════════════════════════════════════════════════════════
