@@ -1043,6 +1043,8 @@ class ApiController extends Controller
                     'role' => $patient->role,
                 ] : null,
                 'booking_reference' => $bookingRef,
+                'transaction_reference' => $paymentIntentId,
+                'transaction_id' => $paymentIntentId,
                 'stripe_enabled' => $stripeEnabled,
                 'client_secret' => $clientSecret,
                 'amount' => $calculatedPrice,

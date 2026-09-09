@@ -202,6 +202,7 @@ class BookingController extends Controller
             return response()->json([
                 'success' => true,
                 'booking_reference' => $bookingRef,
+                'transaction_reference' => 'TX-' . strtoupper(\Illuminate\Support\Str::random(10)),
                 'price' => $service->price,
             ]);
         });
