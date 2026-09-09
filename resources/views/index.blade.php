@@ -598,7 +598,135 @@
     </div>
 </div>
 
-{{-- ════════════════════════════════�                    @foreach($onlineServices as $index => $service)
+{{-- ═══════════════════════════════════════════════════════════════════════
+     3. SERVICES SECTION (Online & Clinic Tabs)
+═══════════════════════════════════════════════════════════════════════ --}}
+<section id="services" class="services-wrapper reveal-on-scroll">
+    <div class="container">
+        <div class="text-center mb-5">
+            <div class="section-label">
+                <i class="bi bi-stars"></i>
+                <span>{{ $isAr ? 'جلسات واستشارات تخصصية' : 'Professional Consultation Services' }}</span>
+            </div>
+            <h2 class="section-title">{{ __('messages.services_title') }}</h2>
+            <p class="section-subtitle">{{ __('messages.services_subtitle') }}</p>
+
+            {{-- Category Switcher Tabs (Online vs In-Clinic) --}}
+            <div class="d-inline-flex p-1.5 bg-white rounded-pill border shadow-sm mt-4 gap-1">
+                <button type="button" class="btn btn-sm rounded-pill px-4 py-2 fw-bold active" id="btnCategoryOnline" onclick="showServiceCategory('online')">
+                    <i class="bi bi-globe me-1 text-primary"></i> {{ $isAr ? 'استشارات أونلاين (عن بعد)' : 'Online Consultations' }}
+                </button>
+                <button type="button" class="btn btn-sm rounded-pill px-4 py-2 fw-bold text-secondary" id="btnCategoryClinic" onclick="showServiceCategory('clinic')">
+                    <i class="bi bi-hospital me-1 text-danger"></i> {{ $isAr ? 'كشف وحضور بالعيادة (بغداد)' : 'In-Clinic Sessions' }}
+                </button>
+            </div>
+        </div>
+
+        @php
+            $onlineServices = $services->filter(fn($s) => $s->type === 'online' || $s->getChannelType() !== 'clinic');
+            if ($onlineServices->isEmpty()) {
+                $onlineServices = $services;
+            }
+            $clinicServices = $services->filter(fn($s) => $s->type === 'clinic' || ($s->clinic_price ?? 0) > 0 || $s->getChannelType() === 'clinic');
+            if ($clinicServices->isEmpty()) {
+                $clinicServices = $services;
+            }
+        @endphp
+
+        {{-- ─── ONLINE SERVICES SWIPER ─── --}}
+        <div id="onlineCategoryGrid" class="services-category-block">
+            <div class="swiper services-swiper-online">
+                <div class="swiper-wrapper">
+                    @foreach($onlineServices as $index => $service)
+                        <div class="swiper-slide h-auto">
+                            <div class="service-card-new h-100 d-flex flex-column justify-content-between {{ $index === 0 ? 'popular' : '' }}"
+                                 onclick="selectServiceAndOpenModal({{ $service->id }}, '{{ $service->title }}', {{ $service->getDisplayPrice() }}, {{ $service->duration }}, 'online')">
+                                
+                                <div class="d-flex flex-column flex-grow-1">
+                                    {{-- Header: Icon + Channel Badge --}}
+                                    <div class="d-flex justify-content-between align-items-start mb-3 pt-1">
+                                        <div class="pricing-icon-bubble">
+                                            @if(!empty($service->icon_url))
+                                                <img src="{{ $service->icon_url }}" alt="{{ $service->title }}" style="width:28px; height:28px; object-fit:contain;">
+                                            @elseif(!empty($service->icon) && !str_contains($service->icon, '/') && !str_starts_with($service->icon, 'http'))
+                                                <i class="bi {{ str_starts_with($service->icon, 'bi-') ? $service->icon : 'bi-' . $service->icon }}"></i>
+                                            @else
+                                                <i class="bi {{ $service->getChannelIcon() }}"></i>
+                                            @endif
+                                        </div>
+                                        <div class="d-flex flex-column align-items-end gap-1">
+                                            <span class="badge bg-primary bg-opacity-10 text-primary fw-bold rounded-pill px-3 py-1.5" style="font-size: 0.78rem;">
+                                                <i class="bi {{ $service->getChannelIcon() }} me-1"></i> {{ $service->getChannelLabel() }}
+                                            </span>
+                                            <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1" style="font-size: 0.74rem;">
+                                                <i class="bi bi-clock me-1 text-primary"></i> {{ $service->duration }} {{ $isAr ? 'دقيقة' : 'mins' }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {{-- Title & Description --}}
+                                    <h4 class="service-card-title">{{ $service->title }}</h4>
+                                    <p class="service-card-desc">{{ $service->description }}</p>
+
+                                    {{-- Multi-channel price tags or single price --}}
+                                    <div class="pricing-amount-box">
+                                        <div>
+                                            <span class="text-secondary small fw-bold d-block mb-1">{{ $isAr ? 'قيمة الاستشارة' : 'Consultation Fee' }}</span>
+                                            <div class="pricing-main-price">
+                                                {{ $service->getFormattedPrice() }}
+                                                <small>{{ $isAr ? '/ للجلسة' : '/ session' }}</small>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small fw-bold">
+                                                <i class="bi bi-shield-check me-1"></i> {{ $isAr ? 'سرية تامة' : 'Confidential' }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {{-- Channel Price Breakdown if multiple prices exist --}}
+                                    @if($service->video_price || $service->voice_price || $service->chat_price)
+                                        <div class="d-flex flex-wrap gap-1.5 mt-2.5 pt-2 border-top">
+                                            @if($service->video_price)
+                                                <span class="badge bg-light text-dark border px-2 py-1 small" style="font-size: 0.72rem;">
+                                                    <i class="bi bi-camera-video-fill text-primary me-1"></i> فيديو: {{ \App\Models\Setting::formatPrice($service->video_price) }}
+                                                </span>
+                                            @endif
+                                            @if($service->voice_price)
+                                                <span class="badge bg-light text-dark border px-2 py-1 small" style="font-size: 0.72rem;">
+                                                    <i class="bi bi-telephone-fill text-success me-1"></i> صوت: {{ \App\Models\Setting::formatPrice($service->voice_price) }}
+                                                </span>
+                                            @endif
+                                            @if($service->chat_price)
+                                                <span class="badge bg-light text-dark border px-2 py-1 small" style="font-size: 0.72rem;">
+                                                    <i class="bi bi-chat-dots-fill text-info me-1"></i> شات: {{ \App\Models\Setting::formatPrice($service->chat_price) }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @endif
+
+                                </div>
+
+                                {{-- Action CTA Button --}}
+                                <div class="mt-auto pt-3">
+                                    <button type="button" class="btn btn-primary w-100 py-3 rounded-pill fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#bookingModal">
+                                        <span>{{ __('messages.book_now') }}</span>
+                                        <i class="bi bi-arrow-{{ $isAr ? 'left' : 'right' }} fs-6"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                <div class="swiper-pagination services-pagination-online mt-4"></div>
+            </div>
+        </div>
+
+        {{-- ─── CLINIC SERVICES SWIPER ─── --}}
+        <div id="clinicCategoryGrid" class="services-category-block d-none">
+            <div class="swiper services-swiper-clinic">
+                <div class="swiper-wrapper">
+                    @foreach($clinicServices as $index => $service)
                         <div class="swiper-slide h-auto">
                             <div class="service-card-new clinic-card-luxury h-100 d-flex flex-column justify-content-between {{ $index === 0 ? 'popular' : '' }}"
                                  onclick="selectServiceAndOpenModal({{ $service->id }}, '{{ $service->title }}', {{ $service->clinic_price ?? $service->price }}, {{ $service->duration }}, 'clinic')">
@@ -664,7 +792,7 @@
     </div>
 </section>
 
-{{-- ═══════════════════════════════════════════════════════════
+{{-- ═══════════════════════════════════════════════════════════════════════
      4. REELS SECTION
 ═══════════════════════════════════════════════════════════ --}}
 <section id="reels-section" class="reels-wrapper reveal-on-scroll">
