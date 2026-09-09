@@ -491,13 +491,17 @@
                                 <div class="card-header border-0 py-3 px-4 d-flex justify-content-between align-items-center"
                                      style="background: linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%);">
                                     <div class="d-flex align-items-center gap-3">
-                                        <div class="rounded-3 d-flex align-items-center justify-content-center text-white"
-                                             style="width:44px;height:44px;background:rgba(255,255,255,0.15);font-size:1.4rem;">
-                                            💜
+                                        <div class="rounded-3 d-flex align-items-center justify-content-center text-white overflow-hidden bg-white p-1"
+                                             style="width:48px;height:48px;">
+                                            @if(!empty($settings['payment_zaincash_logo']))
+                                                <img src="{{ $settings['payment_zaincash_logo'] }}" alt="ZainCash Logo" style="max-width:100%;max-height:100%;object-fit:contain;">
+                                            @else
+                                                <span style="font-size:1.5rem;">💜</span>
+                                            @endif
                                         </div>
                                         <div>
-                                            <h6 class="fw-bold text-white m-0">زين كاش (ZainCash)</h6>
-                                            <span class="text-white opacity-75 small">دفع محلي عبر QR Code</span>
+                                            <h6 class="fw-bold text-white m-0">{{ $settings['payment_zaincash_name'] ?? 'زين كاش (ZainCash)' }}</h6>
+                                            <span class="text-white opacity-75 small">المعرف البرمجي (ID): <code class="text-warning bg-dark bg-opacity-50 px-1.5 py-0.5 rounded">zaincash</code></span>
                                         </div>
                                     </div>
                                     <div class="form-check form-switch m-0">
@@ -510,48 +514,62 @@
                                 </div>
                                 <div class="card-body p-4">
                                     <div class="row g-4 align-items-start">
-                                        {{-- QR Upload --}}
-                                        <div class="col-md-5">
-                                            <label class="form-label fw-bold text-dark mb-2">
-                                                <i class="bi bi-qr-code me-1 text-purple"></i> صورة رمز QR
+                                        {{-- اسم الطريقة وشعارها --}}
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold text-dark mb-1">
+                                                <i class="bi bi-tag-fill me-1 text-purple"></i> اسم طريقة الدفع
                                             </label>
-                                            <div class="border-2 border-dashed rounded-4 p-3 text-center bg-light position-relative"
+                                            <input type="text" name="payment_zaincash_name" class="form-control rounded-3 mb-3"
+                                                   placeholder="زين كاش" value="{{ $settings['payment_zaincash_name'] ?? 'زين كاش (ZainCash)' }}">
+
+                                            <label class="form-label fw-bold text-dark mb-1">
+                                                <i class="bi bi-image me-1 text-purple"></i> صورة / أيقونة الطريقة (Logo)
+                                            </label>
+                                            <div class="border rounded-3 p-2 text-center bg-light mb-2" style="min-height:90px; display:flex; align-items:center; justify-content:center;">
+                                                @if(!empty($settings['payment_zaincash_logo']))
+                                                    <img id="zaincash-logo-img" src="{{ $settings['payment_zaincash_logo'] }}" alt="Logo" style="max-height:75px; object-fit:contain;">
+                                                @else
+                                                    <div id="zaincash-logo-img" class="text-muted small py-2"><i class="bi bi-image fs-3 d-block mb-1"></i>لا يوجد لوجو مخصص</div>
+                                                @endif
+                                            </div>
+                                            <input type="file" name="payment_zaincash_logo_file" class="form-control form-control-sm rounded-3" accept="image/*" onchange="previewUploadImage(this, 'zaincash-logo-img')">
+                                        </div>
+
+                                        {{-- QR Upload --}}
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold text-dark mb-1">
+                                                <i class="bi bi-qr-code me-1 text-purple"></i> صورة رمز QR للتحويل
+                                            </label>
+                                            <div class="border-2 border-dashed rounded-4 p-2 text-center bg-light position-relative mb-2"
                                                  id="zaincash-qr-preview-box"
-                                                 style="min-height:180px;border-color:#c4b5fd !important;border-style:dashed;">
+                                                 style="min-height:140px;border-color:#c4b5fd !important;border-style:dashed; display:flex; align-items:center; justify-content:center;">
                                                 @if(!empty($settings['payment_zaincash_qr']))
                                                     <img id="zaincash-qr-img" src="{{ $settings['payment_zaincash_qr'] }}"
                                                          alt="ZainCash QR"
                                                          class="img-fluid rounded-3 shadow-sm"
-                                                         style="max-height:150px;object-fit:contain;">
+                                                         style="max-height:125px;object-fit:contain;">
                                                 @else
-                                                    <div id="zaincash-qr-img" class="text-muted py-4">
-                                                        <i class="bi bi-qr-code" style="font-size:3rem;opacity:.3;"></i>
-                                                        <p class="small mt-2 mb-0">لم يتم رفع صورة QR بعد</p>
+                                                    <div id="zaincash-qr-img" class="text-muted py-2">
+                                                        <i class="bi bi-qr-code" style="font-size:2.2rem;opacity:.3;"></i>
+                                                        <p class="small mt-1 mb-0">لم يتم رفع صورة QR</p>
                                                     </div>
                                                 @endif
                                             </div>
-                                            <div class="mt-3">
-                                                <label class="form-label small fw-bold">رفع صورة QR جديدة:</label>
-                                                <input type="file" name="payment_zaincash_qr_file" class="form-control form-control-sm rounded-3"
-                                                       accept="image/*"
-                                                       onchange="previewQR(this, 'zaincash-qr-img')">
-                                            </div>
-                                            <div class="mt-2">
-                                                <label class="form-label small fw-bold">أو رابط مباشر (URL):</label>
-                                                <input type="text" name="payment_zaincash_qr" class="form-control form-control-sm rounded-3"
-                                                       placeholder="https://..." value="{{ $settings['payment_zaincash_qr'] }}">
-                                            </div>
+                                            <input type="file" name="payment_zaincash_qr_file" class="form-control form-control-sm rounded-3"
+                                                   accept="image/*"
+                                                   onchange="previewUploadImage(this, 'zaincash-qr-img')">
                                         </div>
+
                                         {{-- Label / Instructions --}}
-                                        <div class="col-md-7">
-                                            <label class="form-label fw-bold text-dark mb-2">
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold text-dark mb-1">
                                                 <i class="bi bi-chat-left-text me-1"></i> تعليمات الدفع للمريض
                                             </label>
                                             <textarea name="payment_zaincash_label" class="form-control rounded-3" rows="5"
                                                       placeholder="مثال: افتح تطبيق زين كاش، اسحب الرمز، وأرسل الإيصال...">{{ $settings['payment_zaincash_label'] }}</textarea>
                                             <p class="text-muted small mt-2">
                                                 <i class="bi bi-info-circle me-1"></i>
-                                                هذا النص سيظهر للمريض أسفل صورة QR أثناء الحجز.
+                                                يظهر هذا الشرح للمريض عند اختيار زين كاش.
                                             </p>
                                         </div>
                                     </div>
@@ -565,13 +583,17 @@
                                 <div class="card-header border-0 py-3 px-4 d-flex justify-content-between align-items-center"
                                      style="background: linear-gradient(135deg, #0284c7 0%, #075985 100%);">
                                     <div class="d-flex align-items-center gap-3">
-                                        <div class="rounded-3 d-flex align-items-center justify-content-center text-white"
-                                             style="width:44px;height:44px;background:rgba(255,255,255,0.15);font-size:1.4rem;">
-                                            🔵
+                                        <div class="rounded-3 d-flex align-items-center justify-content-center text-white overflow-hidden bg-white p-1"
+                                             style="width:48px;height:48px;">
+                                            @if(!empty($settings['payment_superki_logo']))
+                                                <img src="{{ $settings['payment_superki_logo'] }}" alt="SuperKi Logo" style="max-width:100%;max-height:100%;object-fit:contain;">
+                                            @else
+                                                <span style="font-size:1.5rem;">🔵</span>
+                                            @endif
                                         </div>
                                         <div>
-                                            <h6 class="fw-bold text-white m-0">SuperKi</h6>
-                                            <span class="text-white opacity-75 small">دفع محلي عبر QR Code</span>
+                                            <h6 class="fw-bold text-white m-0">{{ $settings['payment_superki_name'] ?? 'SuperKi' }}</h6>
+                                            <span class="text-white opacity-75 small">المعرف البرمجي (ID): <code class="text-warning bg-dark bg-opacity-50 px-1.5 py-0.5 rounded">superki</code></span>
                                         </div>
                                     </div>
                                     <div class="form-check form-switch m-0">
@@ -584,47 +606,61 @@
                                 </div>
                                 <div class="card-body p-4">
                                     <div class="row g-4 align-items-start">
-                                        {{-- QR Upload --}}
-                                        <div class="col-md-5">
-                                            <label class="form-label fw-bold text-dark mb-2">
-                                                <i class="bi bi-qr-code me-1 text-info"></i> صورة رمز QR
+                                        {{-- اسم وشعار --}}
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold text-dark mb-1">
+                                                <i class="bi bi-tag-fill me-1 text-info"></i> اسم طريقة الدفع
                                             </label>
-                                            <div class="border-2 border-dashed rounded-4 p-3 text-center bg-light"
-                                                 style="min-height:180px;border-color:#7dd3fc !important;border-style:dashed;">
+                                            <input type="text" name="payment_superki_name" class="form-control rounded-3 mb-3"
+                                                   placeholder="SuperKi" value="{{ $settings['payment_superki_name'] ?? 'SuperKi' }}">
+
+                                            <label class="form-label fw-bold text-dark mb-1">
+                                                <i class="bi bi-image me-1 text-info"></i> صورة / أيقونة الطريقة (Logo)
+                                            </label>
+                                            <div class="border rounded-3 p-2 text-center bg-light mb-2" style="min-height:90px; display:flex; align-items:center; justify-content:center;">
+                                                @if(!empty($settings['payment_superki_logo']))
+                                                    <img id="superki-logo-img" src="{{ $settings['payment_superki_logo'] }}" alt="Logo" style="max-height:75px; object-fit:contain;">
+                                                @else
+                                                    <div id="superki-logo-img" class="text-muted small py-2"><i class="bi bi-image fs-3 d-block mb-1"></i>لا يوجد لوجو مخصص</div>
+                                                @endif
+                                            </div>
+                                            <input type="file" name="payment_superki_logo_file" class="form-control form-control-sm rounded-3" accept="image/*" onchange="previewUploadImage(this, 'superki-logo-img')">
+                                        </div>
+
+                                        {{-- QR Upload --}}
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold text-dark mb-1">
+                                                <i class="bi bi-qr-code me-1 text-info"></i> صورة رمز QR للتحويل
+                                            </label>
+                                            <div class="border-2 border-dashed rounded-4 p-2 text-center bg-light mb-2"
+                                                 style="min-height:140px;border-color:#7dd3fc !important;border-style:dashed; display:flex; align-items:center; justify-content:center;">
                                                 @if(!empty($settings['payment_superki_qr']))
                                                     <img id="superki-qr-img" src="{{ $settings['payment_superki_qr'] }}"
                                                          alt="SuperKi QR"
                                                          class="img-fluid rounded-3 shadow-sm"
-                                                         style="max-height:150px;object-fit:contain;">
+                                                         style="max-height:125px;object-fit:contain;">
                                                 @else
-                                                    <div id="superki-qr-img" class="text-muted py-4">
-                                                        <i class="bi bi-qr-code" style="font-size:3rem;opacity:.3;"></i>
-                                                        <p class="small mt-2 mb-0">لم يتم رفع صورة QR بعد</p>
+                                                    <div id="superki-qr-img" class="text-muted py-2">
+                                                        <i class="bi bi-qr-code" style="font-size:2.2rem;opacity:.3;"></i>
+                                                        <p class="small mt-1 mb-0">لم يتم رفع صورة QR</p>
                                                     </div>
                                                 @endif
                                             </div>
-                                            <div class="mt-3">
-                                                <label class="form-label small fw-bold">رفع صورة QR جديدة:</label>
-                                                <input type="file" name="payment_superki_qr_file" class="form-control form-control-sm rounded-3"
-                                                       accept="image/*"
-                                                       onchange="previewQR(this, 'superki-qr-img')">
-                                            </div>
-                                            <div class="mt-2">
-                                                <label class="form-label small fw-bold">أو رابط مباشر (URL):</label>
-                                                <input type="text" name="payment_superki_qr" class="form-control form-control-sm rounded-3"
-                                                       placeholder="https://..." value="{{ $settings['payment_superki_qr'] }}">
-                                            </div>
+                                            <input type="file" name="payment_superki_qr_file" class="form-control form-control-sm rounded-3"
+                                                   accept="image/*"
+                                                   onchange="previewUploadImage(this, 'superki-qr-img')">
                                         </div>
+
                                         {{-- Label / Instructions --}}
-                                        <div class="col-md-7">
-                                            <label class="form-label fw-bold text-dark mb-2">
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold text-dark mb-1">
                                                 <i class="bi bi-chat-left-text me-1"></i> تعليمات الدفع للمريض
                                             </label>
                                             <textarea name="payment_superki_label" class="form-control rounded-3" rows="5"
                                                       placeholder="مثال: افتح تطبيق SuperKi، اسحب الرمز، وأرسل الإيصال...">{{ $settings['payment_superki_label'] }}</textarea>
                                             <p class="text-muted small mt-2">
                                                 <i class="bi bi-info-circle me-1"></i>
-                                                هذا النص سيظهر للمريض أسفل صورة QR أثناء الحجز.
+                                                يظهر هذا الشرح للمريض عند اختيار SuperKi.
                                             </p>
                                         </div>
                                     </div>
@@ -638,14 +674,20 @@
                                 <div class="card-header border-0 py-3 px-4 d-flex justify-content-between align-items-center"
                                      style="background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%);">
                                     <div class="d-flex align-items-center gap-3">
-                                        <div class="rounded-3 d-flex align-items-center justify-content-center text-white bg-white p-1"
-                                             style="width:52px;height:40px;border-radius:10px;">
-                                            <span class="fw-black text-primary" style="font-size:0.75rem; letter-spacing: -0.5px;">VISA</span>
-                                            <span class="fw-black text-danger ms-1" style="font-size:0.75rem;">MC</span>
+                                        <div class="rounded-3 d-flex align-items-center justify-content-center text-white bg-white p-1 overflow-hidden"
+                                             style="width:56px;height:44px;border-radius:10px;">
+                                            @if(!empty($settings['payment_card_logo']))
+                                                <img src="{{ $settings['payment_card_logo'] }}" alt="Card Logo" style="max-width:100%;max-height:100%;object-fit:contain;">
+                                            @else
+                                                <div class="d-flex align-items-center">
+                                                    <span class="fw-black text-primary" style="font-size:0.75rem; letter-spacing: -0.5px;">VISA</span>
+                                                    <span class="fw-black text-danger ms-0.5" style="font-size:0.75rem;">MC</span>
+                                                </div>
+                                            @endif
                                         </div>
                                         <div>
-                                            <h6 class="fw-bold text-white m-0">فيزا وماستر كارد (Visa & MasterCard)</h6>
-                                            <span class="text-white opacity-75 small">بوابة دفع البطاقات الائتمانية والخصم المباشر</span>
+                                            <h6 class="fw-bold text-white m-0">{{ $settings['payment_card_name'] ?? 'فيزا وماستر كارد (Visa & MasterCard)' }}</h6>
+                                            <span class="text-white opacity-75 small">المعرف البرمجي (ID): <code class="text-warning bg-dark bg-opacity-50 px-1.5 py-0.5 rounded">card</code></span>
                                         </div>
                                     </div>
                                     <div class="form-check form-switch m-0">
@@ -658,58 +700,61 @@
                                 </div>
                                 <div class="card-body p-4">
                                     <div class="row g-4">
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-bold text-dark">
-                                                <i class="bi bi-key-fill me-1 text-primary"></i>
-                                                المفتاح العام (Stripe / Gateway Public Key)
-                                            </label>
-                                            <p class="text-muted small">المفتاح المتاح لربط بوابة الدفع (مثل Stripe Publishable Key pk_live...).</p>
-                                            <div class="input-group">
-                                                <span class="input-group-text bg-light border-end-0">
-                                                    <i class="bi bi-shield-lock text-primary"></i>
-                                                </span>
-                                                <input type="text" name="payment_card_key"
-                                                       class="form-control rounded-end-3 font-monospace"
-                                                       placeholder="pk_live_XXXXXXXXXXXXXXXX"
-                                                       value="{{ $settings['payment_card_key'] ?? '' }}">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-bold text-dark">
-                                                <i class="bi bi-link-45deg me-1 text-primary"></i>
-                                                رابط الدفع المباشر للبطاقات (اختياري)
-                                            </label>
-                                            <p class="text-muted small">إذا كان لديك رابط دفع مباشر عبر Gumroad أو Stripe Payment Link أو بوابة أخرى.</p>
-                                            <div class="input-group">
-                                                <span class="input-group-text bg-light border-end-0">
-                                                    <i class="bi bi-globe text-primary"></i>
-                                                </span>
-                                                <input type="url" name="payment_card_link"
-                                                       class="form-control rounded-end-3"
-                                                       placeholder="https://buy.stripe.com/..."
-                                                       value="{{ $settings['payment_card_link'] ?? '' }}">
-                                            </div>
-                                        </div>
                                         <div class="col-md-4">
-                                            <label class="form-label fw-bold text-dark">
+                                            <label class="form-label fw-bold text-dark mb-1">
+                                                <i class="bi bi-tag-fill me-1 text-primary"></i> اسم طريقة الدفع
+                                            </label>
+                                            <input type="text" name="payment_card_name" class="form-control rounded-3 mb-3"
+                                                   placeholder="بطاقة دفع (فيزا / ماستر كارد)" value="{{ $settings['payment_card_name'] ?? 'بطاقة دفع (فيزا / ماستر كارد)' }}">
+
+                                            <label class="form-label fw-bold text-dark mb-1">
+                                                <i class="bi bi-image me-1 text-primary"></i> صورة / أيقونة الطريقة (Logo)
+                                            </label>
+                                            <div class="border rounded-3 p-2 text-center bg-light mb-2" style="min-height:90px; display:flex; align-items:center; justify-content:center;">
+                                                @if(!empty($settings['payment_card_logo']))
+                                                    <img id="card-logo-img" src="{{ $settings['payment_card_logo'] }}" alt="Logo" style="max-height:75px; object-fit:contain;">
+                                                @else
+                                                    <div id="card-logo-img" class="text-muted small py-2"><i class="bi bi-credit-card-2-front fs-3 d-block mb-1"></i>أيقونة فيزا وماستركارد الافتراضية</div>
+                                                @endif
+                                            </div>
+                                            <input type="file" name="payment_card_logo_file" class="form-control form-control-sm rounded-3" accept="image/*" onchange="previewUploadImage(this, 'card-logo-img')">
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold text-dark mb-1">
+                                                <i class="bi bi-key-fill me-1 text-primary"></i> المفتاح العام (Stripe Key)
+                                            </label>
+                                            <div class="input-group mb-3">
+                                                <span class="input-group-text bg-light"><i class="bi bi-shield-lock text-primary"></i></span>
+                                                <input type="text" name="payment_card_key" class="form-control font-monospace" placeholder="pk_live_..." value="{{ $settings['payment_card_key'] ?? '' }}">
+                                            </div>
+
+                                            <label class="form-label fw-bold text-dark mb-1">
+                                                <i class="bi bi-link-45deg me-1 text-primary"></i> رابط الدفع المباشر (اختياري)
+                                            </label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light"><i class="bi bi-globe text-primary"></i></span>
+                                                <input type="url" name="payment_card_link" class="form-control" placeholder="https://..." value="{{ $settings['payment_card_link'] ?? '' }}">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold text-dark mb-1">
                                                 <i class="bi bi-currency-dollar me-1 text-primary"></i> العملة الأساسية للدفع
                                             </label>
-                                            <select name="payment_card_currency" class="form-select rounded-3">
+                                            <select name="payment_card_currency" class="form-select rounded-3 mb-3">
                                                 <option value="USD" @selected(($settings['payment_card_currency'] ?? 'USD') === 'USD')>USD — دولار أمريكي</option>
                                                 <option value="IQD" @selected(($settings['payment_card_currency'] ?? 'USD') === 'IQD')>IQD — دينار عراقي</option>
                                                 <option value="EUR" @selected(($settings['payment_card_currency'] ?? 'USD') === 'EUR')>EUR — يورو</option>
                                                 <option value="SAR" @selected(($settings['payment_card_currency'] ?? 'USD') === 'SAR')>SAR — ريال سعودي</option>
                                                 <option value="AED" @selected(($settings['payment_card_currency'] ?? 'USD') === 'AED')>AED — درهم إماراتي</option>
                                             </select>
-                                        </div>
-                                        <div class="col-md-8">
-                                            <label class="form-label fw-bold text-dark">
-                                                <i class="bi bi-chat-left-text me-1 text-primary"></i>
-                                                تعليمات وتوضيحات الدفع للمريض
+
+                                            <label class="form-label fw-bold text-dark mb-1">
+                                                <i class="bi bi-chat-left-text me-1 text-primary"></i> تعليمات الدفع للمريض
                                             </label>
-                                            <input type="text" name="payment_card_instructions" class="form-control rounded-3"
-                                                   placeholder="تظهر للمريض عند اختيار فيزا / ماستر كارد"
-                                                   value="{{ $settings['payment_card_instructions'] ?? 'يمكنك الدفع مباشرة باستخدام أي بطاقة فيزا أو ماستر كارد صادرة محلياً أو دولياً بأمان وسرية تامة.' }}">
+                                            <textarea name="payment_card_instructions" class="form-control rounded-3" rows="3"
+                                                      placeholder="تظهر للمريض عند اختيار فيزا / ماستر كارد">{{ $settings['payment_card_instructions'] ?? 'يمكنك الدفع مباشرة باستخدام أي بطاقة فيزا أو ماستر كارد صادرة محلياً أو دولياً بأمان وسرية تامة.' }}</textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -1051,18 +1096,21 @@
 @push('scripts')
 <script>
 function previewQR(input, imgId) {
+    previewUploadImage(input, imgId);
+}
+
+function previewUploadImage(input, imgId) {
     if (input.files && input.files[0]) {
         const reader = new FileReader();
         reader.onload = function(e) {
             const target = document.getElementById(imgId);
             if (target) {
-                // If it was a placeholder div, replace with img
                 if (target.tagName === 'DIV') {
                     const img = document.createElement('img');
                     img.id = imgId;
                     img.src = e.target.result;
                     img.className = 'img-fluid rounded-3 shadow-sm';
-                    img.style.maxHeight = '150px';
+                    img.style.maxHeight = '120px';
                     img.style.objectFit = 'contain';
                     target.replaceWith(img);
                 } else {

@@ -5,20 +5,10 @@
     $siteLogo = \App\Models\Setting::getFileUrl('site_logo', '');
     $currencySymbol = \App\Models\Setting::currencySymbol();
 
-    // ─ Payment settings ─
-    $payZainEnabled   = \App\Models\Setting::get('payment_zaincash_enabled', '1') === '1';
-    $payZainQr        = \App\Models\Setting::getFileUrl('payment_zaincash_qr', '');
-    $payZainLabel     = \App\Models\Setting::get('payment_zaincash_label', 'افتح تطبيق زين كاش وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال للدكتور.');
-    $paySuperkiEnabled = \App\Models\Setting::get('payment_superki_enabled', '1') === '1';
-    $paySuperkiQr     = \App\Models\Setting::getFileUrl('payment_superki_qr', '');
-    $paySuperkiLabel  = \App\Models\Setting::get('payment_superki_label', 'افتح تطبيق SuperKi وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال للدكتور.');
-    $payCardEnabled   = \App\Models\Setting::get('payment_card_enabled', '0') === '1';
-    $payCardKey       = \App\Models\Setting::get('payment_card_key', '');
-    $payCardLink      = \App\Models\Setting::get('payment_card_link', '');
-    $payCardCurrency  = \App\Models\Setting::get('payment_card_currency', 'USD');
-    $payCardInstructions = \App\Models\Setting::get('payment_card_instructions', 'يمكنك الدفع مباشرة باستخدام أي بطاقة فيزا أو ماستر كارد صادرة محلياً أو دولياً بأمان وسرية تامة.');
-    $anyPaymentActive = $payZainEnabled || $paySuperkiEnabled || $payCardEnabled;
-    $defaultPayMethod = $payZainEnabled ? 'zaincash' : ($paySuperkiEnabled ? 'superki' : ($payCardEnabled ? 'card' : 'zaincash'));
+    // ─ Dynamic Payment Methods from Settings ─
+    $paymentMethods = \App\Models\Setting::getPaymentMethods(true);
+    $anyPaymentActive = !empty($paymentMethods);
+    $defaultPayMethod = $anyPaymentActive ? array_key_first($paymentMethods) : 'zaincash';
 @endphp
 
 {{-- ═══ MODERN PIXEL-PERFECT BOOKING MODAL (CLEAN MEDICAL UX/UI) ═══ --}}
@@ -715,6 +705,36 @@
     background: #1d4ed8;
     color: #ffffff;
 }
+.btn-action-back {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.75rem 1.1rem;
+    font-weight: 700;
+    font-size: 0.88rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    cursor: pointer;
+    transition: all 0.18s;
+    flex-shrink: 0;
+}
+.btn-action-back:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+.step-summary-banner {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 0.75rem 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
 
 /* ─── Screen 3: Voucher & Success ─── */
 .success-check-bubble {
@@ -779,12 +799,12 @@
                 </div>
             </div>
 
-            {{-- 2. Stepper Progress Bar --}}
+            {{-- 2. Stepper Progress Bar (3 Clean Steps) --}}
             <div class="stepper-nav-bar">
                 <div class="stepper-track-line"></div>
                 <div class="stepper-node active" id="modal-step-1">
                     <div class="stepper-bubble">1</div>
-                    <div class="stepper-caption">{{ $isArLocale ? 'الخدمة' : 'Service' }}</div>
+                    <div class="stepper-caption">{{ $isArLocale ? 'الخدمة والموعد' : 'Service & Time' }}</div>
                 </div>
                 <div class="stepper-node" id="modal-step-2">
                     <div class="stepper-bubble">2</div>
@@ -792,11 +812,7 @@
                 </div>
                 <div class="stepper-node" id="modal-step-3">
                     <div class="stepper-bubble">3</div>
-                    <div class="stepper-caption">{{ $isArLocale ? 'الدفع' : 'Payment' }}</div>
-                </div>
-                <div class="stepper-node" id="modal-step-4">
-                    <div class="stepper-bubble">4</div>
-                    <div class="stepper-caption">{{ $isArLocale ? 'التأكيد' : 'Confirmation' }}</div>
+                    <div class="stepper-caption">{{ $isArLocale ? 'الدفع والتأكيد' : 'Payment' }}</div>
                 </div>
             </div>
 
@@ -804,7 +820,7 @@
             <div class="modal-body-scrollable">
                 
                 {{-- ═══════════════════════════════════════════════════════════
-                     الخطوة الأولى (Step 1): الاختيار والبيانات والتاريخ
+                     الخطوة الأولى (Step 1): الخدمة وتحديد التاريخ والوقت
                      ═══════════════════════════════════════════════════════════ --}}
                 <div id="app-screen-1">
                     
@@ -905,109 +921,7 @@
                         </div>
                     </div>
 
-                    {{-- 1.5 بيانات المريض --}}
-                    <div class="pt-2">
-                        <div class="card-section-label">
-                            <i class="bi bi-person-fill text-primary"></i>
-                            <span>{{ $isArLocale ? 'بيانات المريض' : 'Patient Information' }}</span>
-                            <span id="app_user_status_badge" class="badge bg-light text-muted border small ms-auto d-none"></span>
-                        </div>
-
-                        {{-- الاسم بالكامل --}}
-                        <div class="input-row-block">
-                            <label class="input-row-label">{{ $isArLocale ? 'الاسم بالكامل' : 'Full Name' }} <span class="text-danger">*</span></label>
-                            <div class="field-box-wrap">
-                                <input type="text" id="app_user_name" class="form-control" 
-                                       placeholder="{{ $isArLocale ? 'أدخل الاسم بالكامل' : 'Enter full name' }}" 
-                                       value="{{ Auth::check() ? Auth::user()->name : '' }}" 
-                                       oninput="savePatientBookingToStorage()" required>
-                                <i class="bi bi-person trailing-icon"></i>
-                            </div>
-                        </div>
-
-                        {{-- رقم الواتساب مع كود البلد --}}
-                        <div class="input-row-block">
-                            <label class="input-row-label">{{ $isArLocale ? 'رقم الواتساب' : 'WhatsApp Number' }} <span class="text-danger">*</span></label>
-                            <div class="phone-country-duo" dir="ltr">
-                                <select class="country-pick" id="app_country_code" onchange="onModalCountryCodeChanged(this)">
-                                    <option value="+964" selected>🇮🇶 +964</option>
-                                    <option value="+966">🇸🇦 +966</option>
-                                    <option value="+971">🇦🇪 +971</option>
-                                    <option value="+965">🇰🇼 +965</option>
-                                    <option value="+974">🇶🇦 +974</option>
-                                    <option value="+968">🇴🇲 +968</option>
-                                    <option value="+973">🇧🇭 +973</option>
-                                    <option value="+962">🇯🇴 +962</option>
-                                    <option value="+20">🇪🇬 +20</option>
-                                    <option value="+961">🇱🇧 +961</option>
-                                    <option value="+963">🇸🇾 +963</option>
-                                    <option value="+970">🇵🇸 +970</option>
-                                    <option value="+967">🇾🇪 +967</option>
-                                    <option value="+218">🇱🇾 +218</option>
-                                    <option value="+249">🇸🇩 +249</option>
-                                    <option value="+213">🇩🇿 +213</option>
-                                    <option value="+212">🇲🇦 +212</option>
-                                    <option value="+216">🇹🇳 +216</option>
-                                    <option value="+90">🇹🇷 +90</option>
-                                    <option value="+44">🇬🇧 +44</option>
-                                    <option value="+1">🇺🇸 +1</option>
-                                    <option value="+49">🇩🇪 +49</option>
-                                    <option value="+46">🇸🇪 +46</option>
-                                    <option value="+33">🇫🇷 +33</option>
-                                    <option value="+31">🇳🇱 +31</option>
-                                    <option value="+61">🇦🇺 +61</option>
-                                    <option value="+41">🇨🇭 +41</option>
-                                    <option value="+43">🇦🇹 +43</option>
-                                    <option value="+47">🇳🇴 +47</option>
-                                    <option value="+45">🇩🇰 +45</option>
-                                    <option value="+32">🇧🇪 +32</option>
-                                    <option value="+39">🇮🇹 +39</option>
-                                    <option value="+34">🇪🇸 +34</option>
-                                </select>
-                                <div class="phone-field-wrap">
-                                    <input type="tel" id="app_user_phone" class="form-control" placeholder="7701234567" value="{{ Auth::check() ? preg_replace('/^\+964/', '', Auth::user()->phone ?? '') : '' }}" oninput="savePatientBookingToStorage(); checkUserRegistrationStatus();" required>
-                                    <i class="bi bi-telephone trailing-icon"></i>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- البريد الإلكتروني --}}
-                        <div class="input-row-block">
-                            <label class="input-row-label">{{ $isArLocale ? 'البريد الإلكتروني (لاستلام تفاصيل الموعد)' : 'Email' }} <span class="text-danger">*</span></label>
-                            <div class="field-box-wrap">
-                                <input type="email" id="app_user_email" class="form-control" 
-                                       placeholder="name@example.com" 
-                                       value="{{ Auth::check() ? Auth::user()->email : '' }}" 
-                                       oninput="savePatientBookingToStorage()">
-                                <i class="bi bi-envelope trailing-icon"></i>
-                            </div>
-                        </div>
-
-                        {{-- كلمة المرور للمستخدم الجديد --}}
-                        <div class="input-row-block" id="app_password_wrapper" style="{{ Auth::check() ? 'display:none;' : '' }}">
-                            <label class="input-row-label" id="app_password_label">{{ $isArLocale ? 'كلمة المرور' : 'Password' }} <span class="text-danger">*</span></label>
-                            <div class="field-box-wrap">
-                                <input type="password" id="app_user_password" class="form-control" 
-                                       placeholder="{{ $isArLocale ? 'أدخل كلمة المرور' : 'Enter password' }}" minlength="6">
-                                <button type="button" class="pwd-eye-btn" onclick="togglePasswordVisibility('app_user_password')">
-                                    <i class="bi bi-eye-slash" id="app_user_password_eye"></i>
-                                </button>
-                                <i class="bi bi-lock trailing-icon"></i>
-                            </div>
-                            <div class="form-text text-muted small" id="app_password_hint">{{ $isArLocale ? 'يرجى تعيين كلمة مرور لإنشاء حسابك ومتابعة مواعيدك.' : 'Create password for your patient dashboard.' }}</div>
-                        </div>
-
-                        {{-- أمان البيانات --}}
-                        <div class="security-alert-card">
-                            <i class="bi bi-shield-check"></i>
-                            <div>
-                                <strong class="d-block mb-0.5 text-dark">{{ $isArLocale ? 'معلوماتك آمنة ومحمية' : 'Your data is safe' }}</strong>
-                                <span>{{ $isArLocale ? 'نستخدم أحدث تقنيات التشفير لحماية بياناتك الشخصية وسرية الجلسة.' : 'We use end-to-end encryption to protect your privacy.' }}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- 1.6 التاريخ والمواعيد المتاحة --}}
+                    {{-- 1.5 التاريخ والمواعيد المتاحة --}}
                     <div class="calendar-card-frame">
                         <div class="card-section-label mb-2">
                             <i class="bi bi-calendar3 text-primary"></i>
@@ -1048,9 +962,132 @@
                 </div>{{-- End Screen 1 --}}
 
                 {{-- ═══════════════════════════════════════════════════════════
-                     الخطوة الثانية (Step 2): الملخص وطرق الدفع والإيصال
+                     الخطوة الثانية (Step 2): بيانات المريض وحسابه
                      ═══════════════════════════════════════════════════════════ --}}
                 <div id="app-screen-2" class="d-none">
+                    
+                    {{-- 2.1 شريط ملخص الخدمة والموعد المختار --}}
+                    <div class="step-summary-banner">
+                        <div class="d-flex align-items-center gap-2 overflow-hidden">
+                            <div class="p-2 bg-primary-subtle text-primary rounded-3">
+                                <i class="bi bi-calendar-check-fill fs-5"></i>
+                            </div>
+                            <div class="overflow-hidden">
+                                <div class="fw-bold text-dark text-truncate small" id="step2-summary-service">{{ $modalServices->first()->title ?? 'استشارة نفسية متخصصة' }}</div>
+                                <div class="text-muted" style="font-size: 0.76rem;" id="step2-summary-datetime">—</div>
+                            </div>
+                        </div>
+                        <span class="badge bg-primary text-white px-2.5 py-1.5 rounded-pill fw-bold" id="step2-summary-price">
+                            {{ $modalServices->first()->price ?? 50 }} {{ $currencySymbol }}
+                        </span>
+                    </div>
+
+                    {{-- 2.2 بيانات المريض --}}
+                    <div class="card-section-label">
+                        <i class="bi bi-person-fill text-primary"></i>
+                        <span>{{ $isArLocale ? 'بيانات المريض للتواصل' : 'Patient Information' }}</span>
+                        <span id="app_user_status_badge" class="badge bg-light text-muted border small ms-auto d-none"></span>
+                    </div>
+
+                    {{-- الاسم بالكامل --}}
+                    <div class="input-row-block">
+                        <label class="input-row-label">{{ $isArLocale ? 'الاسم بالكامل' : 'Full Name' }} <span class="text-danger">*</span></label>
+                        <div class="field-box-wrap">
+                            <input type="text" id="app_user_name" class="form-control" 
+                                   placeholder="{{ $isArLocale ? 'أدخل الاسم بالكامل' : 'Enter full name' }}" 
+                                   value="{{ Auth::check() ? Auth::user()->name : '' }}" 
+                                   oninput="savePatientBookingToStorage()" required>
+                            <i class="bi bi-person trailing-icon"></i>
+                        </div>
+                    </div>
+
+                    {{-- رقم الواتساب مع كود البلد --}}
+                    <div class="input-row-block">
+                        <label class="input-row-label">{{ $isArLocale ? 'رقم الواتساب' : 'WhatsApp Number' }} <span class="text-danger">*</span></label>
+                        <div class="phone-country-duo" dir="ltr">
+                            <select class="country-pick" id="app_country_code" onchange="onModalCountryCodeChanged(this)">
+                                <option value="+964" selected>🇮🇶 +964</option>
+                                <option value="+966">🇸🇦 +966</option>
+                                <option value="+971">🇦🇪 +971</option>
+                                <option value="+965">🇰🇼 +965</option>
+                                <option value="+974">🇶🇦 +974</option>
+                                <option value="+968">🇴🇲 +968</option>
+                                <option value="+973">🇧🇭 +973</option>
+                                <option value="+962">🇯🇴 +962</option>
+                                <option value="+20">🇪🇬 +20</option>
+                                <option value="+961">🇱🇧 +961</option>
+                                <option value="+963">🇸🇾 +963</option>
+                                <option value="+970">🇵🇸 +970</option>
+                                <option value="+967">🇾🇪 +967</option>
+                                <option value="+218">🇱🇾 +218</option>
+                                <option value="+249">🇸🇩 +249</option>
+                                <option value="+213">🇩🇿 +213</option>
+                                <option value="+212">🇲🇦 +212</option>
+                                <option value="+216">🇹🇳 +216</option>
+                                <option value="+90">🇹🇷 +90</option>
+                                <option value="+44">🇬🇧 +44</option>
+                                <option value="+1">🇺🇸 +1</option>
+                                <option value="+49">🇩🇪 +49</option>
+                                <option value="+46">🇸🇪 +46</option>
+                                <option value="+33">🇫🇷 +33</option>
+                                <option value="+31">🇳🇱 +31</option>
+                                <option value="+61">🇦🇺 +61</option>
+                                <option value="+41">🇨🇭 +41</option>
+                                <option value="+43">🇦🇹 +43</option>
+                                <option value="+47">🇳🇴 +47</option>
+                                <option value="+45">🇩🇰 +45</option>
+                                <option value="+32">🇧🇪 +32</option>
+                                <option value="+39">🇮🇹 +39</option>
+                                <option value="+34">🇪🇸 +34</option>
+                            </select>
+                            <div class="phone-field-wrap">
+                                <input type="tel" id="app_user_phone" class="form-control" placeholder="7701234567" value="{{ Auth::check() ? preg_replace('/^\+964/', '', Auth::user()->phone ?? '') : '' }}" oninput="savePatientBookingToStorage(); checkUserRegistrationStatus();" required>
+                                <i class="bi bi-telephone trailing-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- البريد الإلكتروني --}}
+                    <div class="input-row-block">
+                        <label class="input-row-label">{{ $isArLocale ? 'البريد الإلكتروني (لاستلام تفاصيل الموعد)' : 'Email' }}</label>
+                        <div class="field-box-wrap">
+                            <input type="email" id="app_user_email" class="form-control" 
+                                   placeholder="name@example.com" 
+                                   value="{{ Auth::check() ? Auth::user()->email : '' }}" 
+                                   oninput="savePatientBookingToStorage()">
+                            <i class="bi bi-envelope trailing-icon"></i>
+                        </div>
+                    </div>
+
+                    {{-- كلمة المرور للمستخدم الجديد --}}
+                    <div class="input-row-block" id="app_password_wrapper" style="{{ Auth::check() ? 'display:none;' : '' }}">
+                        <label class="input-row-label" id="app_password_label">{{ $isArLocale ? 'كلمة المرور' : 'Password' }} <span class="text-danger">*</span></label>
+                        <div class="field-box-wrap">
+                            <input type="password" id="app_user_password" class="form-control" 
+                                   placeholder="{{ $isArLocale ? 'أدخل كلمة المرور' : 'Enter password' }}" minlength="6">
+                            <button type="button" class="pwd-eye-btn" onclick="togglePasswordVisibility('app_user_password')">
+                                <i class="bi bi-eye-slash" id="app_user_password_eye"></i>
+                            </button>
+                            <i class="bi bi-lock trailing-icon"></i>
+                        </div>
+                        <div class="form-text text-muted small" id="app_password_hint">{{ $isArLocale ? 'يرجى تعيين كلمة مرور لإنشاء حسابك ومتابعة مواعيدك.' : 'Create password for your patient dashboard.' }}</div>
+                    </div>
+
+                    {{-- أمان البيانات --}}
+                    <div class="security-alert-card mt-3">
+                        <i class="bi bi-shield-check"></i>
+                        <div>
+                            <strong class="d-block mb-0.5 text-dark">{{ $isArLocale ? 'معلوماتك آمنة ومحمية' : 'Your data is safe' }}</strong>
+                            <span>{{ $isArLocale ? 'نستخدم أحدث تقنيات التشفير لحماية بياناتك الشخصية وسرية الجلسة.' : 'We use end-to-end encryption to protect your privacy.' }}</span>
+                        </div>
+                    </div>
+
+                </div>{{-- End Screen 2 --}}
+
+                {{-- ═══════════════════════════════════════════════════════════
+                     الخطوة الثالثة (Step 3): الملخص وطرق الدفع والإيصال
+                     ═══════════════════════════════════════════════════════════ --}}
+                <div id="app-screen-3" class="d-none">
                     
                     {{-- بطاقة إجمالي المبلغ --}}
                     <div class="order-summary-card">
@@ -1059,13 +1096,13 @@
                                 <i class="bi bi-cart3 text-primary"></i>
                                 <span>{{ $isArLocale ? 'إجمالي المبلغ' : 'Order Total' }}</span>
                             </span>
-                            <span class="summary-price-badge" id="app-screen2-total">
+                            <span class="summary-price-badge" id="app-screen3-total">
                                 {{ $modalServices->first()->price ?? 50 }} {{ $currencySymbol }}
                             </span>
                         </div>
                         <div class="summary-feature-bullets">
-                            <span id="screen2_feature_type"><i class="bi bi-check-circle-fill text-success"></i> {{ $isArLocale ? 'استشارة أونلاين' : 'Online Consultation' }}</span>
-                            <span id="screen2_feature_dur"><i class="bi bi-check-circle-fill text-success"></i> {{ $modalServices->first()->duration ?? 45 }} {{ $isArLocale ? 'دقيقة' : 'min' }}</span>
+                            <span id="screen3_feature_type"><i class="bi bi-check-circle-fill text-success"></i> {{ $isArLocale ? 'استشارة أونلاين' : 'Online Consultation' }}</span>
+                            <span id="screen3_feature_dur"><i class="bi bi-check-circle-fill text-success"></i> {{ $modalServices->first()->duration ?? 45 }} {{ $isArLocale ? 'دقيقة' : 'min' }}</span>
                             <span><i class="bi bi-check-circle-fill text-success"></i> {{ $isArLocale ? 'حجز فوري ومباشر' : 'Direct Booking' }}</span>
                         </div>
                     </div>
@@ -1080,81 +1117,61 @@
                         
                         {{-- Segmented Switcher --}}
                         <div class="pay-method-switcher" id="payment-method-tabs" role="tablist">
-                            @if($payZainEnabled)
-                            <button type="button" class="pay-method-btn {{ $defaultPayMethod === 'zaincash' ? 'active' : '' }}"
-                                    id="pay-tab-zaincash" onclick="switchPayTab('zaincash')">
-                                <i class="bi bi-wallet2"></i>
-                                <span>{{ $isArLocale ? 'زين كاش' : 'ZainCash' }}</span>
+                            @foreach($paymentMethods as $mId => $pm)
+                            <button type="button" class="pay-method-btn {{ $defaultPayMethod === $mId ? 'active' : '' }}"
+                                    id="pay-tab-{{ $mId }}" onclick="switchPayTab('{{ $mId }}')">
+                                @if(!empty($pm['logo']))
+                                    <img src="{{ $pm['logo'] }}" alt="{{ $pm['name'] }}" style="width:20px;height:20px;object-fit:contain;border-radius:4px;" class="me-1">
+                                @else
+                                    <i class="bi {{ $pm['icon_class'] ?? 'bi-wallet2' }}"></i>
+                                @endif
+                                <span>{{ $pm['name'] }}</span>
                             </button>
-                            @endif
-                            @if($paySuperkiEnabled)
-                            <button type="button" class="pay-method-btn {{ $defaultPayMethod === 'superki' ? 'active' : '' }}"
-                                    id="pay-tab-superki" onclick="switchPayTab('superki')">
-                                <i class="bi bi-qr-code-scan"></i>
-                                <span>SuperKi</span>
-                            </button>
-                            @endif
-                            @if($payCardEnabled)
-                            <button type="button" class="pay-method-btn {{ $defaultPayMethod === 'card' ? 'active' : '' }}"
-                                    id="pay-tab-card" onclick="switchPayTab('card')">
-                                <i class="bi bi-credit-card-2-front"></i>
-                                <span>{{ $isArLocale ? 'بطاقة دفع' : 'Card' }}</span>
-                            </button>
-                            @endif
+                            @endforeach
                         </div>
 
-                        {{-- زين كاش --}}
-                        @if($payZainEnabled)
-                        <div id="pay-panel-zaincash" class="pay-qr-display-card {{ $defaultPayMethod !== 'zaincash' ? 'd-none' : '' }}">
-                            @if(!empty($payZainQr))
-                                <div class="pay-qr-wrapper">
-                                    <img src="{{ $payZainQr }}" alt="ZainCash QR">
+                        {{-- Display Panels for each Payment Method --}}
+                        @foreach($paymentMethods as $mId => $pm)
+                        <div id="pay-panel-{{ $mId }}" class="pay-qr-display-card {{ $defaultPayMethod !== $mId ? 'd-none' : '' }}">
+                            @if($mId === 'card')
+                                <div class="d-flex align-items-center justify-content-between mb-2 border-bottom pb-2">
+                                    <span class="fw-bold text-dark small"><i class="bi bi-shield-check text-success me-1"></i> {{ $pm['badge'] ?? ($isArLocale ? 'دفع إلكتروني آمن' : 'Secure Card Payment') }}</span>
+                                    <div class="d-flex gap-1" dir="ltr">
+                                        @if(!empty($pm['logo']))
+                                            <img src="{{ $pm['logo'] }}" alt="Card" style="height:22px;object-fit:contain;">
+                                        @else
+                                            <span class="badge bg-white text-primary border shadow-sm">VISA</span>
+                                            <span class="badge bg-white text-danger border shadow-sm">MasterCard</span>
+                                        @endif
+                                    </div>
                                 </div>
-                                <p class="pay-instruction-note">{{ $payZainLabel }}</p>
+                                <p class="pay-instruction-note text-secondary mb-2">{{ $pm['instructions'] }}</p>
+                                @if(!empty($pm['link']))
+                                <a href="{{ $pm['link'] }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill fw-bold w-100 py-1.5">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i> {{ $isArLocale ? 'فتح رابط الدفع الإلكتروني' : 'Open Payment Link' }}
+                                </a>
+                                @endif
                             @else
-                                <div class="py-2 text-center">
-                                    <i class="bi bi-qr-code text-primary fs-2"></i>
-                                    <p class="pay-instruction-note mt-1">{{ $isArLocale ? 'افتح تطبيق زين كاش وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال للدكتور.' : 'Scan code via ZainCash and attach receipt screenshot.' }}</p>
-                                </div>
+                                @if(!empty($pm['qr_image']))
+                                    <div class="pay-qr-wrapper">
+                                        <img src="{{ $pm['qr_image'] }}" alt="{{ $pm['name'] }} QR">
+                                    </div>
+                                    <p class="pay-instruction-note">{{ $pm['instructions'] }}</p>
+                                @else
+                                    <div class="py-2 text-center">
+                                        @if(!empty($pm['logo']))
+                                            <img src="{{ $pm['logo'] }}" alt="{{ $pm['name'] }}" class="mb-2" style="max-height:48px;object-fit:contain;">
+                                        @else
+                                            <i class="bi {{ $pm['icon_class'] ?? 'bi-qr-code' }} text-primary fs-2"></i>
+                                        @endif
+                                        <p class="pay-instruction-note mt-1">{{ $pm['instructions'] }}</p>
+                                    </div>
+                                @endif
                             @endif
                         </div>
-                        @endif
-
-                        {{-- SuperKi --}}
-                        @if($paySuperkiEnabled)
-                        <div id="pay-panel-superki" class="pay-qr-display-card {{ $defaultPayMethod !== 'superki' ? 'd-none' : '' }}">
-                            @if(!empty($paySuperkiQr))
-                                <div class="pay-qr-wrapper">
-                                    <img src="{{ $paySuperkiQr }}" alt="SuperKi QR">
-                                </div>
-                                <p class="pay-instruction-note">{{ $paySuperkiLabel }}</p>
-                            @else
-                                <div class="py-2 text-center">
-                                    <i class="bi bi-qr-code text-info fs-2"></i>
-                                    <p class="pay-instruction-note mt-1">{{ $isArLocale ? 'افتح تطبيق SuperKi وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال للدكتور.' : 'Scan code via SuperKi and attach receipt screenshot.' }}</p>
-                                </div>
-                            @endif
-                        </div>
-                        @endif
-
-                        {{-- بطاقة دفع --}}
-                        @if($payCardEnabled)
-                        <div id="pay-panel-card" class="pay-qr-display-card {{ $defaultPayMethod !== 'card' ? 'd-none' : '' }}">
-                            <div class="d-flex align-items-center justify-content-between mb-2 border-bottom pb-2">
-                                <span class="fw-bold text-dark small"><i class="bi bi-shield-check text-success me-1"></i> {{ $isArLocale ? 'دفع إلكتروني آمن' : 'Secure Card Payment' }}</span>
-                                <div class="d-flex gap-1" dir="ltr">
-                                    <span class="badge bg-white text-primary border shadow-sm">VISA</span>
-                                    <span class="badge bg-white text-danger border shadow-sm">MasterCard</span>
-                                </div>
-                            </div>
-                            <p class="pay-instruction-note text-secondary mb-2">{{ $payCardInstructions }}</p>
-                            @if(!empty($payCardLink))
-                            <a href="{{ $payCardLink }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill fw-bold w-100 py-1.5">
-                                <i class="bi bi-box-arrow-up-right me-1"></i> {{ $isArLocale ? 'فتح رابط الدفع الإلكتروني' : 'Open Payment Link' }}
-                            </a>
-                            @endif
-                        </div>
-                        @endif
+                        @endforeach
+                    </div>
+                    @endif
 
                         {{-- رقم هاتف المحول والإيصال --}}
                         <div class="proof-upload-box">
@@ -1173,7 +1190,7 @@
                                 <label class="input-row-label mb-0">
                                     <i class="bi bi-image text-success me-1"></i> {{ $isArLocale ? 'إرفاق سكرين شوت الإيصال' : 'Attach Receipt Screenshot' }}
                                 </label>
-                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 small">{{ $isArLocale ? 'يسرّع التأكيد' : 'Fast Confirm' }}</span>
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle small">{{ $isArLocale ? 'يسرّع التأكيد' : 'Fast Confirm' }}</span>
                             </div>
 
                             <div id="receiptUploadBox" class="receipt-drop-target" onclick="document.getElementById('app_receipt_file').click()">
@@ -1210,12 +1227,12 @@
                         </label>
                     </div>
 
-                </div>{{-- End Screen 2 --}}
+                </div>{{-- End Screen 3 --}}
 
                 {{-- ═══════════════════════════════════════════════════════════
-                     الخطوة الثالثة (Screen 3): بطاقة التأكيد وتذكرة الموعد
+                     شاشة النجاح النهائية: بطاقة التأكيد وتذكرة الموعد
                      ═══════════════════════════════════════════════════════════ --}}
-                <div id="app-screen-3" class="d-none">
+                <div id="app-screen-success" class="d-none">
                     <div class="text-center py-1">
                         <div class="success-check-bubble">
                             <i class="bi bi-check-lg"></i>
@@ -1258,7 +1275,7 @@
                             </button>
                         </div>
                     </div>
-                </div>{{-- End Screen 3 --}}
+                </div>{{-- End Screen Success --}}
 
             </div>
 
@@ -1269,17 +1286,37 @@
                     <div class="bottom-price-lbl">{{ $isArLocale ? 'إجمالي المبلغ' : 'Total' }}</div>
                 </div>
                 
-                {{-- زر شاشة 1 --}}
-                <button type="button" class="btn-action-submit" id="btn-flow-next" onclick="goToAppScreen2()">
-                    <span>{{ $isArLocale ? 'متابعة الدفع' : 'Proceed to Payment' }}</span>
-                    <i class="bi {{ $isArLocale ? 'bi-arrow-left' : 'bi-arrow-right' }}"></i>
-                </button>
+                {{-- أزرار الخطوة 1 --}}
+                <div id="bar-actions-step-1" class="d-flex align-items-center gap-2 flex-grow-1 justify-content-end">
+                    <button type="button" class="btn-action-submit" onclick="goToAppScreen2()">
+                        <span>{{ $isArLocale ? 'التالي: بيانات المريض' : 'Next: Patient Info' }}</span>
+                        <i class="bi {{ $isArLocale ? 'bi-arrow-left' : 'bi-arrow-right' }}"></i>
+                    </button>
+                </div>
 
-                {{-- زر شاشة 2 --}}
-                <button type="button" class="btn-action-submit d-none" id="btn-flow-submit" onclick="executeAppBooking()">
-                    <i class="bi bi-check-circle-fill"></i>
-                    <span>{{ $isArLocale ? 'تأكيد الحجز وإرسال الإيصال' : 'Confirm & Submit' }}</span>
-                </button>
+                {{-- أزرار الخطوة 2 --}}
+                <div id="bar-actions-step-2" class="d-none align-items-center gap-2 flex-grow-1 justify-content-end">
+                    <button type="button" class="btn-action-back" onclick="goToAppScreen1()">
+                        <i class="bi {{ $isArLocale ? 'bi-arrow-right' : 'bi-arrow-left' }}"></i>
+                        <span>{{ $isArLocale ? 'رجوع' : 'Back' }}</span>
+                    </button>
+                    <button type="button" class="btn-action-submit" onclick="goToAppScreen3()">
+                        <span>{{ $isArLocale ? 'التالي: الدفع' : 'Next: Payment' }}</span>
+                        <i class="bi {{ $isArLocale ? 'bi-arrow-left' : 'bi-arrow-right' }}"></i>
+                    </button>
+                </div>
+
+                {{-- أزرار الخطوة 3 --}}
+                <div id="bar-actions-step-3" class="d-none align-items-center gap-2 flex-grow-1 justify-content-end">
+                    <button type="button" class="btn-action-back" onclick="goToAppScreen2()">
+                        <i class="bi {{ $isArLocale ? 'bi-arrow-right' : 'bi-arrow-left' }}"></i>
+                        <span>{{ $isArLocale ? 'رجوع' : 'Back' }}</span>
+                    </button>
+                    <button type="button" class="btn-action-submit" id="btn-flow-submit" onclick="executeAppBooking()">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>{{ $isArLocale ? 'تأكيد الحجز النهائي' : 'Confirm Booking' }}</span>
+                    </button>
+                </div>
             </div>
 
         </div>
@@ -1324,6 +1361,7 @@
 <script>
 // ════ Shared Booking Modal JS Engine ════
 const _i18n = {!! json_encode($modalI18n, JSON_UNESCAPED_UNICODE) !!};
+const _paymentMethods = {!! json_encode($paymentMethods, JSON_UNESCAPED_UNICODE) !!};
 const _initDate = new Date();
 const _initYear = _initDate.getFullYear();
 const _initMonth = _initDate.getMonth();
@@ -1417,23 +1455,25 @@ function updateModalPrice(price) {
     const pText = price + ' ' + appCurrencySymbol;
     if (document.getElementById('strip_session_price')) document.getElementById('strip_session_price').textContent = pText;
     if (document.getElementById('app-bottom-total')) document.getElementById('app-bottom-total').textContent = pText;
-    if (document.getElementById('app-screen2-total')) document.getElementById('app-screen2-total').textContent = pText;
+    if (document.getElementById('step2-summary-price')) document.getElementById('step2-summary-price').textContent = pText;
+    if (document.getElementById('app-screen3-total')) document.getElementById('app-screen3-total').textContent = pText;
     if (document.getElementById('app-res-type')) document.getElementById('app-res-type').textContent = pText;
 }
 
 function setModalStep(step) {
-    for (let i = 1; i <= 4; i++) {
+    for (let i = 1; i <= 3; i++) {
         const item = document.getElementById(`modal-step-${i}`);
         if (!item) continue;
         item.classList.remove('active', 'completed');
+        const bubble = item.querySelector('.stepper-bubble');
         if (i < step) {
             item.classList.add('completed');
-            item.querySelector('.stepper-bubble').innerHTML = '<i class="bi bi-check-lg"></i>';
+            if (bubble) bubble.innerHTML = '<i class="bi bi-check-lg"></i>';
         } else if (i === step) {
             item.classList.add('active');
-            item.querySelector('.stepper-bubble').textContent = i;
+            if (bubble) bubble.textContent = i;
         } else {
-            item.querySelector('.stepper-bubble').textContent = i;
+            if (bubble) bubble.textContent = i;
         }
     }
 }
@@ -1653,15 +1693,77 @@ function selectAppSlot(slot, el) {
     appState.slot = slotValue;
 }
 
+// ═════ SCREEN TRANSITIONS (3 STEPS) ═════
+
+function goToAppScreen1() {
+    document.getElementById('app-screen-1')?.classList.remove('d-none');
+    document.getElementById('app-screen-2')?.classList.add('d-none');
+    document.getElementById('app-screen-3')?.classList.add('d-none');
+    document.getElementById('app-screen-success')?.classList.add('d-none');
+    
+    document.getElementById('app-bottom-bar')?.classList.remove('d-none');
+    
+    const bar1 = document.getElementById('bar-actions-step-1');
+    const bar2 = document.getElementById('bar-actions-step-2');
+    const bar3 = document.getElementById('bar-actions-step-3');
+    if (bar1) { bar1.classList.remove('d-none'); bar1.classList.add('d-flex'); }
+    if (bar2) { bar2.classList.add('d-none'); bar2.classList.remove('d-flex'); }
+    if (bar3) { bar3.classList.add('d-none'); bar3.classList.remove('d-flex'); }
+    
+    setModalStep(1);
+
+    const modalBody = document.querySelector('.modal-body-scrollable');
+    if (modalBody) modalBody.scrollTop = 0;
+}
+
 function goToAppScreen2() {
     const title = (document.getElementById('app_consultation_title')?.value || '').trim();
+    if (!title) { 
+        document.getElementById('app_consultation_title').value = appState.title;
+    }
+    if (!appState.slot) { 
+        alert(_i18n.select_slot); 
+        return; 
+    }
+
+    // تحديث بانر ملخص الحجز في الخطوة 2
+    if (document.getElementById('step2-summary-service')) {
+        document.getElementById('step2-summary-service').textContent = appState.title;
+    }
+    if (document.getElementById('step2-summary-datetime')) {
+        const slotDisplay = _i18n.is_ar ? String(appState.slot).replace('AM', _i18n.slot_am).replace('PM', _i18n.slot_pm) : appState.slot;
+        document.getElementById('step2-summary-datetime').textContent = `${appState.date} | ${slotDisplay}`;
+    }
+    if (document.getElementById('step2-summary-price')) {
+        document.getElementById('step2-summary-price').textContent = appState.price + ' ' + appCurrencySymbol;
+    }
+
+    document.getElementById('app-screen-1')?.classList.add('d-none');
+    document.getElementById('app-screen-2')?.classList.remove('d-none');
+    document.getElementById('app-screen-3')?.classList.add('d-none');
+    document.getElementById('app-screen-success')?.classList.add('d-none');
+
+    document.getElementById('app-bottom-bar')?.classList.remove('d-none');
+
+    const bar1 = document.getElementById('bar-actions-step-1');
+    const bar2 = document.getElementById('bar-actions-step-2');
+    const bar3 = document.getElementById('bar-actions-step-3');
+    if (bar1) { bar1.classList.add('d-none'); bar1.classList.remove('d-flex'); }
+    if (bar2) { bar2.classList.remove('d-none'); bar2.classList.add('d-flex'); }
+    if (bar3) { bar3.classList.add('d-none'); bar3.classList.remove('d-flex'); }
+
+    setModalStep(2);
+
+    const modalBody = document.querySelector('.modal-body-scrollable');
+    if (modalBody) modalBody.scrollTop = 0;
+}
+
+function goToAppScreen3() {
     const name = (document.getElementById('app_user_name')?.value || '').trim();
     const phone = (document.getElementById('app_user_phone')?.value || '').trim();
 
-    if (!title) { alert(_i18n.enter_subject); return; }
     if (!name) { alert(_i18n.enter_name); return; }
     if (!phone) { alert(_i18n.enter_phone); return; }
-    if (!appState.slot) { alert(_i18n.select_slot); return; }
 
     @if(!Auth::check())
     const password = document.getElementById('app_user_password')?.value || '';
@@ -1670,24 +1772,32 @@ function goToAppScreen2() {
 
     savePatientBookingToStorage();
 
+    // تحديث بيانات بطاقة الدفع في الخطوة 3
+    if (document.getElementById('app-screen3-total')) {
+        document.getElementById('app-screen3-total').textContent = appState.price + ' ' + appCurrencySymbol;
+    }
+    if (document.getElementById('screen3_feature_dur')) {
+        document.getElementById('screen3_feature_dur').innerHTML = `<i class="bi bi-check-circle-fill text-success"></i> ${appState.duration} ${_i18n.minutes}`;
+    }
+    if (document.getElementById('screen3_feature_type')) {
+        document.getElementById('screen3_feature_type').innerHTML = `<i class="bi bi-check-circle-fill text-success"></i> ${appState.bookingType === 'clinic' ? '{{ $isArLocale ? "كشف بالعيادة" : "Clinic Visit" }}' : '{{ $isArLocale ? "استشارة أونلاين" : "Online Consultation" }}'}`;
+    }
+
     document.getElementById('app-screen-1')?.classList.add('d-none');
-    document.getElementById('app-screen-2')?.classList.remove('d-none');
-    document.getElementById('btn-flow-next')?.classList.add('d-none');
-    document.getElementById('btn-flow-submit')?.classList.remove('d-none');
-    
-    setModalStep(3);
-
-    const modalBody = document.querySelector('.modal-body-scrollable');
-    if (modalBody) modalBody.scrollTop = 0;
-}
-
-function goToAppScreen1() {
-    document.getElementById('app-screen-1')?.classList.remove('d-none');
     document.getElementById('app-screen-2')?.classList.add('d-none');
-    document.getElementById('btn-flow-next')?.classList.remove('d-none');
-    document.getElementById('btn-flow-submit')?.classList.add('d-none');
-    
-    setModalStep(1);
+    document.getElementById('app-screen-3')?.classList.remove('d-none');
+    document.getElementById('app-screen-success')?.classList.add('d-none');
+
+    document.getElementById('app-bottom-bar')?.classList.remove('d-none');
+
+    const bar1 = document.getElementById('bar-actions-step-1');
+    const bar2 = document.getElementById('bar-actions-step-2');
+    const bar3 = document.getElementById('bar-actions-step-3');
+    if (bar1) { bar1.classList.add('d-none'); bar1.classList.remove('d-flex'); }
+    if (bar2) { bar2.classList.add('d-none'); bar2.classList.remove('d-flex'); }
+    if (bar3) { bar3.classList.remove('d-none'); bar3.classList.add('d-flex'); }
+
+    setModalStep(3);
 
     const modalBody = document.querySelector('.modal-body-scrollable');
     if (modalBody) modalBody.scrollTop = 0;
@@ -1784,22 +1894,23 @@ function executeAppBooking() {
         return data;
     })
     .then(resData => {
-        setModalStep(4);
+        setModalStep(3);
 
         document.getElementById('app-screen-1')?.classList.add('d-none');
         document.getElementById('app-screen-2')?.classList.add('d-none');
-        document.getElementById('app-screen-3')?.classList.remove('d-none');
+        document.getElementById('app-screen-3')?.classList.add('d-none');
+        document.getElementById('app-screen-success')?.classList.remove('d-none');
         document.getElementById('app-bottom-bar')?.classList.add('d-none');
 
         const ref = resData.booking_ref || resData.reference || `BK-${Math.floor(100000 + Math.random() * 900000)}`;
         if (document.getElementById('app-res-ref')) document.getElementById('app-res-ref').textContent = '#' + ref;
         if (document.getElementById('app-res-service')) document.getElementById('app-res-service').textContent = appState.title;
-        if (document.getElementById('app-res-datetime')) document.getElementById('app-res-datetime').textContent = `${appState.date} | ${appState.slot}`;
+        const slotDisplay = _i18n.is_ar ? String(appState.slot).replace('AM', _i18n.slot_am).replace('PM', _i18n.slot_pm) : appState.slot;
+        if (document.getElementById('app-res-datetime')) document.getElementById('app-res-datetime').textContent = `${appState.date} | ${slotDisplay}`;
         
-        let payLabel = _i18n.pay_zain;
-        if (appState.paymentMethod === 'superki') payLabel = _i18n.pay_superki;
-        if (appState.paymentMethod === 'card') payLabel = _i18n.pay_card;
+        let payLabel = _paymentMethods[appState.paymentMethod]?.name || appState.paymentMethod;
         if (document.getElementById('app-res-paymethod')) document.getElementById('app-res-paymethod').textContent = payLabel;
+        if (document.getElementById('app-res-type')) document.getElementById('app-res-type').textContent = appState.price + ' ' + appCurrencySymbol;
 
         fetch(`/booking/${ref}/confirm-payment`, {
             method: 'POST',

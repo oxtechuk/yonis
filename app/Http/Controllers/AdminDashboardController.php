@@ -1379,16 +1379,24 @@ class AdminDashboardController extends Controller
             'booking_banner_image'        => Setting::get('booking_banner_image', ''),
             // ─── إعدادات الدفع ───────────────────────────────────────────────
             'payment_zaincash_enabled' => Setting::get('payment_zaincash_enabled', '1'),
+            'payment_zaincash_name'    => Setting::get('payment_zaincash_name', 'زين كاش (ZainCash)'),
+            'payment_zaincash_logo'    => Setting::getFileUrl('payment_zaincash_logo', ''),
             'payment_zaincash_qr'      => Setting::getFileUrl('payment_zaincash_qr', ''),
             'payment_zaincash_label'   => Setting::get('payment_zaincash_label', 'افتح تطبيق زين كاش وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال للدكتور.'),
             'payment_superki_enabled'  => Setting::get('payment_superki_enabled', '1'),
+            'payment_superki_name'     => Setting::get('payment_superki_name', 'SuperKi'),
+            'payment_superki_logo'     => Setting::getFileUrl('payment_superki_logo', ''),
             'payment_superki_qr'       => Setting::getFileUrl('payment_superki_qr', ''),
             'payment_superki_label'    => Setting::get('payment_superki_label', 'افتح تطبيق SuperKi وامسح الرمز لإتمام الدفع، ثم أرسل لقطة شاشة الإيصال للدكتور.'),
             'payment_card_enabled'     => Setting::get('payment_card_enabled', '0'),
+            'payment_card_name'        => Setting::get('payment_card_name', 'بطاقة دفع (فيزا / ماستر كارد)'),
+            'payment_card_logo'        => Setting::getFileUrl('payment_card_logo', ''),
             'payment_card_key'         => Setting::get('payment_card_key', ''),
             'payment_card_link'        => Setting::get('payment_card_link', ''),
             'payment_card_instructions'=> Setting::get('payment_card_instructions', 'يمكنك الدفع مباشرة باستخدام أي بطاقة فيزا أو ماستر كارد صادرة محلياً أو دولياً بأمان وسرية تامة.'),
             'payment_spaceremit_enabled' => Setting::get('payment_spaceremit_enabled', '0'),
+            'payment_spaceremit_name'  => Setting::get('payment_spaceremit_name', 'SpaceRemit'),
+            'payment_spaceremit_logo'  => Setting::getFileUrl('payment_spaceremit_logo', ''),
             'payment_spaceremit_key'   => Setting::get('payment_spaceremit_key', ''),
             'payment_spaceremit_currency' => Setting::get('payment_spaceremit_currency', 'USD'),
             // ─── إعدادات العملة والمدة للمنصة ──────────────────────────────────────
@@ -1435,13 +1443,21 @@ class AdminDashboardController extends Controller
             'google_analytics_id'          => 'nullable|string|max:50',
             'meta_pixel_id'                => 'nullable|string|max:50',
             // Payment validation
+            'payment_zaincash_logo_file'   => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,svg|max:3072',
             'payment_zaincash_qr_file'     => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:3072',
-            'payment_superki_qr_file'      => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:3072',
+            'payment_zaincash_name'        => 'nullable|string|max:255',
             'payment_zaincash_label'       => 'nullable|string|max:500',
+            'payment_superki_logo_file'    => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,svg|max:3072',
+            'payment_superki_qr_file'      => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:3072',
+            'payment_superki_name'         => 'nullable|string|max:255',
             'payment_superki_label'        => 'nullable|string|max:500',
+            'payment_card_logo_file'       => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,svg|max:3072',
+            'payment_card_name'            => 'nullable|string|max:255',
             'payment_card_key'             => 'nullable|string|max:255',
             'payment_card_link'            => 'nullable|string|max:500',
             'payment_card_instructions'    => 'nullable|string|max:500',
+            'payment_spaceremit_logo_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,svg|max:3072',
+            'payment_spaceremit_name'      => 'nullable|string|max:255',
             'payment_spaceremit_key'       => 'nullable|string|max:255',
             'payment_spaceremit_currency'  => 'nullable|string|max:10',
             // App & Legal Policies validation
@@ -1507,7 +1523,14 @@ class AdminDashboardController extends Controller
         // ─── إعدادات الدفع ─────────────────────────────────────────────────
         // زين كاش
         Setting::set('payment_zaincash_enabled', $request->has('payment_zaincash_enabled') ? '1' : '0');
+        if ($request->filled('payment_zaincash_name')) Setting::set('payment_zaincash_name', $request->payment_zaincash_name);
         Setting::set('payment_zaincash_label', $request->payment_zaincash_label ?? '');
+        if ($request->hasFile('payment_zaincash_logo_file')) {
+            $path = $this->storePublicUpload($request->file('payment_zaincash_logo_file'), 'payments');
+            Setting::set('payment_zaincash_logo', asset('storage/' . $path));
+        } elseif ($request->filled('payment_zaincash_logo')) {
+            Setting::set('payment_zaincash_logo', $request->payment_zaincash_logo);
+        }
         if ($request->hasFile('payment_zaincash_qr_file')) {
             $path = $this->storePublicUpload($request->file('payment_zaincash_qr_file'), 'payments');
             Setting::set('payment_zaincash_qr', asset('storage/' . $path));
@@ -1521,7 +1544,14 @@ class AdminDashboardController extends Controller
 
         // SuperKi
         Setting::set('payment_superki_enabled', $request->has('payment_superki_enabled') ? '1' : '0');
+        if ($request->filled('payment_superki_name')) Setting::set('payment_superki_name', $request->payment_superki_name);
         Setting::set('payment_superki_label', $request->payment_superki_label ?? '');
+        if ($request->hasFile('payment_superki_logo_file')) {
+            $path = $this->storePublicUpload($request->file('payment_superki_logo_file'), 'payments');
+            Setting::set('payment_superki_logo', asset('storage/' . $path));
+        } elseif ($request->filled('payment_superki_logo')) {
+            Setting::set('payment_superki_logo', $request->payment_superki_logo);
+        }
         if ($request->hasFile('payment_superki_qr_file')) {
             $path = $this->storePublicUpload($request->file('payment_superki_qr_file'), 'payments');
             Setting::set('payment_superki_qr', asset('storage/' . $path));
@@ -1535,12 +1565,26 @@ class AdminDashboardController extends Controller
 
         // فيزا وماستر كارد
         Setting::set('payment_card_enabled', $request->has('payment_card_enabled') ? '1' : '0');
+        if ($request->filled('payment_card_name')) Setting::set('payment_card_name', $request->payment_card_name);
+        if ($request->hasFile('payment_card_logo_file')) {
+            $path = $this->storePublicUpload($request->file('payment_card_logo_file'), 'payments');
+            Setting::set('payment_card_logo', asset('storage/' . $path));
+        } elseif ($request->filled('payment_card_logo')) {
+            Setting::set('payment_card_logo', $request->payment_card_logo);
+        }
         if ($request->has('payment_card_key')) Setting::set('payment_card_key', $request->payment_card_key ?? '');
         if ($request->has('payment_card_link')) Setting::set('payment_card_link', $request->payment_card_link ?? '');
         if ($request->has('payment_card_instructions')) Setting::set('payment_card_instructions', $request->payment_card_instructions ?? '');
 
         // SpaceRemit
         Setting::set('payment_spaceremit_enabled', $request->has('payment_spaceremit_enabled') ? '1' : '0');
+        if ($request->filled('payment_spaceremit_name')) Setting::set('payment_spaceremit_name', $request->payment_spaceremit_name);
+        if ($request->hasFile('payment_spaceremit_logo_file')) {
+            $path = $this->storePublicUpload($request->file('payment_spaceremit_logo_file'), 'payments');
+            Setting::set('payment_spaceremit_logo', asset('storage/' . $path));
+        } elseif ($request->filled('payment_spaceremit_logo')) {
+            Setting::set('payment_spaceremit_logo', $request->payment_spaceremit_logo);
+        }
         Setting::set('payment_spaceremit_key', $request->payment_spaceremit_key ?? '');
         Setting::set('payment_spaceremit_currency', $request->payment_spaceremit_currency ?? 'USD');
 
