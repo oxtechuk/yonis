@@ -305,15 +305,15 @@
     color: #0f172a;
 }
 
-/* ─── Form Inputs & Icons ─── */
+/* ─── Form Inputs & Leading/Trailing Icons ─── */
 .input-row-block {
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.85rem;
 }
 .input-row-label {
-    font-size: 0.78rem;
+    font-size: 0.82rem;
     font-weight: 700;
     color: #1e293b;
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.35rem;
     display: block;
 }
 .field-box-wrap {
@@ -323,39 +323,63 @@
 }
 .field-box-wrap .form-control,
 .field-box-wrap .form-select {
-    height: 44px;
+    height: 46px;
     border-radius: 12px;
     border: 1.5px solid #e2e8f0;
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     font-weight: 600;
     color: #0f172a;
     background: #ffffff;
-    transition: border-color 0.2s;
-    padding-inline-start: 0.85rem;
-    padding-inline-end: 2.4rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    padding-inline-start: 2.65rem;
+    padding-inline-end: 1rem;
 }
 .field-box-wrap .form-control:focus,
 .field-box-wrap .form-select:focus {
     border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
     outline: none;
 }
-.field-box-wrap .trailing-icon {
+.field-box-wrap .field-icon-start {
     position: absolute;
-    inset-inline-end: 0.85rem;
-    font-size: 1rem;
+    inset-inline-start: 0.95rem;
+    font-size: 1.05rem;
     color: #94a3b8;
     pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.field-box-wrap .field-icon-end {
+    position: absolute;
+    inset-inline-end: 0.95rem;
+    font-size: 1.05rem;
+    color: #94a3b8;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .field-box-wrap .pwd-eye-btn {
     position: absolute;
-    inset-inline-end: 2.2rem;
+    inset-inline-end: 0.85rem;
     border: none;
     background: transparent;
     color: #94a3b8;
-    font-size: 0.95rem;
+    font-size: 1.05rem;
     cursor: pointer;
-    padding: 0;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s;
+}
+.field-box-wrap .pwd-eye-btn:hover {
+    color: #2563eb;
+}
+.field-box-wrap.has-dual-icons .form-control {
+    padding-inline-start: 2.65rem;
+    padding-inline-end: 2.65rem;
 }
 
 /* ─── Phone & Country Dropdown ─── */
@@ -365,18 +389,19 @@
     gap: 8px;
 }
 .phone-country-duo .country-pick {
-    width: 130px;
+    width: 125px;
     flex-shrink: 0;
-    height: 44px;
+    height: 46px;
     border-radius: 12px;
     border: 1.5px solid #e2e8f0;
     background: #f8fafc;
-    font-size: 0.8rem;
+    font-size: 0.84rem;
     font-weight: 700;
     color: #1e293b;
-    padding-inline-start: 0.65rem;
-    padding-inline-end: 1.25rem;
+    padding-inline-start: 0.75rem;
+    padding-inline-end: 0.75rem;
     cursor: pointer;
+    transition: border-color 0.2s;
 }
 .phone-country-duo .country-pick:focus {
     border-color: #2563eb;
@@ -385,48 +410,112 @@
 .phone-country-duo .phone-field-wrap {
     flex: 1;
     position: relative;
+    display: flex;
+    align-items: center;
 }
 .phone-country-duo .phone-field-wrap .form-control {
-    height: 44px;
+    height: 46px;
     border-radius: 12px;
     border: 1.5px solid #e2e8f0;
     font-weight: 700;
-    font-size: 0.88rem;
+    font-size: 0.92rem;
     letter-spacing: 0.5px;
-    padding-inline-start: 0.85rem;
-    padding-inline-end: 2.4rem;
+    padding-inline-start: 2.65rem;
+    padding-inline-end: 1rem;
+    text-align: start;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
-.phone-country-duo .phone-field-wrap .trailing-icon {
+.phone-country-duo .phone-field-wrap .form-control:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    outline: none;
+}
+.phone-country-duo .phone-field-wrap .field-icon-start {
     position: absolute;
-    inset-inline-end: 0.85rem;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 1rem;
+    inset-inline-start: 0.95rem;
+    font-size: 1.05rem;
     color: #94a3b8;
     pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ─── Step 2 Summary Banner ─── */
+.step-summary-banner {
+    background: linear-gradient(135deg, #f8fafc 0%, #f0f7ff 100%);
+    border: 1.5px solid #dbeafe;
+    border-radius: 16px;
+    padding: 0.85rem 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 1.15rem;
+}
+.summary-icon-badge {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: #dbeafe;
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+.summary-service-name {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.3;
+}
+.summary-datetime-label {
+    font-size: 0.78rem;
+    color: #64748b;
+    font-weight: 600;
+    margin-top: 2px;
+}
+.badge-price-highlight {
+    background: #2563eb;
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 0.92rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 20px;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
 }
 
 /* ─── Security Shield Alert ─── */
 .security-alert-card {
-    background: #f0f7ff;
-    border: 1px solid #dbeafe;
-    border-radius: 12px;
-    padding: 0.7rem 0.9rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 0.75rem 1rem;
     display: flex;
     align-items: center;
-    gap: 9px;
-    margin-top: 0.75rem;
-    margin-bottom: 1rem;
+    gap: 12px;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
 }
-.security-alert-card i {
-    font-size: 1.3rem;
-    color: #2563eb;
+.security-alert-card .security-icon-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #ecfdf5;
+    color: #059669;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
     flex-shrink: 0;
 }
 .security-alert-card div {
-    font-size: 0.75rem;
+    font-size: 0.76rem;
     color: #334155;
-    line-height: 1.4;
+    line-height: 1.45;
 }
 
 /* ─── Calendar & Slots ─── */
@@ -725,16 +814,7 @@
     background: #e2e8f0;
     color: #0f172a;
 }
-.step-summary-banner {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    padding: 0.75rem 0.95rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-}
+
 
 /* ─── Screen 3: Voucher & Success ─── */
 .success-check-bubble {
@@ -782,17 +862,17 @@
                 </button>
                 <div class="d-flex align-items-center gap-3">
                     <div class="header-phone-badge">
-                        @if(!empty($siteLogo))
-                            <img src="{{ $siteLogo }}" alt="Logo">
+                        @php $modalLogo = \App\Models\Setting::get('site_logo'); @endphp
+                        @if($modalLogo)
+                            <img src="{{ asset('storage/' . $modalLogo) }}" alt="Dr. Yonis">
                         @else
-                            <span style="font-size: 1.5rem; font-weight: 900; color: #60a5fa;">Ψ</span>
+                            <i class="bi bi-person-badge text-white fs-4"></i>
                         @endif
-                        <span class="video-tag"><i class="bi bi-camera-video-fill"></i></span>
+                        <div class="video-tag"><i class="bi bi-camera-video-fill"></i></div>
                     </div>
                     <div>
                         <div class="header-title-text">
-                            <span>جلسة فورية</span>
-                            <span style="color: #facc15;">⚡</span>
+                            <span id="bookingModalMainTitle">{{ $isArLocale ? 'جلسة فورية' : 'Instant Session' }}</span>
                         </div>
                         <p class="header-sub-text">{{ $isArLocale ? 'احجز استشارة مع الطبيب خلال دقائق' : 'Book a consultation with the doctor in minutes' }}</p>
                     </div>
@@ -892,6 +972,7 @@
                     <div class="input-row-block">
                         <label class="input-row-label">{{ $isArLocale ? 'اختر الخدمة أو الاستشارة' : 'Select Service' }}</label>
                         <div class="field-box-wrap">
+                            <i class="bi bi-grid-fill field-icon-start"></i>
                             <select class="form-select" id="app_service_select" onchange="onModalServiceChanged(this)">
                                 @foreach($modalServices as $s)
                                     <option value="{{ $s->id }}" 
@@ -908,7 +989,6 @@
                                     </option>
                                 @endforeach
                             </select>
-                            <i class="bi bi-chevron-down trailing-icon"></i>
                         </div>
                     </div>
 
@@ -916,8 +996,8 @@
                     <div class="input-row-block">
                         <label class="input-row-label">{{ $isArLocale ? 'عنوان وموضوع الاستشارة' : 'Consultation Subject' }}</label>
                         <div class="field-box-wrap">
+                            <i class="bi bi-chat-dots field-icon-start"></i>
                             <input type="text" id="app_consultation_title" class="form-control" placeholder="{{ $isArLocale ? 'اكتب موضوعاً مختصراً' : 'Short subject' }}" value="{{ $isArLocale ? 'استشارة نفسية متخصصة' : 'Specialized Consultation' }}" required>
-                            <i class="bi bi-chat-dots trailing-icon"></i>
                         </div>
                     </div>
 
@@ -968,23 +1048,23 @@
                     
                     {{-- 2.1 شريط ملخص الخدمة والموعد المختار --}}
                     <div class="step-summary-banner">
-                        <div class="d-flex align-items-center gap-2 overflow-hidden">
-                            <div class="p-2 bg-primary-subtle text-primary rounded-3">
-                                <i class="bi bi-calendar-check-fill fs-5"></i>
+                        <div class="d-flex align-items-center gap-2.5 overflow-hidden">
+                            <div class="summary-icon-badge">
+                                <i class="bi bi-calendar-check-fill"></i>
                             </div>
                             <div class="overflow-hidden">
-                                <div class="fw-bold text-dark text-truncate small" id="step2-summary-service">{{ $modalServices->first()->title ?? 'استشارة نفسية متخصصة' }}</div>
-                                <div class="text-muted" style="font-size: 0.76rem;" id="step2-summary-datetime">—</div>
+                                <div class="summary-service-name text-truncate" id="step2-summary-service">{{ $modalServices->first()->title ?? ($isArLocale ? 'استشارة نفسية متخصصة' : 'Specialized Consultation') }}</div>
+                                <div class="summary-datetime-label" id="step2-summary-datetime">—</div>
                             </div>
                         </div>
-                        <span class="badge bg-primary text-white px-2.5 py-1.5 rounded-pill fw-bold" id="step2-summary-price">
+                        <span class="badge-price-highlight" id="step2-summary-price">
                             {{ $modalServices->first()->price ?? 50 }} {{ $currencySymbol }}
                         </span>
                     </div>
 
                     {{-- 2.2 بيانات المريض --}}
                     <div class="card-section-label">
-                        <i class="bi bi-person-fill text-primary"></i>
+                        <i class="bi bi-person-lines-fill text-primary"></i>
                         <span>{{ $isArLocale ? 'بيانات المريض للتواصل' : 'Patient Information' }}</span>
                         <span id="app_user_status_badge" class="badge bg-light text-muted border small ms-auto d-none"></span>
                     </div>
@@ -993,18 +1073,18 @@
                     <div class="input-row-block">
                         <label class="input-row-label">{{ $isArLocale ? 'الاسم بالكامل' : 'Full Name' }} <span class="text-danger">*</span></label>
                         <div class="field-box-wrap">
+                            <i class="bi bi-person field-icon-start"></i>
                             <input type="text" id="app_user_name" class="form-control" 
                                    placeholder="{{ $isArLocale ? 'أدخل الاسم بالكامل' : 'Enter full name' }}" 
                                    value="{{ Auth::check() ? Auth::user()->name : '' }}" 
                                    oninput="savePatientBookingToStorage()" required>
-                            <i class="bi bi-person trailing-icon"></i>
                         </div>
                     </div>
 
                     {{-- رقم الواتساب مع كود البلد --}}
                     <div class="input-row-block">
                         <label class="input-row-label">{{ $isArLocale ? 'رقم الواتساب' : 'WhatsApp Number' }} <span class="text-danger">*</span></label>
-                        <div class="phone-country-duo" dir="ltr">
+                        <div class="phone-country-duo">
                             <select class="country-pick" id="app_country_code" onchange="onModalCountryCodeChanged(this)">
                                 <option value="+964" selected>🇮🇶 +964</option>
                                 <option value="+966">🇸🇦 +966</option>
@@ -1041,8 +1121,8 @@
                                 <option value="+34">🇪🇸 +34</option>
                             </select>
                             <div class="phone-field-wrap">
+                                <i class="bi bi-telephone field-icon-start"></i>
                                 <input type="tel" id="app_user_phone" class="form-control" placeholder="7701234567" value="{{ Auth::check() ? preg_replace('/^\+964/', '', Auth::user()->phone ?? '') : '' }}" oninput="savePatientBookingToStorage(); checkUserRegistrationStatus();" required>
-                                <i class="bi bi-telephone trailing-icon"></i>
                             </div>
                         </div>
                     </div>
@@ -1051,31 +1131,33 @@
                     <div class="input-row-block">
                         <label class="input-row-label">{{ $isArLocale ? 'البريد الإلكتروني (لاستلام تفاصيل الموعد)' : 'Email' }}</label>
                         <div class="field-box-wrap">
+                            <i class="bi bi-envelope field-icon-start"></i>
                             <input type="email" id="app_user_email" class="form-control" 
                                    placeholder="name@example.com" 
                                    value="{{ Auth::check() ? Auth::user()->email : '' }}" 
                                    oninput="savePatientBookingToStorage()">
-                            <i class="bi bi-envelope trailing-icon"></i>
                         </div>
                     </div>
 
                     {{-- كلمة المرور للمستخدم الجديد --}}
                     <div class="input-row-block" id="app_password_wrapper" style="{{ Auth::check() ? 'display:none;' : '' }}">
                         <label class="input-row-label" id="app_password_label">{{ $isArLocale ? 'كلمة المرور' : 'Password' }} <span class="text-danger">*</span></label>
-                        <div class="field-box-wrap">
+                        <div class="field-box-wrap has-dual-icons">
+                            <i class="bi bi-lock field-icon-start"></i>
                             <input type="password" id="app_user_password" class="form-control" 
                                    placeholder="{{ $isArLocale ? 'أدخل كلمة المرور' : 'Enter password' }}" minlength="6">
                             <button type="button" class="pwd-eye-btn" onclick="togglePasswordVisibility('app_user_password')">
                                 <i class="bi bi-eye-slash" id="app_user_password_eye"></i>
                             </button>
-                            <i class="bi bi-lock trailing-icon"></i>
                         </div>
                         <div class="form-text text-muted small" id="app_password_hint">{{ $isArLocale ? 'يرجى تعيين كلمة مرور لإنشاء حسابك ومتابعة مواعيدك.' : 'Create password for your patient dashboard.' }}</div>
                     </div>
 
                     {{-- أمان البيانات --}}
-                    <div class="security-alert-card mt-3">
-                        <i class="bi bi-shield-check"></i>
+                    <div class="security-alert-card">
+                        <div class="security-icon-wrap">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
                         <div>
                             <strong class="d-block mb-0.5 text-dark">{{ $isArLocale ? 'معلوماتك آمنة ومحمية' : 'Your data is safe' }}</strong>
                             <span>{{ $isArLocale ? 'نستخدم أحدث تقنيات التشفير لحماية بياناتك الشخصية وسرية الجلسة.' : 'We use end-to-end encryption to protect your privacy.' }}</span>
