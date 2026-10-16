@@ -11,6 +11,8 @@ use App\Models\Payment;
 use App\Models\Reel;
 use App\Models\Testimonial;
 use App\Models\Setting;
+use App\Models\Doctor;
+use App\Models\AppSlider;
 use App\Services\AvailabilityService;
 use App\Services\BookingCheckoutService;
 use Illuminate\Http\Request;
@@ -407,7 +409,8 @@ class ApiController extends Controller
 
         $detailed = $this->availabilityService->getSlotsDetailed(
             $service->id,
-            $dateStr
+            $dateStr,
+            $request->input('doctor_id')
         );
 
         $simpleSlots = array_map(function ($s) {
@@ -422,6 +425,9 @@ class ApiController extends Controller
             'date'             => $detailed['date'],
             'day_name'         => $detailed['day_name'],
             'is_day_available' => $detailed['is_day_available'],
+            'doctor_id'        => $detailed['doctor_id'],
+            'doctor_name'      => $detailed['doctor_name'] ?? null,
+            'is_single_doctor' => $detailed['is_single_doctor'],
             'service' => [
                 'id'              => $service->id,
                 'title_ar'        => $service->title_ar ?: $service->title,
@@ -516,14 +522,59 @@ class ApiController extends Controller
         $paySuperkiEnabled = Setting::get('payment_superki_enabled', '1') === '1';
         $payCardEnabled = Setting::get('payment_card_enabled', '0') === '1';
 
+        // Multi-Doctor & Sliders for Mobile App
+        $activeDoctors = Doctor::active()->get();
+        $isSingleDoctor = $activeDoctors->count() <= 1;
+        $primaryDoctor = $activeDoctors->first();
+
+        $sliders = AppSlider::active()->get()->map(function ($s) {
+            return [
+                'id' => $s->id,
+                'title' => $s->title,
+                'subtitle' => $s->subtitle,
+                'image_url' => $s->image_url,
+                'action_type' => $s->action_type,
+                'action_value' => $s->action_value,
+                'sort_order' => $s->sort_order,
+            ];
+        });
+
+        $doctorsList = $activeDoctors->map(function ($doc) {
+            return [
+                'id' => $doc->id,
+                'name' => $doc->name,
+                'name_en' => $doc->name_en,
+                'title' => $doc->title,
+                'title_en' => $doc->title_en,
+                'specialty' => $doc->specialty,
+                'specialty_en' => $doc->specialty_en,
+                'avatar_url' => $doc->avatar_url,
+                'bio' => $doc->bio,
+                'experience_years' => (int) $doc->experience_years,
+                'consultation_fee' => $doc->consultation_fee ? (float) $doc->consultation_fee : null,
+            ];
+        });
+
         return response()->json([
             'success' => true,
+            'is_single_doctor' => $isSingleDoctor,
+            'auto_selected_doctor' => $primaryDoctor ? [
+                'id' => $primaryDoctor->id,
+                'name' => $primaryDoctor->name,
+                'title' => $primaryDoctor->title,
+                'specialty' => $primaryDoctor->specialty,
+                'avatar_url' => $primaryDoctor->avatar_url,
+                'experience_years' => (int) $primaryDoctor->experience_years,
+                'consultation_fee' => $primaryDoctor->consultation_fee ? (float) $primaryDoctor->consultation_fee : null,
+            ] : null,
+            'sliders' => $sliders,
+            'doctors' => $doctorsList,
             'doctor' => [
-                'name' => Setting::get('doctor_name', $doctorProfile?->user?->name ?? 'د. يونس المرشد'),
-                'title' => $doctorProfile?->title ?? 'أخصائي واستشاري العلاج النفسي والسلوكي',
-                'bio' => $doctorProfile?->bio ?? 'أخصائي علاج نفسي مرخص بخبرة تزيد عن 10 سنوات في تقديم الاستشارات الفردية والأسرية والزوجية.',
-                'experience_years' => (int) ($doctorProfile?->experience_years ?? 10),
-                'avatar_url' => $doctorProfile?->avatar ? asset('storage/' . $doctorProfile->avatar) : asset('storage/' . Setting::get('site_logo', '')),
+                'name' => $primaryDoctor?->name ?? Setting::get('doctor_name', $doctorProfile?->user?->name ?? 'د. يونس المرشد'),
+                'title' => $primaryDoctor?->title ?? ($doctorProfile?->title ?? 'أخصائي واستشاري العلاج النفسي والسلوكي'),
+                'bio' => $primaryDoctor?->bio ?? ($doctorProfile?->bio ?? 'أخصائي علاج نفسي مرخص بخبرة تزيد عن 10 سنوات.'),
+                'experience_years' => (int) ($primaryDoctor?->experience_years ?? ($doctorProfile?->experience_years ?? 10)),
+                'avatar_url' => $primaryDoctor?->avatar_url ?? ($doctorProfile?->avatar ? asset('storage/' . $doctorProfile->avatar) : asset('storage/' . Setting::get('site_logo', ''))),
                 'hero_image' => $doctorProfile?->hero_image,
                 'hero_image_mobile' => $doctorProfile?->mobile_hero_image ?? $doctorProfile?->hero_image,
                 'whatsapp' => Setting::get('whatsapp_number', '+9647800000000'),
@@ -589,6 +640,130 @@ class ApiController extends Controller
                     'superki' => $paySuperkiEnabled,
                     'card' => $payCardEnabled,
                 ]
+            ]
+        ]);
+    }
+
+    /**
+     * Get Splash Screen Data for Mobile App Onboarding
+     */
+    public function getSplash(Request $request)
+    {
+        $splashImage = Setting::get('app_splash_image', 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1000&q=80');
+        if (!empty($splashImage) && !str_starts_with($splashImage, 'http://') && !str_starts_with($splashImage, 'https://')) {
+            $splashImage = asset($splashImage);
+        }
+
+        return response()->json([
+            'success' => true,
+            'is_enabled' => Setting::get('app_splash_enabled', '1') === '1',
+            'duration' => (int) Setting::get('app_splash_duration', '3'),
+            'title' => Setting::get('app_splash_title', 'مرحباً بك في تطبيق عيادة د. يونس المرشدي'),
+            'subtitle' => Setting::get('app_splash_subtitle', 'احجز استشارتك الطبية والنفسية بكل سهولة وسرية تامة'),
+            'image_url' => $splashImage,
+        ]);
+    }
+
+    /**
+     * Get Sliders list for Home Page
+     */
+    public function getSliders(Request $request)
+    {
+        $sliders = AppSlider::active()->get()->map(function ($s) {
+            return [
+                'id' => $s->id,
+                'title' => $s->title,
+                'subtitle' => $s->subtitle,
+                'image_url' => $s->image_url,
+                'action_type' => $s->action_type,
+                'action_value' => $s->action_value,
+                'sort_order' => $s->sort_order,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'total' => $sliders->count(),
+            'sliders' => $sliders,
+        ]);
+    }
+
+    /**
+     * Get Doctors list for Mobile App
+     */
+    public function getDoctors(Request $request)
+    {
+        $activeDoctors = Doctor::active()->get();
+        $isSingleDoctor = $activeDoctors->count() <= 1;
+        $primaryDoctor = $activeDoctors->first();
+
+        $doctors = $activeDoctors->map(function ($doc) {
+            return [
+                'id' => $doc->id,
+                'name' => $doc->name,
+                'name_en' => $doc->name_en,
+                'title' => $doc->title,
+                'title_en' => $doc->title_en,
+                'specialty' => $doc->specialty,
+                'specialty_en' => $doc->specialty_en,
+                'avatar_url' => $doc->avatar_url,
+                'bio' => $doc->bio,
+                'bio_en' => $doc->bio_en,
+                'phone' => $doc->phone,
+                'email' => $doc->email,
+                'experience_years' => (int) $doc->experience_years,
+                'consultation_fee' => $doc->consultation_fee ? (float) $doc->consultation_fee : null,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'is_single_doctor' => $isSingleDoctor,
+            'auto_selected_doctor' => $isSingleDoctor && $primaryDoctor ? [
+                'id' => $primaryDoctor->id,
+                'name' => $primaryDoctor->name,
+                'title' => $primaryDoctor->title,
+                'specialty' => $primaryDoctor->specialty,
+                'avatar_url' => $primaryDoctor->avatar_url,
+                'experience_years' => (int) $primaryDoctor->experience_years,
+                'consultation_fee' => $primaryDoctor->consultation_fee ? (float) $primaryDoctor->consultation_fee : null,
+            ] : null,
+            'total' => $doctors->count(),
+            'doctors' => $doctors,
+        ]);
+    }
+
+    /**
+     * Get Single Doctor Profile
+     */
+    public function getDoctor(Request $request, $id)
+    {
+        $doctor = Doctor::where('is_active', true)->find($id);
+
+        if (!$doctor) {
+            return response()->json([
+                'success' => false,
+                'message' => 'الطبيب المطلوب غير موجود أو غير مفعل.',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'doctor' => [
+                'id' => $doctor->id,
+                'name' => $doctor->name,
+                'name_en' => $doctor->name_en,
+                'title' => $doctor->title,
+                'title_en' => $doctor->title_en,
+                'specialty' => $doctor->specialty,
+                'specialty_en' => $doctor->specialty_en,
+                'avatar_url' => $doctor->avatar_url,
+                'bio' => $doctor->bio,
+                'bio_en' => $doctor->bio_en,
+                'phone' => $doctor->phone,
+                'email' => $doctor->email,
+                'experience_years' => (int) $doctor->experience_years,
+                'consultation_fee' => $doctor->consultation_fee ? (float) $doctor->consultation_fee : null,
             ]
         ]);
     }
@@ -984,10 +1159,12 @@ class ApiController extends Controller
             }
 
             $bookingStatus = (!empty($receiptPath)) ? 'PendingPaymentReview' : 'AwaitingPayment';
+            $resolvedDoctorId = $request->input('doctor_id') ?: $this->availabilityService->resolveDoctorId();
 
             // Create booking record linked directly to patient
             $booking = Booking::create([
                 'booking_reference' => $bookingRef,
+                'doctor_id' => $resolvedDoctorId,
                 'patient_id' => $patient ? $patient->id : null,
                 'service_id' => $service->id,
                 'booking_type' => $bookingType,

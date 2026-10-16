@@ -158,4 +158,29 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::put('/staff/{id}', [StaffController::class, 'update'])->name('staff.update');
         Route::delete('/staff/{id}', [StaffController::class, 'destroy'])->name('staff.destroy');
     });
+
+    // Doctors Management (manage_patients or admin)
+    Route::middleware([CheckPermission::class . ':manage_patients'])->group(function () {
+        Route::get('/doctors', [\App\Http\Controllers\Admin\AdminDoctorController::class, 'index'])->name('doctors.index');
+        Route::post('/doctors', [\App\Http\Controllers\Admin\AdminDoctorController::class, 'store'])->name('doctors.store');
+        Route::match(['post', 'put'], '/doctors/{id}', [\App\Http\Controllers\Admin\AdminDoctorController::class, 'update'])->name('doctors.update');
+        Route::delete('/doctors/{id}', [\App\Http\Controllers\Admin\AdminDoctorController::class, 'destroy'])->name('doctors.destroy');
+        Route::post('/doctors/{id}/toggle', [\App\Http\Controllers\Admin\AdminDoctorController::class, 'toggleStatus'])->name('doctors.toggle');
+    });
+
+    // App Sliders Management (manage_services or admin)
+    Route::middleware([CheckPermission::class . ':manage_services'])->group(function () {
+        Route::get('/sliders', [\App\Http\Controllers\Admin\AdminSliderController::class, 'index'])->name('sliders.index');
+        Route::post('/sliders', [\App\Http\Controllers\Admin\AdminSliderController::class, 'store'])->name('sliders.store');
+        Route::match(['post', 'put'], '/sliders/{id}', [\App\Http\Controllers\Admin\AdminSliderController::class, 'update'])->name('sliders.update');
+        Route::delete('/sliders/{id}', [\App\Http\Controllers\Admin\AdminSliderController::class, 'destroy'])->name('sliders.destroy');
+        Route::post('/sliders/{id}/toggle', [\App\Http\Controllers\Admin\AdminSliderController::class, 'toggleStatus'])->name('sliders.toggle');
+    });
+
+    // App & Splash Settings (manage_settings or admin)
+    Route::middleware([CheckPermission::class . ':manage_settings'])->group(function () {
+        Route::get('/app-settings', [\App\Http\Controllers\Admin\AdminAppSettingsController::class, 'index'])->name('app-settings.index');
+        Route::post('/app-settings', [\App\Http\Controllers\Admin\AdminAppSettingsController::class, 'update'])->name('app-settings.update');
+    });
 });
+

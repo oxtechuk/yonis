@@ -10,6 +10,7 @@ class Booking extends Model
 {
     protected $fillable = [
         'booking_reference',
+        'doctor_id',
         'patient_id',
         'service_id',
         'booking_type',
@@ -167,6 +168,14 @@ class Booking extends Model
         };
     }
 
+
+    /**
+     * Doctor relation
+     */
+    public function doctor(): BelongsTo
+    {
+        return $this->belongsTo(Doctor::class);
+    }
 
     /**
      * Patient relation

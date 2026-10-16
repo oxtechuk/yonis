@@ -6,19 +6,51 @@ use App\Models\Service;
 use App\Models\Availability;
 use App\Models\BlockedTime;
 use App\Models\Booking;
+use App\Models\Doctor;
 use Carbon\Carbon;
 
 class AvailabilityService
 {
     /**
+     * Resolve Doctor ID intelligently:
+     * If explicit doctorId provided, use it.
+     * If not provided, and there is only 1 active doctor, auto-select that doctor!
+     * Otherwise return the first active doctor or null.
+     */
+    public function resolveDoctorId(?int $doctorId = null): ?int
+    {
+        if ($doctorId) {
+            return $doctorId;
+        }
+
+        $activeDoctors = Doctor::active()->get();
+        if ($activeDoctors->count() === 1) {
+            return $activeDoctors->first()->id;
+        }
+
+        return $activeDoctors->first()?->id;
+    }
+
+    /**
+     * Check if system currently operates in single-doctor mode
+     */
+    public function isSingleDoctor(): bool
+    {
+        return Doctor::active()->count() <= 1;
+    }
+
+    /**
      * Generate available slots for a specific service on a given date.
      *
      * @param int $serviceId
      * @param string $dateStr (YYYY-MM-DD)
-     * @return array List of available time slots (e.g., ["14:00", "14:30", ...])
+     * @param int|null $doctorId
+     * @return array List of available time slots (e.g., [["start" => "14:00", "end" => "14:30"], ...])
      */
-    public function getAvailableSlots(int $serviceId, string $dateStr): array
+    public function getAvailableSlots(int $serviceId, string $dateStr, ?int $doctorId = null): array
     {
+        $resolvedDoctorId = $this->resolveDoctorId($doctorId);
+
         $service = Service::find($serviceId);
         if (!$service || !$service->is_active) {
             return [];
@@ -40,29 +72,52 @@ class AvailabilityService
 
         // 2. Check if the day is completely blocked
         $blockedDay = BlockedTime::where('date', $dateStr)
+            ->where(function ($q) use ($resolvedDoctorId) {
+                if ($resolvedDoctorId) {
+                    $q->whereNull('doctor_id')->orWhere('doctor_id', $resolvedDoctorId);
+                }
+            })
             ->whereNull('start_time')
             ->first();
+
         if ($blockedDay) {
             return [];
         }
 
-        // 3. Get the doctor's general availability for this day of the week
-        // 0 = Sunday, 1 = Monday, etc.
+        // 3. Get doctor's availability for this day of the week (or fallback to general)
         $dayOfWeek = $date->dayOfWeek;
-        $generalAvailability = Availability::where('day_of_week', $dayOfWeek)->first();
+        $generalAvailability = Availability::where('day_of_week', $dayOfWeek)
+            ->where(function ($q) use ($resolvedDoctorId) {
+                if ($resolvedDoctorId) {
+                    $q->whereNull('doctor_id')->orWhere('doctor_id', $resolvedDoctorId);
+                }
+            })
+            ->orderByRaw("CASE WHEN doctor_id IS NOT NULL THEN 0 ELSE 1 END")
+            ->first();
         
         $workStart = $generalAvailability ? Carbon::parse($generalAvailability->start_time) : Carbon::parse('09:00');
         $workEnd = $generalAvailability ? Carbon::parse($generalAvailability->end_time) : Carbon::parse('23:00');
 
         // 4. Get partial blocked times for this date
         $partialBlocks = BlockedTime::where('date', $dateStr)
+            ->where(function ($q) use ($resolvedDoctorId) {
+                if ($resolvedDoctorId) {
+                    $q->whereNull('doctor_id')->orWhere('doctor_id', $resolvedDoctorId);
+                }
+            })
             ->whereNotNull('start_time')
             ->whereNotNull('end_time')
             ->get();
 
-        // 5. Get existing active bookings for this date
-        // Active statuses: Confirmed, Completed, PendingPaymentReview, and recent AwaitingPayment (15 mins)
+        // 5. Get existing active bookings for this date and doctor
         $existingBookings = Booking::where('date', $dateStr)
+            ->where(function ($q) use ($resolvedDoctorId) {
+                if ($resolvedDoctorId) {
+                    $q->where(function ($sub) use ($resolvedDoctorId) {
+                        $sub->whereNull('doctor_id')->orWhere('doctor_id', $resolvedDoctorId);
+                    });
+                }
+            })
             ->where(function ($q) {
                 $q->whereIn('status', ['Confirmed', 'Completed', 'PendingPaymentReview'])
                   ->orWhere(function ($subQ) {
@@ -72,7 +127,7 @@ class AvailabilityService
             })
             ->get();
 
-        $duration = $service->duration;
+        $duration = max((int)$service->duration, 15);
         $slots = [];
         $currentSlot = $workStart->copy();
 
@@ -84,24 +139,21 @@ class AvailabilityService
             $slotStartStr = $slotStart->format('H:i');
             $slotEndStr = $slotEnd->format('H:i');
 
-            // A. If the date is TODAY, the slot start time must be in the future
+            // A. If date is TODAY, must be in future
             if ($date->isToday()) {
                 $now = Carbon::now();
-                // Compare with current time
                 $slotDateTime = Carbon::parse($dateStr . ' ' . $slotStartStr);
                 if ($slotDateTime->lte($now)) {
-                    $currentSlot->addMinutes(15); // Slide by 15 mins (or by duration, let's slide by 15 minutes for denser/better options, or by service duration. Let's slide by 15 mins for flexible scheduling!)
+                    $currentSlot->addMinutes(15);
                     continue;
                 }
             }
 
-            // B. Check if slot overlaps with any partial block
+            // B. Blocked overlap check
             $isBlocked = false;
             foreach ($partialBlocks as $block) {
                 $blockStart = Carbon::parse($block->start_time);
                 $blockEnd = Carbon::parse($block->end_time);
-
-                // Overlap condition: slotStart < blockEnd && slotEnd > blockStart
                 if ($slotStart->lt($blockEnd) && $slotEnd->gt($blockStart)) {
                     $isBlocked = true;
                     break;
@@ -113,13 +165,11 @@ class AvailabilityService
                 continue;
             }
 
-            // C. Check if slot overlaps with any existing booking
+            // C. Booking overlap check
             $isBooked = false;
             foreach ($existingBookings as $booking) {
                 $bookingStart = Carbon::parse($booking->start_time);
                 $bookingEnd = Carbon::parse($booking->end_time);
-
-                // Overlap condition: slotStart < bookingEnd && slotEnd > bookingStart
                 if ($slotStart->lt($bookingEnd) && $slotEnd->gt($bookingStart)) {
                     $isBooked = true;
                     break;
@@ -144,15 +194,22 @@ class AvailabilityService
      *
      * @param int $serviceId
      * @param string $dateStr (YYYY-MM-DD)
+     * @param int|null $doctorId
      * @return array
      */
-    public function getSlotsDetailed(int $serviceId, string $dateStr): array
+    public function getSlotsDetailed(int $serviceId, string $dateStr, ?int $doctorId = null): array
     {
+        $resolvedDoctorId = $this->resolveDoctorId($doctorId);
+        $doctor = $resolvedDoctorId ? Doctor::find($resolvedDoctorId) : null;
+        $isSingleDoctor = $this->isSingleDoctor();
+
         $service = Service::find($serviceId);
         if (!$service || !$service->is_active) {
             return [
                 'date' => $dateStr,
                 'is_day_available' => false,
+                'doctor_id' => $resolvedDoctorId,
+                'is_single_doctor' => $isSingleDoctor,
                 'available_slots' => [],
                 'unavailable_slots' => [],
                 'all_slots' => [],
@@ -173,6 +230,8 @@ class AvailabilityService
                 'date' => $dateStr,
                 'is_day_available' => false,
                 'message' => 'التاريخ في الماضي',
+                'doctor_id' => $resolvedDoctorId,
+                'is_single_doctor' => $isSingleDoctor,
                 'available_slots' => [],
                 'unavailable_slots' => [],
                 'all_slots' => [],
@@ -181,13 +240,22 @@ class AvailabilityService
 
         // Full day blocked check
         $blockedDay = BlockedTime::where('date', $dateStr)
+            ->where(function ($q) use ($resolvedDoctorId) {
+                if ($resolvedDoctorId) {
+                    $q->whereNull('doctor_id')->orWhere('doctor_id', $resolvedDoctorId);
+                }
+            })
             ->whereNull('start_time')
             ->first();
+
         if ($blockedDay) {
             return [
                 'date' => $dateStr,
                 'is_day_available' => false,
                 'message' => 'اليوم محظور بالكامل من الطبيب',
+                'doctor_id' => $resolvedDoctorId,
+                'doctor_name' => $doctor?->name,
+                'is_single_doctor' => $isSingleDoctor,
                 'available_slots' => [],
                 'unavailable_slots' => [],
                 'all_slots' => [],
@@ -195,17 +263,36 @@ class AvailabilityService
         }
 
         $dayOfWeek = $date->dayOfWeek;
-        $generalAvailability = Availability::where('day_of_week', $dayOfWeek)->first();
+        $generalAvailability = Availability::where('day_of_week', $dayOfWeek)
+            ->where(function ($q) use ($resolvedDoctorId) {
+                if ($resolvedDoctorId) {
+                    $q->whereNull('doctor_id')->orWhere('doctor_id', $resolvedDoctorId);
+                }
+            })
+            ->orderByRaw("CASE WHEN doctor_id IS NOT NULL THEN 0 ELSE 1 END")
+            ->first();
 
         $workStart = $generalAvailability ? Carbon::parse($generalAvailability->start_time) : Carbon::parse('09:00');
         $workEnd = $generalAvailability ? Carbon::parse($generalAvailability->end_time) : Carbon::parse('23:00');
 
         $partialBlocks = BlockedTime::where('date', $dateStr)
+            ->where(function ($q) use ($resolvedDoctorId) {
+                if ($resolvedDoctorId) {
+                    $q->whereNull('doctor_id')->orWhere('doctor_id', $resolvedDoctorId);
+                }
+            })
             ->whereNotNull('start_time')
             ->whereNotNull('end_time')
             ->get();
 
         $existingBookings = Booking::where('date', $dateStr)
+            ->where(function ($q) use ($resolvedDoctorId) {
+                if ($resolvedDoctorId) {
+                    $q->where(function ($sub) use ($resolvedDoctorId) {
+                        $sub->whereNull('doctor_id')->orWhere('doctor_id', $resolvedDoctorId);
+                    });
+                }
+            })
             ->where(function ($q) {
                 $q->whereIn('status', ['Confirmed', 'Completed', 'PendingPaymentReview'])
                   ->orWhere(function ($subQ) {
@@ -294,6 +381,9 @@ class AvailabilityService
             'date' => $dateStr,
             'day_name' => $date->translatedFormat('l'),
             'is_day_available' => count($availableSlots) > 0,
+            'doctor_id' => $resolvedDoctorId,
+            'doctor_name' => $doctor?->name,
+            'is_single_doctor' => $isSingleDoctor,
             'service_id' => $service->id,
             'service_title' => $service->title,
             'duration' => $duration,
@@ -309,4 +399,3 @@ class AvailabilityService
         ];
     }
 }
-

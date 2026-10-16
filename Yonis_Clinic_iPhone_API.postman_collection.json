@@ -1,0 +1,998 @@
+{
+	"info": {
+		"_postman_id": "yonis-clinic-ios-iphone-v1",
+		"name": "📱 Yonis Clinic - iPhone / iOS Version API (Complete with Test Data)",
+		"description": "المجموعة الرسمية الشاملة والمحدثة بالكامل لبرمجة تطبيق الآيفون (iOS / Swift / SwiftUI / Flutter / React Native) لعيادة ومنصة د. يونس المرشدي.\n\n### مميزات هذه النسخة المخصصة لتطبيق الآيفون (iPhone Version):\n1. **شاشة البداية (Splash Screen):** نقطة نهاية مخصصة لجلب صورة وشعار وعنوان ووصف شاشة البداية لتطبيق الآيفون مع مدة العرض.\n2. **سلايدر الصفحة الرئيسية (Home Sliders):** جلب البنرات العلوية التفاعلية مع روابط التوجيه (حجز طبيب معين، فتح خدمة، أو رابط خارجي).\n3. **منظومة الدكاترة المتعددة (Multi-Doctor Architecture):** استعراض قائمة الأطباء، تخصصاتهم، صورهم الشخصية، وسنوات خبرتهم وسعر كشفهم.\n4. **منطق الاختيار التلقائي الذكي (Smart Auto-Selection):** في حال وجود طبيب واحد فقط في النظام، يقوم الـ API تلقائياً بتمرير `is_single_doctor: true` وكائن `auto_selected_doctor` لتخطي خطوة اختيار الطبيب والانتقال فوراً للمواعيد.\n5. **المواعيد الذكية (Doctor Slots):** فحص المواعيد المتاحة لكل طبيب أو تلقائياً للطبيب الافتراضي.\n6. **محرك الحجز والدفع الشامل:** دعم الحجز مع رقم الطبيب `doctor_id` ورفع إيصالات الدفع والتحويل المحلي والبطاقات.\n7. **لوحة تحكم المريض وإدارة المواعيد:** استعراض المواعيد، الإلغاء، وإعادة الجدولة.\n\n### بيانات الاختبار الجاهزة المضمنة بالطلبات (Ready Test Data):\n- **المريض المسجل:** `+9647701234567` / كلمة المرور: `password`\n- **المريضة المسجلة:** `+9647809876543` / كلمة المرور: `password`\n- **الطبيب المدير (د. يونس):** `dr.yonis@example.com` / كلمة المرور: `password`\n- **رابط السيرفر الافتراضي:** `http://127.0.0.1:8000` (أو دومين الإنتاج `https://younis-almurshid.com`)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8000",
+			"type": "string",
+			"description": "رابط السيرفر الأساسي (مثال للتطوير المحلي: http://127.0.0.1:8000 أو السيرفر المباشر https://younis-almurshid.com)"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string",
+			"description": "رمز مصادقة Bearer Token للمريض (يتم حفظه تلقائياً عند تسجيل الدخول أو التسجيل)"
+		},
+		{
+			"key": "booking_ref",
+			"value": "BK-TEST8492",
+			"type": "string",
+			"description": "رقم مرجع الحجز المولد تلقائياً (مثل BK-XXXXXXXX) لاستخدامه في تأكيد الدفع"
+		},
+		{
+			"key": "booking_id",
+			"value": "1",
+			"type": "string",
+			"description": "معرف الحجز ID لإعادة الجدولة أو الإلغاء"
+		},
+		{
+			"key": "doctor_id",
+			"value": "1",
+			"type": "string",
+			"description": "معرف الطبيب المختار (افتراضياً 1)"
+		},
+		{
+			"key": "service_id",
+			"value": "1",
+			"type": "string",
+			"description": "معرف الخدمة الطبية المختارة للحجز"
+		}
+	],
+	"item": [
+		{
+			"name": "🚀 1. شاشة البداية والسلايدر (Splash & Home Sliders)",
+			"item": [
+				{
+					"name": "📱 GET شاشة البداية للتطبيق (Splash Screen API)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/splash",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"splash"
+							]
+						},
+						"description": "استرجاع بيانات شاشة البداية والترحيب لتطبيق الآيفون:\n- `title`: العنوان الترحيبي العريض.\n- `subtitle`: الوصف والشعار الفرعي.\n- `image_url`: الرابط المباشر الكامل لصورة شاشة البداية المرفوعة من لوحة التحكم.\n- `duration`: مدة عرض الشاشة بالثواني قبل الدخول لواجهة التطبيق.\n- `is_enabled`: حالة تفعيل شاشة البداية."
+					}
+				},
+				{
+					"name": "🖼️ GET بنرات وسلايدر الصفحة الرئيسية (Home Sliders)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/sliders",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"sliders"
+							]
+						},
+						"description": "جلب قائمة البنرات الترويجية والإعلانية التي تظهر في أعلى واجهة التطبيق مرتبة حسب `sort_order`:\n- `image_url`: الصورة بجودة عالية مناسبة لشاشات iPhone Retina.\n- `title` & `subtitle`: النصوص الإعلانية.\n- `action_type`: نوع الإجراء عند النقر (`doctor`, `service`, `url`, `none`).\n- `action_value`: قيمة الوجهة (معرف الطبيب أو الخدمة أو رابط الويب)."
+					}
+				}
+			]
+		},
+		{
+			"name": "👨‍⚕️ 2. الدكاترة والاستشاريون (Doctors & Specialists)",
+			"item": [
+				{
+					"name": "📋 GET قائمة الدكاترة مع مؤشر الاختيار التلقائي (Doctors List & Auto-Selection)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.success && jsonData.auto_selected_doctor) {",
+									"    pm.collectionVariables.set('doctor_id', jsonData.auto_selected_doctor.id);",
+									"    console.log('Auto-selected Doctor ID saved: ' + jsonData.auto_selected_doctor.id);",
+									"} else if (jsonData.doctors && jsonData.doctors.length > 0) {",
+									"    pm.collectionVariables.set('doctor_id', jsonData.doctors[0].id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/doctors",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"doctors"
+							]
+						},
+						"description": "يعيد قائمة بجميع الدكاترة المتاحين للتطبيق مع فحص ذكي:\n- `is_single_doctor`: إذا كانت `true`، فهذا يعني أن التطبيق يجب ألا يزعج المستخدم بشاشة اختيار الطبيب، ويختار تلقائياً الطبيب المضمن في `auto_selected_doctor`.\n- `auto_selected_doctor`: كائن يحتوي على بيانات الطبيب الوحيد (الاسم، التخصص، الصورة، سعر الكشف، والخبرة).\n- `doctors`: مصفوفة بجميع الأطباء النشطين في حال كان هناك أكثر من طبيب."
+					}
+				},
+				{
+					"name": "👤 GET الملف الشخصي لطبيب محدد بالـ ID (Doctor Details by ID)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/doctors/{{doctor_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"doctors",
+								"{{doctor_id}}"
+							]
+						},
+						"description": "جلب تفاصيل ملف طبيب محدد بناءً على الـ ID الخاص به:\n- الاسم بالعربية والانجليزية\n- المسمى الوظيفي والتخصص\n- الصورة الرمزية Avatar\n- السيرة الذاتية والنبذة\n- سنوات الخبرة وسعر الكشف"
+					}
+				},
+				{
+					"name": "⭐ GET الملف التعريفي للطبيب الرئيسي (Legacy Doctor Profile)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/doctor/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"doctor",
+								"profile"
+							]
+						},
+						"description": "الملف التعريفي الشامل للطبيب مع الشهادات والخبرات ومعرض الصور وسنوات العمل ورقم العيادة."
+					}
+				}
+			]
+		},
+		{
+			"name": "🏠 3. الصفحة الرئيسية الشاملة والإعدادات (Home Feed & Config)",
+			"item": [
+				{
+					"name": "📱 GET واجهة الصفحة الرئيسية الموحدة لتطبيق الآيفون (iPhone Home Master Feed)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/home",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"home"
+							]
+						},
+						"description": "الـ Master API المحدث الذي يغذي الصفحة الرئيسية للتطبيق بطلب شبكة واحد متكامل:\n- `sliders`: بنرات السلايدر العلوية مع الصور ووجهات النقر.\n- `is_single_doctor`: علم يوضح هل النظام في وضع الطبيب الواحد أم الأطباء المتعددين.\n- `auto_selected_doctor`: كائن الطبيب المختار تلقائياً.\n- `doctors`: قائمة الأطباء المتاحين للاستعراض السريع.\n- `services`: قائمة الخدمات الطبية مع الأيقونات والأسعار والمدد.\n- `channels`: قنوات الحجز المفعلة (عيادة حضوري، فيديو، مكالمة صوتية، شات).\n- `statistics`: تقييم العيادة، عدد الاستشارات، ونسبة الرضا.\n- `reels`: مقاطع الريلز والفيديو القصيرة.\n- `testimonials`: تقييمات وآراء المرضى.\n- `config`: العملة، روابط التقييم على App Store، السياسات، وبوابات الدفع."
+					}
+				},
+				{
+					"name": "⚙️ GET إعدادات النظام وسياسات متجر أبل (Config & Apple App Store Policies)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/config",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"config"
+							]
+						},
+						"description": "إعدادات التطبيق المعتمدة لمراجعة متجر أبل (Apple App Store Review):\n- `app_rating_url`: رابط التقييم المباشر على App Store.\n- `privacy_policy_url`: سياسة الخصوصية الرسمية لحماية بيانات المرضى.\n- `terms_conditions_url`: الشروط والأحكام وسياسة الاستخدام.\n- العملة الرسمية ورموز الدفع وبوابات زين كاش وسوبركي والبطاقات."
+					}
+				},
+				{
+					"name": "💳 GET طرق الدفع المتاحة مع رموز QR والتعليمات (Payment Methods)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/payment-methods",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"payment-methods"
+							]
+						},
+						"description": "قائمة طرق الدفع المعتمدة (زين كاش، سوبركي، بطاقات الدفع، الدفع نقداً بالعيادة) مع أرقام المحافظ والشعارات وتعليمات التحويل."
+					}
+				}
+			]
+		},
+		{
+			"name": "🩺 4. الخدمات والمواعيد المتاحة (Services & Slots)",
+			"item": [
+				{
+					"name": "🏥 GET جميع الخدمات الطبية والاستشارات (All Services)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.success && jsonData.services && jsonData.services.length > 0) {",
+									"    pm.collectionVariables.set('service_id', jsonData.services[0].id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/services",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"services"
+							]
+						},
+						"description": "قائمة الخدمات الطبية والأسعار بحسب نوع الاستشارة (حضوري بالعيادة، مكالمة فيديو، اتصال صوتي، استشارة نصية)."
+					}
+				},
+				{
+					"name": "🏥 GET خدمات الكشف في العيادة فقط (Clinic Services)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/services/clinic",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"services",
+								"clinic"
+							]
+						}
+					}
+				},
+				{
+					"name": "💻 GET خدمات الاستشارات الأونلاين فقط (Online Services)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/services/online",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"services",
+								"online"
+							]
+						}
+					}
+				},
+				{
+					"name": "🕒 GET المواعيد المتاحة مع الاختيار التلقائي للطبيب (Smart Slots - Auto Doctor)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/slots?service_id={{service_id}}&date=2026-10-18",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"slots"
+							],
+							"query": [
+								{
+									"key": "service_id",
+									"value": "{{service_id}}",
+									"description": "معرف الخدمة المطلوبة"
+								},
+								{
+									"key": "date",
+									"value": "2026-10-18",
+									"description": "تاريخ اليوم المطلوب فحصه (YYYY-MM-DD)"
+								}
+							]
+						},
+						"description": "فحص المواعيد المتاحة لخدمة معينة في تاريخ محدد. يقوم النظام تلقائياً باختيار جدول الطبيب الوحيد وإرجاع `doctor_id` و `doctor_name` و `is_single_doctor` ضمن الرد."
+					}
+				},
+				{
+					"name": "👨‍⚕️ GET المواعيد المتاحة لطبيب محدد بالـ ID (Slots with Doctor ID)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/slots?service_id={{service_id}}&date=2026-10-18&doctor_id={{doctor_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"slots"
+							],
+							"query": [
+								{
+									"key": "service_id",
+									"value": "{{service_id}}"
+								},
+								{
+									"key": "date",
+									"value": "2026-10-18"
+								},
+								{
+									"key": "doctor_id",
+									"value": "{{doctor_id}}",
+									"description": "تحديد جدول طبيب معين بالمعرف الخاص به"
+								}
+							]
+						},
+						"description": "فحص الأوقات المتاحة والمحجوزة لطبيب معين في حال كان هناك أكثر من طبيب."
+					}
+				}
+			]
+		},
+		{
+			"name": "🔐 5. تسجيل الدخول والمصادقة (Auth & Patient Profile)",
+			"item": [
+				{
+					"name": "🔑 POST تسجيل الدخول برقم الهاتف وكلمة المرور (Login with Test Data)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.success && jsonData.token) {",
+									"    pm.collectionVariables.set('token', jsonData.token);",
+									"    console.log('Bearer Token saved successfully: ' + jsonData.token.substring(0, 15) + '...');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"identifier\": \"+9647701234567\",\n    \"password\": \"password\",\n    \"device_name\": \"iPhone 16 Pro Max\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"login"
+							]
+						},
+						"description": "تسجيل دخول المريض باستخدام رقم الهاتف أو البريد الإلكتروني. يحفظ الـ Token تلقائياً في متغيرات المجموعة لاستخدامه في الطلبات المحمية."
+					}
+				},
+				{
+					"name": "📝 POST تسجيل حساب مريض جديد (Register Patient)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.success && jsonData.token) {",
+									"    pm.collectionVariables.set('token', jsonData.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"مستخدم آيفون تجريبي\",\n    \"phone\": \"+9647709988776\",\n    \"email\": \"ios_patient@example.com\",\n    \"password\": \"Password123!\",\n    \"password_confirmation\": \"Password123!\",\n    \"device_name\": \"iPhone 16 Pro\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"register"
+							]
+						},
+						"description": "إنشاء حساب مريض جديد وتوليد رمز Bearer Token فوراً."
+					}
+				},
+				{
+					"name": "👤 GET بيانات المريض المسجل (Get Authenticated User)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/user",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user"
+							]
+						},
+						"description": "استرجاع بيانات الحساب للمريض المسجل حالياً باستخدام الـ Bearer Token."
+					}
+				},
+				{
+					"name": "🚪 POST تسجيل الخروج (Logout)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"logout"
+							]
+						},
+						"description": "إلغاء وإبطال جلسة الـ Token الخاصة بجهاز الآيفون."
+					}
+				}
+			]
+		},
+		{
+			"name": "📅 6. حجز المواعيد والدفع (Booking Engine & Checkout)",
+			"item": [
+				{
+					"name": "⚡ POST إنشاء الحجز وبدء الدفع مع الاختيار التلقائي للطبيب (Checkout Init - Auto Doctor)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.success && jsonData.booking_reference) {",
+									"    pm.collectionVariables.set('booking_ref', jsonData.booking_reference);",
+									"    console.log('Saved booking_ref: ' + jsonData.booking_reference);",
+									"}",
+									"if (jsonData.booking && jsonData.booking.id) {",
+									"    pm.collectionVariables.set('booking_id', jsonData.booking.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"service_id\": {{service_id}},\n    \"booking_type\": \"online\",\n    \"consultation_type\": \"video\",\n    \"date\": \"2026-10-18\",\n    \"start_time\": \"16:00\",\n    \"end_time\": \"16:30\",\n    \"name\": \"أحمد محمد عبد الله\",\n    \"phone\": \"+9647701234567\",\n    \"email\": \"ahmed@example.com\",\n    \"payment_method\": \"zaincash\",\n    \"transfer_number\": \"+9647701234567\",\n    \"notes\": \"حجز استشارة تجريبية من تطبيق الآيفون\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/checkout/initialize",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"checkout",
+								"initialize"
+							]
+						},
+						"description": "إنشاء حجز جديد بدون تحديد `doctor_id`. يقوم النظام تلقائياً بربط الحجز بالطبيب الوحيد في النظام (`Auto-Selection`) وتوليد رقم مرجع الحجز `booking_reference`."
+					}
+				},
+				{
+					"name": "👨‍⚕️ POST إنشاء الحجز مع تحديد طبيب معين بالـ ID (Checkout with Doctor ID)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.success && jsonData.booking_reference) {",
+									"    pm.collectionVariables.set('booking_ref', jsonData.booking_reference);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"doctor_id\": {{doctor_id}},\n    \"service_id\": {{service_id}},\n    \"booking_type\": \"clinic\",\n    \"consultation_type\": \"clinic\",\n    \"date\": \"2026-10-18\",\n    \"start_time\": \"17:00\",\n    \"end_time\": \"17:30\",\n    \"name\": \"سارة علي محمود\",\n    \"phone\": \"+9647809876543\",\n    \"email\": \"sara@example.com\",\n    \"payment_method\": \"cash\",\n    \"notes\": \"كشف حضوري بمقر العيادة تم اختياره عبر قائمة الأطباء\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/checkout/initialize",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"checkout",
+								"initialize"
+							]
+						},
+						"description": "حجز موعد مع إرسال معرف الطبيب `doctor_id` الصريح الذي اختاره المريض من القائمة."
+					}
+				},
+				{
+					"name": "🧾 POST تأكيد التحويل المحلي ورفع الإيصال (Confirm Local Payment - ZainCash / SuperKi)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"booking_reference\": \"{{booking_ref}}\",\n    \"payment_method\": \"zaincash\",\n    \"transfer_number\": \"+9647800000000\",\n    \"receipt_image\": \"https://placehold.co/600x800/png?text=ZainCash+Receipt+ReceiptTest\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/checkout/confirm-local",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"checkout",
+								"confirm-local"
+							]
+						},
+						"description": "تأكيد الدفع عبر المحافظ الإلكترونية المحلية (زين كاش، سوبركي) برقم عملية التحويل ورابط أو صورة الإيصال ليتم مراجعته وتأكيده في لوحة الإدارة."
+					}
+				},
+				{
+					"name": "🔍 POST التحقق من وجود حساب سابق للمريض (Check User Existence)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"identifier\": \"+9647701234567\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/checkout/check-user",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"checkout",
+								"check-user"
+							]
+						},
+						"description": "فحص سريع في واجهة التطبيق لمعرفة هل رقم هاتف أو إيميل المريض مسجل مسبقاً لعرض خيار تسجيل الدخول أو إكمال الحجز كزائر."
+					}
+				}
+			]
+		},
+		{
+			"name": "👤 7. إدارة مواعيد وحجوزات المريض (Patient Bookings Management)",
+			"item": [
+				{
+					"name": "📋 GET قائمة حجوزات المريض المسجل (Patient Bookings List)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.success && jsonData.bookings && jsonData.bookings.length > 0) {",
+									"    pm.collectionVariables.set('booking_id', jsonData.bookings[0].id);",
+									"    if (jsonData.bookings[0].booking_reference) {",
+									"        pm.collectionVariables.set('booking_ref', jsonData.bookings[0].booking_reference);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/patient/bookings",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"patient",
+								"bookings"
+							]
+						},
+						"description": "يعرض جميع مواعيد المريض في تطبيق الآيفون مقسمة بحسب الحالة (قادمة، مكتملة، بانتظار الدفع، أو ملغاة) مع اسم الطبيب وتاريخ ووقت الموعد."
+					}
+				},
+				{
+					"name": "🔄 POST إعادة جدولة موعد المريض (Reschedule Booking)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"date\": \"2026-10-20\",\n    \"start_time\": \"18:00\",\n    \"end_time\": \"18:30\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/booking/{{booking_id}}/reschedule",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"booking",
+								"{{booking_id}}",
+								"reschedule"
+							]
+						},
+						"description": "تغيير تاريخ ووقت الحجز إلى موعد جديد متاح."
+					}
+				},
+				{
+					"name": "❌ POST إلغاء موعد المريض (Cancel Booking)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"cancellation_reason\": \"ظرف طارئ يحول دون الحضور في الوقت المحدد\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/booking/{{booking_id}}/cancel",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"booking",
+								"{{booking_id}}",
+								"cancel"
+							]
+						},
+						"description": "إلغاء الموعد وتحديث حالته إلى ملغي مع حفظ سبب الإلغاء."
+					}
+				}
+			]
+		},
+		{
+			"name": "🎬 8. التقييمات ومقاطع الريلز (Social Proof & Media)",
+			"item": [
+				{
+					"name": "🎥 GET مقاطع الفيديو والريلز الطبية (Reels)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/reels",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"reels"
+							]
+						},
+						"description": "استرجاع مقاطع الفيديو الطبية القصيرة والريلز مع روابط التشغيل والصور المصغرة والعناوين."
+					}
+				},
+				{
+					"name": "💬 GET آراء وتقييمات المرضى (Reviews & Testimonials)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/reviews",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"reviews"
+							]
+						},
+						"description": "استرجاع تقييمات المرضى وآرائهم مع عدد النجوم والتعليق وتاريخ التقييم."
+					}
+				},
+				{
+					"name": "✍️ POST إرسال تقييم جديد من المريض (Submit Patient Review)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"client_name_ar\": \"مريض آيفون راضٍ\",\n    \"rating\": 5,\n    \"content_ar\": \"تجربة ممتازة واستشارة مفيدة جداً مع الطبيب، التطبيق سهل وسريع في الاستخدام.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/reviews",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"reviews"
+							]
+						},
+						"description": "إضافة تقييم جديد ورأي للعيادة."
+					}
+				}
+			]
+		}
+	]
+}

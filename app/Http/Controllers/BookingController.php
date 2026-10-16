@@ -268,8 +268,11 @@ class BookingController extends Controller
 
             $price = $service->getPriceForChannel($consultationType);
 
+            $resolvedDoctorId = $request->input('doctor_id') ?: (new \App\Services\AvailabilityService())->resolveDoctorId();
+
             $booking = Booking::create([
                 'booking_reference' => $bookingRef,
+                'doctor_id' => $resolvedDoctorId,
                 'patient_id' => $patient ? $patient->id : null,
                 'service_id' => $service->id,
                 'booking_type' => $bookingType,

@@ -16,11 +16,13 @@ Route::middleware('throttle:60,1')->group(function () {
     // Master Home API (Single-request complete feed)
     Route::get('/home', [ApiController::class, 'getHome']);
 
-    // Config & System Status
-    Route::get('/config', [ApiController::class, 'getApiConfig']);
-    Route::get('/payment-methods', [ApiController::class, 'getPaymentMethods']);
+    // Mobile App Splash Screen & Sliders
+    Route::get('/splash', [ApiController::class, 'getSplash']);
+    Route::get('/sliders', [ApiController::class, 'getSliders']);
 
-    // Doctor Profile
+    // Doctors List & Profile
+    Route::get('/doctors', [ApiController::class, 'getDoctors']);
+    Route::get('/doctors/{id}', [ApiController::class, 'getDoctor']);
     Route::get('/doctor/profile', [ApiController::class, 'getDoctorProfile']);
 
     // Services (Unified with ?type=clinic or ?type=online filter)

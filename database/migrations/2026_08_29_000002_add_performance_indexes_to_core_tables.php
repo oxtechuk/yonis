@@ -17,9 +17,13 @@ return new class extends Migration
             $table->index('booking_reference', 'idx_bookings_reference');
         });
 
-        // Composite string index uses prefix lengths to stay within MySQL's 1000-byte limit
-        // booking_type & consultation_type are short enum-like values (max ~20 chars each)
-        DB::statement('CREATE INDEX idx_bookings_types ON bookings (booking_type(50), consultation_type(50))');
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement('CREATE INDEX idx_bookings_types ON bookings (booking_type(50), consultation_type(50))');
+        } else {
+            Schema::table('bookings', function (Blueprint $table) {
+                $table->index(['booking_type', 'consultation_type'], 'idx_bookings_types');
+            });
+        }
 
         // 2. Indexes on payments table
         Schema::table('payments', function (Blueprint $table) {

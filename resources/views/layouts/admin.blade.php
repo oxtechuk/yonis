@@ -87,6 +87,9 @@
                     @endif
 
                     @if($currentUser && $currentUser->hasPermission('manage_patients'))
+                        <a href="{{ route('admin.doctors.index') }}" class="sidebar-link @if(Route::is('admin.doctors*')) active @endif">
+                            <i class="bi bi-person-badge-fill me-2"></i> <span class="link-text">الدكاترة والاستشاريون</span>
+                        </a>
                         <a href="{{ route('admin.patients') }}" class="sidebar-link @if(Route::is('admin.patients*')) active @endif">
                             <i class="bi bi-people me-2"></i> <span class="link-text">المرضى</span>
                         </a>
@@ -102,6 +105,9 @@
                         <a href="{{ route('admin.services') }}" class="sidebar-link @if(Route::is('admin.services')) active @endif">
                             <i class="bi bi-heart-pulse me-2"></i> <span class="link-text">الخدمات والأسعار</span>
                         </a>
+                        <a href="{{ route('admin.sliders.index') }}" class="sidebar-link @if(Route::is('admin.sliders*')) active @endif">
+                            <i class="bi bi-images me-2"></i> <span class="link-text">سلايدر وبنرات التطبيق</span>
+                        </a>
                     @endif
 
                     @if($currentUser && $currentUser->hasPermission('manage_availability'))
@@ -112,7 +118,7 @@
 
                     {{-- Settings & Configuration Collapsible Submenu --}}
                     @php
-                        $isSettingsActive = Route::is('admin.settings*') || Route::is('admin.api-control*') || Route::is('admin.portfolio*') || Route::is('admin.staff*');
+                        $isSettingsActive = Route::is('admin.settings*') || Route::is('admin.api-control*') || Route::is('admin.portfolio*') || Route::is('admin.staff*') || Route::is('admin.app-settings*');
                     @endphp
                     @if($currentUser && ($currentUser->hasPermission('manage_settings') || $currentUser->hasPermission('manage_portfolio') || $currentUser->hasPermission('manage_staff')))
                         <div class="sidebar-dropdown-group">
@@ -131,6 +137,9 @@
                             <div class="collapse @if($isSettingsActive) show @endif" id="settingsSubmenu">
                                 <div class="sidebar-submenu">
                                     @if($currentUser->hasPermission('manage_settings'))
+                                        <a href="{{ route('admin.app-settings.index') }}" class="sidebar-link @if(Route::is('admin.app-settings*')) active @endif">
+                                            <i class="bi bi-phone-vibrate me-2"></i> <span class="link-text">شاشة البداية (Splash)</span>
+                                        </a>
                                         <a href="{{ route('admin.settings') }}" class="sidebar-link @if(Route::is('admin.settings')) active @endif">
                                             <i class="bi bi-sliders2 me-2"></i> <span class="link-text">إعدادات المنصة</span>
                                         </a>
