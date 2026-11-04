@@ -90,6 +90,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('/bookings', [AdminDashboardController::class, 'storeBooking'])->name('bookings.store');
         Route::post('/bookings/{id}/status', [AdminDashboardController::class, 'updateBookingStatus'])->name('bookings.status');
         Route::post('/bookings/{id}/reschedule', [AdminDashboardController::class, 'rescheduleBooking'])->name('bookings.reschedule');
+        Route::delete('/bookings/{id}', [AdminDashboardController::class, 'destroyBooking'])->name('bookings.destroy');
+        Route::post('/bookings/bulk-delete', [AdminDashboardController::class, 'bulkDestroyBookings'])->name('bookings.bulk-delete');
         Route::get('/calendar', [AdminDashboardController::class, 'calendar'])->name('calendar');
         Route::get('/api/calendar-events', [AdminDashboardController::class, 'getCalendarEvents'])->name('api.calendar-events');
     });
@@ -100,11 +102,15 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('/patients', [AdminDashboardController::class, 'storePatient'])->name('patients.store');
         Route::get('/patients/{id}', [AdminDashboardController::class, 'patientDetails'])->name('patients.details');
         Route::get('/patient/profile/{id}', [AdminDashboardController::class, 'patientDetails'])->name('patient.profile');
+        Route::delete('/patients/{id}', [AdminDashboardController::class, 'destroyPatient'])->name('patients.destroy');
+        Route::post('/patients/bulk-delete', [AdminDashboardController::class, 'bulkDestroyPatients'])->name('patients.bulk-delete');
     });
 
     // Payments & Reports (manage_payments)
     Route::middleware([CheckPermission::class . ':manage_payments'])->group(function () {
         Route::get('/payments', [AdminDashboardController::class, 'payments'])->name('payments');
+        Route::delete('/payments/{id}', [AdminDashboardController::class, 'destroyPayment'])->name('payments.destroy');
+        Route::post('/payments/bulk-delete', [AdminDashboardController::class, 'bulkDestroyPayments'])->name('payments.bulk-delete');
         Route::get('/payments/export', [AdminDashboardController::class, 'exportPaymentsReport'])->name('payments.export');
         Route::get('/reports', [AdminDashboardController::class, 'reports'])->name('reports');
         Route::get('/reports/export', [AdminDashboardController::class, 'exportReportsCsv'])->name('reports.export');

@@ -296,6 +296,15 @@ class ApiController extends Controller
         $clinicServices = $formattedServices->filter(fn($s) => in_array($s['type'], ['clinic', 'both'], true))->values();
         $onlineServices = $formattedServices->filter(fn($s) => in_array($s['type'], ['online', 'both'], true))->values();
 
+        $clinicInfo = [
+            'address'         => Setting::get('clinic_address', 'مقر العيادة - د. يونس المرشد'),
+            'address_en'      => Setting::get('clinic_address_en', 'Yonis Clinic - Baghdad'),
+            'map_url'         => Setting::get('clinic_map_url', ''),
+            'phone'           => Setting::get('clinic_phone', '+9647800000000'),
+            'instructions'    => Setting::get('clinic_instructions', ''),
+            'instructions_en' => Setting::get('clinic_instructions_en', ''),
+        ];
+
         // Filter by requested type if passed
         $requestedType = strtolower((string) $request->query('type', ''));
         if ($requestedType === 'clinic') {
@@ -305,6 +314,7 @@ class ApiController extends Controller
                 'currency'        => $currencyCode,
                 'currency_symbol' => $currencySymbol,
                 'is_enabled'      => $clinicEnabled,
+                'clinic_info'     => $clinicInfo,
                 'total'           => $clinicServices->count(),
                 'services'        => $clinicServices,
             ]);
@@ -331,6 +341,7 @@ class ApiController extends Controller
             'success'          => true,
             'currency'         => $currencyCode,
             'currency_symbol'  => $currencySymbol,
+            'clinic_info'      => $clinicInfo,
             'channels_enabled' => [
                 'clinic' => $clinicEnabled,
                 'online' => $onlineEnabled,
@@ -580,6 +591,10 @@ class ApiController extends Controller
                 'whatsapp' => Setting::get('whatsapp_number', '+9647800000000'),
                 'phone' => Setting::get('clinic_phone', '+9647800000000'),
                 'clinic_address' => Setting::get('clinic_address', 'مقر العيادة - د. يونس المرشد'),
+                'clinic_address_en' => Setting::get('clinic_address_en', 'Yonis Clinic - Baghdad'),
+                'clinic_map_url' => Setting::get('clinic_map_url', ''),
+                'clinic_instructions' => Setting::get('clinic_instructions', ''),
+                'clinic_instructions_en' => Setting::get('clinic_instructions_en', ''),
                 'education' => $doctorProfile?->education ?: [
                     'بكالوريوس علم النفس الإكلينيكي',
                     'شهادة العلاج المعرفي السلوكي CBT',

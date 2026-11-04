@@ -343,6 +343,35 @@ class AdminDashboardController extends Controller
     }
 
     /**
+     * Delete a single payment transaction
+     */
+    public function destroyPayment($id)
+    {
+        $payment = Payment::findOrFail($id);
+        $payment->delete();
+
+        return redirect()->back()->with('success', 'تم حذف السجل المالي بنجاح.');
+    }
+
+    /**
+     * Bulk delete payments
+     */
+    public function bulkDestroyPayments(Request $request)
+    {
+        $rawIds = $request->input('payment_ids');
+        $ids = is_array($rawIds) ? $rawIds : explode(',', (string) $rawIds);
+        $ids = array_filter(array_map('intval', $ids));
+
+        if (empty($ids)) {
+            return redirect()->back()->with('error', 'لم يتم تحديد أي سجلات مالية للحذف.');
+        }
+
+        $count = Payment::whereIn('id', $ids)->delete();
+
+        return redirect()->back()->with('success', 'تم حذف ' . $count . ' سجل مالي بنجاح.');
+    }
+
+    /**
      * Store new manual booking by Admin
      */
     public function storeBooking(Request $request)

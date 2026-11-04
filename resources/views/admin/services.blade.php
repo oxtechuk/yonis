@@ -693,9 +693,15 @@
                                     <span class="small fw-bold" style="color: #BE123C;"><i class="bi bi-hospital me-1"></i> سعر كشف العيادة:</span>
                                     <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2 py-0.5" style="font-size:0.7rem;">حضور العيادة</span>
                                 </div>
-                                <div class="input-group input-group-sm">
+                                <div class="input-group input-group-sm mb-2">
                                     <input type="number" step="0.01" name="clinic_price" class="form-control rounded-start-3" placeholder="50.00">
                                     <span class="input-group-text bg-light fw-bold">{{ \App\Models\Setting::currencySymbol() }}</span>
+                                </div>
+                                <div class="pt-1.5 border-top border-danger-subtle d-flex align-items-center justify-content-between">
+                                    <span class="text-secondary small" style="font-size: 0.73rem;">
+                                        <i class="bi bi-geo-alt-fill text-danger me-1"></i> عنوان العيادة: <strong>{{ \App\Models\Setting::get('clinic_address', 'بغداد - مقر العيادة الرئيسي') }}</strong>
+                                    </span>
+                                    <a href="{{ route('admin.settings') }}#clinic-panel" class="badge bg-danger-subtle text-danger border border-danger-subtle text-decoration-none rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">تعديل العنوان</a>
                                 </div>
                             </div>
 
@@ -920,7 +926,13 @@
 
                                 <div class="pricing-tier-card" id="editClinicPriceBox{{ $service->id }}" style="display: {{ $currCh === 'clinic' ? 'block' : 'none' }}; border-left: 4px solid #BE123C;">
                                     <span class="small fw-bold d-block mb-1" style="color: #BE123C;"><i class="bi bi-hospital me-1"></i> سعر كشف العيادة:</span>
-                                    <input type="number" step="0.01" name="clinic_price" class="form-control form-control-sm rounded-3 bg-white" value="{{ $service->clinic_price ?? $service->price }}" placeholder="50.00">
+                                    <input type="number" step="0.01" name="clinic_price" class="form-control form-control-sm rounded-3 bg-white mb-2" value="{{ $service->clinic_price ?? $service->price }}" placeholder="50.00">
+                                    <div class="pt-1.5 border-top border-danger-subtle d-flex align-items-center justify-content-between">
+                                        <span class="text-secondary small" style="font-size: 0.73rem;">
+                                            <i class="bi bi-geo-alt-fill text-danger me-1"></i> عنوان العيادة: <strong>{{ \App\Models\Setting::get('clinic_address', 'بغداد - مقر العيادة الرئيسي') }}</strong>
+                                        </span>
+                                        <a href="{{ route('admin.settings') }}#clinic-panel" class="badge bg-danger-subtle text-danger border border-danger-subtle text-decoration-none rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">تعديل العنوان</a>
+                                    </div>
                                 </div>
 
                                 <div class="pricing-tier-card" id="editVideoPriceBox{{ $service->id }}" style="display: {{ in_array($currCh, ['video', 'all']) ? 'block' : 'none' }}; border-left: 4px solid #6D28D9;">

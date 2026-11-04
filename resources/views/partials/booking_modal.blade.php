@@ -1181,6 +1181,36 @@
                         </div>
                     </div>
 
+                    {{-- تنبيه عنوان ومقر العيادة للحضور عند اختيار كشف بالعيادة --}}
+                    @php
+                        $modalClinicAddress = $isArLocale ? \App\Models\Setting::get('clinic_address', 'مقر العيادة') : (\App\Models\Setting::get('clinic_address_en') ?: \App\Models\Setting::get('clinic_address', 'Clinic Location'));
+                        $modalClinicMap = \App\Models\Setting::get('clinic_map_url');
+                        $modalClinicInst = $isArLocale ? \App\Models\Setting::get('clinic_instructions') : (\App\Models\Setting::get('clinic_instructions_en') ?: \App\Models\Setting::get('clinic_instructions'));
+                    @endphp
+                    <div class="clinic-address-notice p-3 rounded-4 mb-3 d-flex flex-column gap-2" id="screen3_clinic_address_box" style="display: none; background: #fff1f2; border: 1px dashed #fecdd3;">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-2 text-start">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px; background: #ffe4e6; color: #be123c;">
+                                    <i class="bi bi-geo-alt-fill fs-6"></i>
+                                </div>
+                                <div>
+                                    <span class="text-secondary d-block" style="font-size: 0.72rem; font-weight: 600;">{{ $isArLocale ? 'عنوان ومقر الحضور بالعيادة:' : 'Clinic Attendance Location:' }}</span>
+                                    <strong class="text-dark" style="font-size: 0.88rem;" id="screen3_clinic_address_text">{{ $modalClinicAddress }}</strong>
+                                </div>
+                            </div>
+                            @if(!empty($modalClinicMap))
+                                <a href="{{ $modalClinicMap }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-white border text-danger rounded-pill px-2.5 py-1 small fw-bold flex-shrink-0 shadow-xs" title="{{ $isArLocale ? 'فتح في خرائط جوجل' : 'Open in Google Maps' }}">
+                                    <i class="bi bi-map me-1"></i>{{ $isArLocale ? 'الخريطة' : 'Map' }}
+                                </a>
+                            @endif
+                        </div>
+                        @if(!empty($modalClinicInst))
+                            <div class="text-secondary small pt-1 border-top border-danger-subtle" style="font-size: 0.76rem;">
+                                <i class="bi bi-info-circle me-1 text-danger"></i> {{ $modalClinicInst }}
+                            </div>
+                        @endif
+                    </div>
+
                     {{-- طريقة الدفع --}}
                     @if($anyPaymentActive)
                     <div class="mb-3">
@@ -1854,6 +1884,11 @@ function goToAppScreen3() {
     }
     if (document.getElementById('screen3_feature_type')) {
         document.getElementById('screen3_feature_type').innerHTML = `<i class="bi bi-check-circle-fill text-success"></i> ${appState.bookingType === 'clinic' ? '{{ $isArLocale ? "كشف بالعيادة" : "Clinic Visit" }}' : '{{ $isArLocale ? "استشارة أونلاين" : "Online Consultation" }}'}`;
+    }
+
+    const clinicNoticeBox = document.getElementById('screen3_clinic_address_box');
+    if (clinicNoticeBox) {
+        clinicNoticeBox.style.display = (appState.bookingType === 'clinic') ? 'flex' : 'none';
     }
 
     document.getElementById('app-screen-1')?.classList.add('d-none');

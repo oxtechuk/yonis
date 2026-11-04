@@ -49,6 +49,57 @@
             --bs-primary-rgb: 64, 85, 165;
             --primary-gradient: linear-gradient(135deg, {{ $primaryColor }}, {{ $secondaryColor }});
         }
+
+        /* ═══ Luxury Admin Pagination & Bulk Action Bars ═══ */
+        .pagination {
+            margin-bottom: 0;
+            gap: 6px;
+            align-items: center;
+            justify-content: center;
+        }
+        .pagination .page-item .page-link {
+            border-radius: 10px !important;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 0.45rem 0.85rem;
+            min-width: 38px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #ffffff;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            transition: all 0.2s ease-in-out;
+        }
+        .pagination .page-item .page-link:hover {
+            background-color: #f1f5f9;
+            border-color: #cbd5e1;
+            color: var(--primary-color);
+            transform: translateY(-1px);
+        }
+        .pagination .page-item.active .page-link {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)) !important;
+            border-color: var(--primary-color) !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 10px rgba(59, 82, 164, 0.3) !important;
+        }
+        .pagination .page-item.disabled .page-link {
+            color: #94a3b8;
+            background-color: #f8fafc;
+            border-color: #e2e8f0;
+            cursor: not-allowed;
+            box-shadow: none;
+            opacity: 0.6;
+        }
+        .pagination svg {
+            width: 1rem;
+            height: 1rem;
+        }
+        .bulk-actions-toolbar {
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
     </style>
     
     @yield('styles')

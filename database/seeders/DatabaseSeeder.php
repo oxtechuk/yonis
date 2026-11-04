@@ -430,5 +430,9 @@ class DatabaseSeeder extends Seeder
         Setting::set('voice_enabled', '1');
         Setting::set('video_enabled', '1');
         Setting::set('default_payment_url', $gumroadLink);
+        Setting::set('clinic_address', 'بغداد - الكرادة / شارع العرصات - مجمع النخبة الطبي');
+        Setting::set('clinic_address_en', 'Baghdad, Al-Karrada - Al-Arasat St. - Elite Medical Complex');
+        Setting::set('clinic_phone', '+9647800000000');
+        Setting::set('clinic_map_url', 'https://maps.google.com/?q=Baghdad');
     }
 }
