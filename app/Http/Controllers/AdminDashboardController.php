@@ -583,6 +583,48 @@ class AdminDashboardController extends Controller
     }
 
     /**
+     * Delete a single booking
+     */
+    public function destroyBooking($id)
+    {
+        $booking = Booking::findOrFail($id);
+
+        if ($booking->receipt_image && Storage::disk('public')->exists($booking->receipt_image)) {
+            Storage::disk('public')->delete($booking->receipt_image);
+        }
+
+        $booking->delete();
+
+        return redirect()->back()->with('success', 'تم حذف الحجز بنجاح.');
+    }
+
+    /**
+     * Bulk delete bookings
+     */
+    public function bulkDestroyBookings(Request $request)
+    {
+        $rawIds = $request->input('booking_ids');
+        $ids = is_array($rawIds) ? $rawIds : explode(',', (string) $rawIds);
+        $ids = array_filter(array_map('intval', $ids));
+
+        if (empty($ids)) {
+            return redirect()->back()->with('error', 'لم يتم تحديد أي حجوزات للحذف.');
+        }
+
+        $bookings = Booking::whereIn('id', $ids)->get();
+        $count = 0;
+        foreach ($bookings as $booking) {
+            if ($booking->receipt_image && Storage::disk('public')->exists($booking->receipt_image)) {
+                Storage::disk('public')->delete($booking->receipt_image);
+            }
+            $booking->delete();
+            $count++;
+        }
+
+        return redirect()->back()->with('success', 'تم حذف ' . $count . ' حجز بنجاح.');
+    }
+
+    /**
      * Patients list
      */
     public function patients(Request $request)
@@ -625,6 +667,40 @@ class AdminDashboardController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'تم إضافة حساب المريض يدوياً بنجاح.');
+    }
+
+    /**
+     * Delete a single patient
+     */
+    public function destroyPatient($id)
+    {
+        $patient = User::where('role', 'patient')->findOrFail($id);
+        $patient->delete();
+
+        return redirect()->back()->with('success', 'تم حذف سجل المريض بنجاح.');
+    }
+
+    /**
+     * Bulk delete patients
+     */
+    public function bulkDestroyPatients(Request $request)
+    {
+        $rawIds = $request->input('patient_ids');
+        $ids = is_array($rawIds) ? $rawIds : explode(',', (string) $rawIds);
+        $ids = array_filter(array_map('intval', $ids));
+
+        if (empty($ids)) {
+            return redirect()->back()->with('error', 'لم يتم تحديد أي مريض للحذف.');
+        }
+
+        $patients = User::where('role', 'patient')->whereIn('id', $ids)->get();
+        $count = 0;
+        foreach ($patients as $patient) {
+            $patient->delete();
+            $count++;
+        }
+
+        return redirect()->back()->with('success', 'تم حذف ' . $count . ' من المرضى بنجاح.');
     }
 
     /**

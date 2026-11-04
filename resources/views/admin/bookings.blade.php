@@ -94,6 +94,22 @@
     </a>
 </div>
 
+<!-- Bulk Actions Bar -->
+<div id="bookingsBulkBar" class="alert alert-danger border-0 shadow-sm rounded-4 d-none mb-3 py-3 px-4 d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-check2-square fs-5 text-danger"></i>
+        <span class="fw-bold">تم تحديد <span id="selectedBookingsCount" class="badge bg-danger text-white rounded-pill px-2.5">0</span> حجز</span>
+    </div>
+    <form id="bulkDeleteBookingsForm" action="{{ route('admin.bookings.bulk-delete') }}" method="POST" class="m-0" onsubmit="return confirm('هل أنت متأكد من حذف جميع الحجوزات المحددة نهائياً؟ سيتم حذف السجلات المالية والإيصالات المرتبطة بها.')">
+        @csrf
+        <input type="hidden" name="booking_ids" id="bulkBookingsInput" value="">
+        <button type="submit" class="btn btn-danger btn-sm rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center gap-1.5">
+            <i class="bi bi-trash3-fill"></i>
+            <span>حذف الحجوزات المحددة</span>
+        </button>
+    </form>
+</div>
+
 <!-- Bookings List Table Card -->
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
     <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
@@ -107,7 +123,10 @@
             <table class="table align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th class="ps-4">المرجع</th>
+                        <th class="ps-4" style="width: 45px;">
+                            <input type="checkbox" id="selectAllBookings" class="form-check-input" title="تحديد الكل">
+                        </th>
+                        <th>المرجع</th>
                         <th>المريض</th>
                         <th>الخدمة ونوع الاستشارة</th>
                         <th>التاريخ والوقت</th>
@@ -121,6 +140,9 @@
                     @forelse($bookings as $booking)
                         <tr>
                             <td class="ps-4">
+                                <input type="checkbox" name="booking_ids[]" value="{{ $booking->id }}" class="form-check-input booking-checkbox">
+                            </td>
+                            <td>
                                 <div class="fw-bold text-dark">{{ $booking->booking_reference }}</div>
                                 @if($booking->reschedule_count > 0)
                                     <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill small" style="font-size: 0.7rem;"><i class="bi bi-arrow-repeat me-1"></i> معدل {{ $booking->reschedule_count }} مرة</span>
@@ -253,13 +275,25 @@
                                                 <form action="{{ route('admin.bookings.status', $booking->id) }}" method="POST" class="m-0" onsubmit="return confirm('هل أنت متأكد من إلغاء هذا الحجز؟')">
                                                     @csrf
                                                     <input type="hidden" name="status" value="CancelledByDoctor">
-                                                    <button type="submit" class="dropdown-item rounded-3 py-2 small fw-bold text-danger d-flex align-items-center gap-2">
+                                                    <button type="submit" class="dropdown-item rounded-3 py-2 small fw-bold text-warning d-flex align-items-center gap-2">
                                                         <i class="bi bi-x-circle-fill"></i>
                                                         <span>إلغاء الحجز</span>
                                                     </button>
                                                 </form>
                                             </li>
                                         @endif
+
+                                        <li><hr class="dropdown-divider my-1"></li>
+                                        <li>
+                                            <form action="{{ route('admin.bookings.destroy', $booking->id) }}" method="POST" class="m-0" onsubmit="return confirm('هل أنت متأكد من حذف هذا الحجز نهائياً؟ سيتم حذف السجلات المالية والإيصالات المرتبطة به.')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="dropdown-item rounded-3 py-2 small fw-bold text-danger d-flex align-items-center gap-2">
+                                                    <i class="bi bi-trash3-fill"></i>
+                                                    <span>حذف الحجز نهائياً</span>
+                                                </button>
+                                            </form>
+                                        </li>
                                     </ul>
                                 </div>
                             </td>
@@ -309,7 +343,7 @@
                         </div>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center py-5 text-secondary">
+                            <td colspan="9" class="text-center py-5 text-secondary">
                                 <i class="bi bi-calendar-x fs-1 d-block mb-3 text-secondary"></i>
                                 لم يتم العثور على أي حجوزات مطابقة للتصفية.
                             </td>
@@ -318,8 +352,13 @@
                 </tbody>
             </table>
         </div>
-        <div class="d-flex justify-content-center py-4">
-            {{ $bookings->appends(request()->query())->links() }}
+        <div class="d-flex flex-wrap justify-content-between align-items-center p-4 border-top">
+            <div class="small text-muted mb-2 mb-md-0">
+                عرض <strong>{{ $bookings->firstItem() ?? 0 }}</strong> إلى <strong>{{ $bookings->lastItem() ?? 0 }}</strong> من أصل <strong>{{ $bookings->total() }}</strong> حجز
+            </div>
+            <div>
+                {{ $bookings->appends(request()->query())->links('pagination::bootstrap-5') }}
+            </div>
         </div>
     </div>
 </div>
