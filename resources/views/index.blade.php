@@ -481,16 +481,26 @@
                     @endif
                     <h4 class="fw-bold text-dark mb-1">{{ $doctorName }}</h4>
                     <p class="text-secondary small">{{ $isAr ? ($profile->title ?? 'معالج نفسي ومدرب معتمد') : ($profile->title_en ?: ($profile->title ?? 'Licensed Psychological Therapist')) }}</p>
+                    @php
+                        $credentialsList = $isAr
+                            ? (!empty($profile->education) ? $profile->education : [])
+                            : (!empty($profile->education_en) ? $profile->education_en : (!empty($profile->education) ? $profile->education : []));
+
+                        if (empty($credentialsList)) {
+                            $credentialsList = $isAr
+                                ? ['بكالوريوس علم النفس الإكلينيكي', 'شهادة العلاج المعرفي السلوكي CBT', 'معتمد في العلاج الأسري والزوجي']
+                                : ['B.Sc. Clinical Psychology', 'CBT Certified Therapist', 'Certified Family & Couples Therapist'];
+                        }
+                        $credIcons = ['bi-mortarboard-fill', 'bi-award-fill', 'bi-patch-check-fill', 'bi-shield-check', 'bi-bookmark-check-fill', 'bi-check-circle-fill'];
+                    @endphp
                     <ul class="credentials-list text-start mt-3">
-                        @if($profile && $profile->education)
-                            @foreach(array_slice($profile->education, 0, 3) as $edu)
-                                <li><i class="bi bi-mortarboard-fill"></i><span class="small">{{ $edu }}</span></li>
-                            @endforeach
-                        @else
-                            <li><i class="bi bi-mortarboard-fill"></i><span class="small">{{ $isAr ? 'بكالوريوس علم النفس الإكلينيكي' : 'B.Sc. Clinical Psychology' }}</span></li>
-                            <li><i class="bi bi-award-fill"></i><span class="small">{{ $isAr ? 'شهادة العلاج المعرفي السلوكي CBT' : 'CBT Certified Therapist' }}</span></li>
-                            <li><i class="bi bi-patch-check-fill"></i><span class="small">{{ $isAr ? 'معتمد في العلاج الأسري والزوجي' : 'Certified Family & Couples Therapist' }}</span></li>
-                        @endif
+                        @foreach($credentialsList as $index => $edu)
+                            @php
+                                $eduText = is_array($edu) ? ($edu['text'] ?? '') : $edu;
+                                $eduIcon = is_array($edu) ? ($edu['icon'] ?? $credIcons[$index % count($credIcons)]) : $credIcons[$index % count($credIcons)];
+                            @endphp
+                            <li><i class="bi {{ $eduIcon }}"></i><span class="small">{{ $eduText }}</span></li>
+                        @endforeach
                     </ul>
                 </div>
 

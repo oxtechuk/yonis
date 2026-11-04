@@ -580,6 +580,36 @@ class ApiController extends Controller
                 'whatsapp' => Setting::get('whatsapp_number', '+9647800000000'),
                 'phone' => Setting::get('clinic_phone', '+9647800000000'),
                 'clinic_address' => Setting::get('clinic_address', 'مقر العيادة - د. يونس المرشد'),
+                'education' => $doctorProfile?->education ?: [
+                    'بكالوريوس علم النفس الإكلينيكي',
+                    'شهادة العلاج المعرفي السلوكي CBT',
+                    'معتمد في العلاج الأسري والزوجي',
+                ],
+                'education_en' => $doctorProfile?->education_en ?: [
+                    'B.Sc. Clinical Psychology',
+                    'CBT Certified Therapist',
+                    'Certified Family & Couples Therapist',
+                ],
+                'credentials' => $doctorProfile?->education ?: [
+                    'بكالوريوس علم النفس الإكلينيكي',
+                    'شهادة العلاج المعرفي السلوكي CBT',
+                    'معتمد في العلاج الأسري والزوجي',
+                ],
+                'credentials_en' => $doctorProfile?->education_en ?: [
+                    'B.Sc. Clinical Psychology',
+                    'CBT Certified Therapist',
+                    'Certified Family & Couples Therapist',
+                ],
+                'credentials_formatted' => array_map(function ($text, $i) {
+                    $icons = ['bi-mortarboard-fill', 'bi-award-fill', 'bi-patch-check-fill', 'bi-shield-check', 'bi-bookmark-check-fill', 'bi-check-circle-fill'];
+                    return [
+                        'text' => is_array($text) ? ($text['text'] ?? '') : $text,
+                        'icon' => is_array($text) ? ($text['icon'] ?? $icons[$i % count($icons)]) : $icons[$i % count($icons)],
+                    ];
+                }, ($doctorProfile?->education ?: ['بكالوريوس علم النفس الإكلينيكي', 'شهادة العلاج المعرفي السلوكي CBT', 'معتمد في العلاج الأسري والزوجي']), array_keys($doctorProfile?->education ?: ['بكالوريوس علم النفس الإكلينيكي', 'شهادة العلاج المعرفي السلوكي CBT', 'معتمد في العلاج الأسري والزوجي'])),
+                'certificates' => $doctorProfile?->certificates ?? [],
+                'specialties' => $doctorProfile?->specialties ?? [],
+                'specialties_en' => $doctorProfile?->specialties_en ?? [],
             ],
             'statistics' => [
                 'experience_years' => (int) ($doctorProfile?->experience_years ?? 10),
@@ -697,7 +727,9 @@ class ApiController extends Controller
         $isSingleDoctor = $activeDoctors->count() <= 1;
         $primaryDoctor = $activeDoctors->first();
 
-        $doctors = $activeDoctors->map(function ($doc) {
+        $defaultProfile = DoctorProfile::first();
+        $doctors = $activeDoctors->map(function ($doc) use ($defaultProfile) {
+            $docProfile = ($doc->user_id && $defaultProfile && $doc->user_id === $defaultProfile->user_id) ? $defaultProfile : $defaultProfile;
             return [
                 'id' => $doc->id,
                 'name' => $doc->name,
@@ -713,6 +745,10 @@ class ApiController extends Controller
                 'email' => $doc->email,
                 'experience_years' => (int) $doc->experience_years,
                 'consultation_fee' => $doc->consultation_fee ? (float) $doc->consultation_fee : null,
+                'education' => $docProfile?->education ?? [],
+                'education_en' => $docProfile?->education_en ?? [],
+                'credentials' => $docProfile?->education ?? [],
+                'credentials_en' => $docProfile?->education_en ?? [],
             ];
         });
 
@@ -747,6 +783,8 @@ class ApiController extends Controller
             ], 404);
         }
 
+        $doctorProfile = DoctorProfile::where('user_id', $doctor->user_id)->first() ?: DoctorProfile::first();
+
         return response()->json([
             'success' => true,
             'doctor' => [
@@ -764,6 +802,11 @@ class ApiController extends Controller
                 'email' => $doctor->email,
                 'experience_years' => (int) $doctor->experience_years,
                 'consultation_fee' => $doctor->consultation_fee ? (float) $doctor->consultation_fee : null,
+                'education' => $doctorProfile?->education ?? [],
+                'education_en' => $doctorProfile?->education_en ?? [],
+                'credentials' => $doctorProfile?->education ?? [],
+                'credentials_en' => $doctorProfile?->education_en ?? [],
+                'certificates' => $doctorProfile?->certificates ?? [],
             ]
         ]);
     }

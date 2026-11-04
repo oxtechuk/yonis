@@ -17,8 +17,10 @@ class DoctorProfile extends Model
         'hero_image_mobile',
         'about_image',
         'education',
+        'education_en',
         'experience',
         'certificates',
+        'certificates_en',
         'specialties',
         'specialties_en',
         'social_links',
@@ -32,8 +34,10 @@ class DoctorProfile extends Model
 
     protected $casts = [
         'education' => 'array',
+        'education_en' => 'array',
         'experience' => 'array',
         'certificates' => 'array',
+        'certificates_en' => 'array',
         'specialties' => 'array',
         'specialties_en' => 'array',
         'social_links' => 'array',

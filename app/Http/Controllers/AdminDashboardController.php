@@ -987,8 +987,10 @@ class AdminDashboardController extends Controller
             'bio' => 'required|string',
             'bio_en' => 'nullable|string',
             'education' => 'nullable|array',
+            'education_en' => 'nullable|array',
             'experience' => 'nullable|array',
             'certificates' => 'nullable|array',
+            'certificates_en' => 'nullable|array',
             'specialties' => 'nullable|array',
             'specialties_en' => 'nullable|array',
             'facebook' => 'nullable|url',
@@ -1004,8 +1006,10 @@ class AdminDashboardController extends Controller
 
         // Filter empty values from arrays
         $education = array_values(array_filter($request->education ?? []));
+        $education_en = array_values(array_filter($request->education_en ?? []));
         $experience = array_values(array_filter($request->experience ?? []));
         $certificates = array_values(array_filter($request->certificates ?? []));
+        $certificates_en = array_values(array_filter($request->certificates_en ?? []));
         $specialties = array_values(array_filter($request->specialties ?? []));
         $specialties_en = array_values(array_filter($request->specialties_en ?? []));
 
@@ -1061,13 +1065,39 @@ class AdminDashboardController extends Controller
             'hero_image_mobile' => $heroImageMobile,
             'about_image' => $aboutImage,
             'education' => $education,
+            'education_en' => $education_en,
             'experience' => $experience,
             'certificates' => $certificates,
+            'certificates_en' => $certificates_en,
             'specialties' => $specialties,
             'specialties_en' => $specialties_en,
             'social_links' => $social_links,
             'gallery' => $gallery,
         ]);
+
+        $primaryDoctor = \App\Models\Doctor::where('user_id', $doctor->id)->first() ?: \App\Models\Doctor::first();
+        if ($primaryDoctor) {
+            $primaryDoctor->update([
+                'title' => $request->title,
+                'title_en' => $request->title_en ?: $primaryDoctor->title_en,
+                'bio' => $request->bio,
+                'bio_en' => $request->bio_en ?: $primaryDoctor->bio_en,
+            ]);
+        }
+
+        // ─── مقر وبيانات العيادة ──────────────────────────────────────────
+        if ($request->has('clinic_address')) {
+            Setting::set('clinic_address', trim($request->clinic_address ?? ''));
+        }
+        if ($request->has('clinic_address_en')) {
+            Setting::set('clinic_address_en', trim($request->clinic_address_en ?? ''));
+        }
+        if ($request->has('clinic_map_url')) {
+            Setting::set('clinic_map_url', trim($request->clinic_map_url ?? ''));
+        }
+        if ($request->has('clinic_phone')) {
+            Setting::set('clinic_phone', trim($request->clinic_phone ?? ''));
+        }
 
         return redirect()->back()->with('success', 'تم تحديث بيانات الصفحة والعدسات بنجاح.');
     }
@@ -1415,6 +1445,13 @@ class AdminDashboardController extends Controller
             'terms_conditions_url'          => Setting::get('terms_conditions_url', url('/terms')),
             'privacy_policy_content'        => Setting::get('privacy_policy_content', ''),
             'terms_conditions_content'      => Setting::get('terms_conditions_content', ''),
+            // ─── مقر وبيانات العيادة (كشف العيادة) ─────────────────────────
+            'clinic_address'                => Setting::get('clinic_address', 'بغداد - مقر العيادة الرئيسي'),
+            'clinic_address_en'             => Setting::get('clinic_address_en', 'Baghdad - Main Clinic'),
+            'clinic_map_url'                => Setting::get('clinic_map_url', ''),
+            'clinic_phone'                  => Setting::get('clinic_phone', '+9647800000000'),
+            'clinic_instructions'           => Setting::get('clinic_instructions', ''),
+            'clinic_instructions_en'        => Setting::get('clinic_instructions_en', ''),
         ];
         return view('admin.settings', compact('settings'));
     }
@@ -1466,6 +1503,13 @@ class AdminDashboardController extends Controller
             'terms_conditions_url'         => 'nullable|string|max:1000',
             'privacy_policy_content'       => 'nullable|string',
             'terms_conditions_content'     => 'nullable|string',
+            // Clinic Location validation
+            'clinic_address'               => 'nullable|string|max:500',
+            'clinic_address_en'            => 'nullable|string|max:500',
+            'clinic_map_url'               => 'nullable|url|max:1000',
+            'clinic_phone'                 => 'nullable|string|max:50',
+            'clinic_instructions'          => 'nullable|string|max:1000',
+            'clinic_instructions_en'       => 'nullable|string|max:1000',
         ]);
 
         // Handle header logo file upload
@@ -1641,6 +1685,26 @@ class AdminDashboardController extends Controller
         }
         if ($request->has('terms_conditions_content')) {
             Setting::set('terms_conditions_content', $request->terms_conditions_content ?? '');
+        }
+
+        // ─── مقر وبيانات العيادة (كشف العيادة) ─────────────────────────
+        if ($request->has('clinic_address')) {
+            Setting::set('clinic_address', trim($request->clinic_address ?? ''));
+        }
+        if ($request->has('clinic_address_en')) {
+            Setting::set('clinic_address_en', trim($request->clinic_address_en ?? ''));
+        }
+        if ($request->has('clinic_map_url')) {
+            Setting::set('clinic_map_url', trim($request->clinic_map_url ?? ''));
+        }
+        if ($request->has('clinic_phone')) {
+            Setting::set('clinic_phone', trim($request->clinic_phone ?? ''));
+        }
+        if ($request->has('clinic_instructions')) {
+            Setting::set('clinic_instructions', trim($request->clinic_instructions ?? ''));
+        }
+        if ($request->has('clinic_instructions_en')) {
+            Setting::set('clinic_instructions_en', trim($request->clinic_instructions_en ?? ''));
         }
 
         return redirect()->back()->with('success', 'تم حفظ جميع الإعدادات بنجاح!');

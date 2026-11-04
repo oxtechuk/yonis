@@ -65,10 +65,14 @@ class DatabaseSeeder extends Seeder
                 'hero_image' => 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=800&q=80',
                 'about_image' => 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&w=800&q=80',
                 'education' => [
-                    'دكتوراه في علم النفس الكلينيكي والعلاج النفسي',
-                    'ماجستير الصحة النفسية والعلاج المعرفي السلوكي (CBT)',
-                    'دبلوم عالي في الاستشارات الزوجية والعلاقات الأسرية',
-                    'بكالوريوس علم النفس والعلوم السلوكية - كلية الآداب'
+                    'بكالوريوس علم النفس الإكلينيكي',
+                    'شهادة العلاج المعرفي السلوكي CBT',
+                    'معتمد في العلاج الأسري والزوجي',
+                ],
+                'education_en' => [
+                    'B.Sc. Clinical Psychology',
+                    'CBT Certified Therapist',
+                    'Certified Family & Couples Therapist',
                 ],
                 'experience' => [
                     'استشاري العلاج النفسي والسلوكي - عيادة د. يونس المرشدي (2014 - حالياً)',

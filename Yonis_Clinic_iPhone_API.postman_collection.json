@@ -8,9 +8,9 @@
 	"variable": [
 		{
 			"key": "base_url",
-			"value": "http://127.0.0.1:8000",
+			"value": "https://younis-almurshid.com",
 			"type": "string",
-			"description": "رابط السيرفر الأساسي (مثال للتطوير المحلي: http://127.0.0.1:8000 أو السيرفر المباشر https://younis-almurshid.com)"
+			"description": "رابط السيرفر الأساسي (تم ضبطه تلقائياً على دومين موقعك: https://younis-almurshid.com)"
 		},
 		{
 			"key": "token",

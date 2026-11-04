@@ -159,6 +159,92 @@
                     </div>
                 </div>
 
+                <!-- SECTION: Dynamic Credentials & Qualifications (المؤهلات والشهادات والاعتمادات) -->
+                <div class="card bg-light border-0 p-3 rounded-4 mb-4">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div>
+                            <h6 class="fw-bold mb-1 text-primary d-flex align-items-center gap-2">
+                                <i class="bi bi-mortarboard-fill fs-5"></i>
+                                المؤهلات والشهادات والاعتمادات المهنية (Credentials List)
+                            </h6>
+                            <p class="text-muted small mb-0">
+                                هذه القائمة هي التي تظهر مباشرة أسفل اسم وصورة المعالج في واجهة الموقع وتطبيق الموبايل والـ API.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row g-4">
+                        <!-- Arabic Credentials -->
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-translate text-primary me-1"></i> المؤهلات والاعتمادات (بالعربي)</span>
+                                <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-3 py-1" onclick="addItem('education-list', 'education', 'مثال: بكالوريوس علم النفس الإكلينيكي', 'bi-mortarboard-fill')">
+                                    <i class="bi bi-plus-circle me-1"></i> إضافة بند
+                                </button>
+                            </label>
+                            <div id="education-list" class="d-flex flex-column gap-2">
+                                @php
+                                    $credItems = !empty($profile->education) ? $profile->education : [
+                                        'بكالوريوس علم النفس الإكلينيكي',
+                                        'شهادة العلاج المعرفي السلوكي CBT',
+                                        'معتمد في العلاج الأسري والزوجي'
+                                    ];
+                                    $credIcons = ['bi-mortarboard-fill', 'bi-award-fill', 'bi-patch-check-fill', 'bi-shield-check', 'bi-bookmark-check-fill', 'bi-check-circle-fill'];
+                                @endphp
+                                @foreach($credItems as $index => $edu)
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white text-primary border-end-0">
+                                            <i class="bi {{ $credIcons[$index % count($credIcons)] }}"></i>
+                                        </span>
+                                        <input type="text" name="education[]" class="form-control" value="{{ is_array($edu) ? ($edu['text'] ?? '') : $edu }}" placeholder="مثال: بكالوريوس علم النفس الإكلينيكي">
+                                        <button type="button" class="btn btn-outline-danger" onclick="this.closest('.input-group').remove()" title="حذف هذا المؤهل"><i class="bi bi-trash"></i></button>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <!-- English Credentials -->
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-translate text-secondary me-1"></i> Qualifications & Credentials (English)</span>
+                                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-3 py-1" onclick="addItem('education-en-list', 'education_en', 'e.g. B.Sc. Clinical Psychology', 'bi-mortarboard-fill')">
+                                    <i class="bi bi-plus-circle me-1"></i> Add Item
+                                </button>
+                            </label>
+                            <div id="education-en-list" class="d-flex flex-column gap-2">
+                                @php
+                                    $credEnItems = !empty($profile->education_en) ? $profile->education_en : [
+                                        'B.Sc. Clinical Psychology',
+                                        'CBT Certified Therapist',
+                                        'Certified Family & Couples Therapist'
+                                    ];
+                                @endphp
+                                @if(!empty($profile->education_en))
+                                    @foreach($profile->education_en as $index => $eduEn)
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white text-secondary border-end-0">
+                                                <i class="bi {{ $credIcons[$index % count($credIcons)] }}"></i>
+                                            </span>
+                                            <input type="text" name="education_en[]" class="form-control" value="{{ is_array($eduEn) ? ($eduEn['text'] ?? '') : $eduEn }}" placeholder="e.g. B.Sc. Clinical Psychology">
+                                            <button type="button" class="btn btn-outline-danger" onclick="this.closest('.input-group').remove()" title="Delete"><i class="bi bi-trash"></i></button>
+                                        </div>
+                                    @endforeach
+                                @else
+                                    @foreach($credEnItems as $index => $eduEn)
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white text-secondary border-end-0">
+                                                <i class="bi {{ $credIcons[$index % count($credIcons)] }}"></i>
+                                            </span>
+                                            <input type="text" name="education_en[]" class="form-control" value="{{ $eduEn }}" placeholder="e.g. B.Sc. Clinical Psychology">
+                                            <button type="button" class="btn btn-outline-danger" onclick="this.closest('.input-group').remove()" title="Delete"><i class="bi bi-trash"></i></button>
+                                        </div>
+                                    @endforeach
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Dynamic Specialties (AR & EN) -->
                 <div class="row g-4 mb-4">
                     <div class="col-md-6">
@@ -561,12 +647,21 @@
 
 @section('scripts')
 <script>
-    function addItem(containerId, fieldName) {
+    function addItem(containerId, fieldName, placeholder = 'بند جديد', defaultIcon = '') {
         const container = document.getElementById(containerId);
         const group = document.createElement('div');
         group.className = 'input-group';
+        let prefixHtml = '';
+        if (fieldName.includes('education')) {
+            const icons = ['bi-mortarboard-fill', 'bi-award-fill', 'bi-patch-check-fill', 'bi-shield-check', 'bi-bookmark-check-fill', 'bi-check-circle-fill'];
+            const count = container.querySelectorAll('.input-group').length;
+            const chosenIcon = defaultIcon || icons[count % icons.length];
+            const colorClass = fieldName.includes('en') ? 'text-secondary' : 'text-primary';
+            prefixHtml = `<span class="input-group-text bg-white ${colorClass} border-end-0"><i class="bi ${chosenIcon}"></i></span>`;
+        }
         group.innerHTML = `
-            <input type="text" name="${fieldName}[]" class="form-control" placeholder="بند جديد">
+            ${prefixHtml}
+            <input type="text" name="${fieldName}[]" class="form-control" placeholder="${placeholder}">
             <button type="button" class="btn btn-outline-danger" onclick="this.closest('.input-group').remove()"><i class="bi bi-trash"></i></button>
         `;
         container.appendChild(group);
