@@ -765,7 +765,42 @@
 
                                     {{-- Title & Description --}}
                                     <h4 class="service-card-title">{{ $service->getLocalizedTitle() }}</h4>
-                                    <p class="service-card-desc">{{ $service->getLocalizedDescription() }}</p>
+                                    @php
+                                        $clinicDesc = $service->getLocalizedDescription();
+                                    @endphp
+                                    @if(!empty($clinicDesc))
+                                        <p class="service-card-desc mb-2">{{ $clinicDesc }}</p>
+                                    @else
+                                        <p class="service-card-desc mb-2 text-muted small">
+                                            {{ $isAr ? 'جلسة فحص وكشف سريري واستشارة مباشرة وجهاً لوجه في مقر العيادة.' : 'In-person clinical examination and direct consultation at the clinic.' }}
+                                        </p>
+                                    @endif
+
+                                    {{-- Clinic Address & Location Box --}}
+                                    @php
+                                        $displayClinicAddress = $isAr ? ($clinicAddress ?: 'بغداد - مقر العيادة الرئيسي') : ($clinicAddressEn ?: ($clinicAddress ?: 'Baghdad - Main Clinic'));
+                                    @endphp
+                                    <div class="clinic-location-badge-box p-2.5 rounded-3 mb-3 d-flex align-items-center justify-content-between" style="background: #fff1f2; border: 1px dashed #fecdd3;">
+                                        <div class="d-flex align-items-center gap-2 text-start">
+                                            <div class="clinic-loc-icon d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width: 32px; height: 32px; background: #ffe4e6; color: #be123c;">
+                                                <i class="bi bi-geo-alt-fill fs-6"></i>
+                                            </div>
+                                            <div>
+                                                <span class="d-block text-secondary" style="font-size: 0.7rem; font-weight: 600;">
+                                                    {{ $isAr ? 'مقر وعنوان العيادة:' : 'Clinic Location:' }}
+                                                </span>
+                                                <span class="fw-bold text-dark d-block" style="font-size: 0.82rem; line-height: 1.3;">
+                                                    {{ $displayClinicAddress }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        @if(!empty($clinicMapUrl))
+                                            <a href="{{ $clinicMapUrl }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-white border text-danger rounded-pill px-2.5 py-1 small fw-bold flex-shrink-0 shadow-xs" onclick="event.stopPropagation();" title="{{ $isAr ? 'فتح في خرائط جوجل' : 'Open in Google Maps' }}">
+                                                <i class="bi bi-map me-1"></i>
+                                                <span style="font-size: 0.72rem;">{{ $isAr ? 'الخريطة' : 'Map' }}</span>
+                                            </a>
+                                        @endif
+                                    </div>
 
                                     {{-- Main Price Box --}}
                                     <div class="pricing-amount-box">

@@ -52,6 +52,11 @@
                         <i class="bi bi-shield-check me-1 text-primary"></i> روابط التطبيق والسياسات (App & Policies)
                     </button>
                 </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-bold px-4 rounded-3" id="clinic-tab" data-bs-toggle="tab" data-bs-target="#clinic-panel" type="button" role="tab">
+                        <i class="bi bi-hospital-fill me-1 text-danger"></i> مقر وعنوان العيادة (كشف العيادة)
+                    </button>
+                </li>
             </ul>
 
             <!-- Tab Content -->
@@ -1079,6 +1084,109 @@
 
                     </div>
                 </div>{{-- end legal-panel --}}
+
+                <!-- 8. Clinic Location & Details Panel -->
+                <div class="tab-pane fade" id="clinic-panel" role="tabpanel" aria-labelledby="clinic-tab">
+                    <div class="row g-4 col-lg-11">
+
+                        <div class="col-12">
+                            <div class="p-4 rounded-4 bg-danger bg-opacity-10 border border-danger border-opacity-20 d-flex flex-column flex-md-row align-items-start gap-3">
+                                <div class="p-3 bg-danger text-white rounded-3 shadow-sm">
+                                    <i class="bi bi-hospital fs-3"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h5 class="fw-bold text-dark mb-1">بيانات ومقر العيادة الفعلية (خدمة كشف العيادة)</h5>
+                                    <p class="text-secondary small mb-0">
+                                        يتم عرض هذه البيانات مباشرة لمرضى ومراجعي خدمة "كشف في العيادة" في بطاقات الموقع، ونافذة الحجز، وإشعارات الحجز، وتطبيق الموبايل.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Clinic Address Arabic -->
+                        <div class="col-md-6">
+                            <div class="p-4 bg-light rounded-4 border h-100">
+                                <label class="form-label fw-bold text-dark mb-1">
+                                    <i class="bi bi-geo-alt-fill text-danger me-1"></i> عنوان ومقر العيادة (بالعربية)
+                                </label>
+                                <p class="text-secondary small mb-3">العنوان التفصيلي للعيادة الذي يظهر في بطاقة الكشف ونافذة الحجز.</p>
+                                <input type="text" name="clinic_address" class="form-control form-control-lg rounded-3" 
+                                       placeholder="مثال: بغداد - الكرادة / شارع العرصات - مجمع النخبة الطبي" 
+                                       value="{{ $settings['clinic_address'] ?? '' }}">
+                            </div>
+                        </div>
+
+                        <!-- Clinic Address English -->
+                        <div class="col-md-6">
+                            <div class="p-4 bg-light rounded-4 border h-100">
+                                <label class="form-label fw-bold text-dark mb-1">
+                                    <i class="bi bi-geo-alt text-secondary me-1"></i> Clinic Address (English)
+                                </label>
+                                <p class="text-secondary small mb-3">Clinic address for English-speaking clients and mobile API.</p>
+                                <input type="text" name="clinic_address_en" class="form-control form-control-lg rounded-3" 
+                                       dir="ltr"
+                                       placeholder="e.g. Baghdad, Al-Karrada - Al-Arasat St. - Elite Medical Complex" 
+                                       value="{{ $settings['clinic_address_en'] ?? '' }}">
+                            </div>
+                        </div>
+
+                        <!-- Google Maps URL -->
+                        <div class="col-md-6">
+                            <div class="p-4 bg-light rounded-4 border h-100">
+                                <label class="form-label fw-bold text-dark mb-1">
+                                    <i class="bi bi-map-fill text-primary me-1"></i> رابط الموقع على خرائط جوجل (Google Maps Link)
+                                </label>
+                                <p class="text-secondary small mb-3">رابط مشاركة الموقع لفتح الخريطة وتوجيه المراجع مباشرة للعيادة بنقرة واحدة.</p>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="bi bi-link-45deg"></i></span>
+                                    <input type="url" name="clinic_map_url" class="form-control rounded-start-3" 
+                                           placeholder="https://maps.app.goo.gl/... أو https://goo.gl/maps/..." 
+                                           value="{{ $settings['clinic_map_url'] ?? '' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Clinic Phone -->
+                        <div class="col-md-6">
+                            <div class="p-4 bg-light rounded-4 border h-100">
+                                <label class="form-label fw-bold text-dark mb-1">
+                                    <i class="bi bi-telephone-fill text-success me-1"></i> هاتف / خط الاستقبال في العيادة
+                                </label>
+                                <p class="text-secondary small mb-3">رقم الهاتف الأرضي أو المحمول المخصص للاستفسارات عن موقع العيادة.</p>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="bi bi-telephone"></i></span>
+                                    <input type="text" name="clinic_phone" class="form-control rounded-start-3" 
+                                           placeholder="+964..." 
+                                           value="{{ $settings['clinic_phone'] ?? '' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Clinic Attendance Instructions (AR & EN) -->
+                        <div class="col-md-6">
+                            <div class="p-4 bg-light rounded-4 border h-100">
+                                <label class="form-label fw-bold text-dark mb-1">
+                                    <i class="bi bi-info-circle-fill text-warning me-1"></i> تعليمات وملاحظات الحضور (بالعربية)
+                                </label>
+                                <p class="text-secondary small mb-3">تعليمات تظهر للمريض عند حجز كشف العيادة (مثل الحضور قبل 10 دقائق).</p>
+                                <textarea name="clinic_instructions" class="form-control rounded-3" rows="3" 
+                                          placeholder="مثال: يرجى التكرم بالحضور قبل الموعد بـ 10 دقائق لتسجيل بيانات الملف الطبي.">{{ $settings['clinic_instructions'] ?? '' }}</textarea>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="p-4 bg-light rounded-4 border h-100">
+                                <label class="form-label fw-bold text-dark mb-1">
+                                    <i class="bi bi-info-circle text-secondary me-1"></i> Attendance Instructions (English)
+                                </label>
+                                <p class="text-secondary small mb-3">Instructions displayed when booking in English.</p>
+                                <textarea name="clinic_instructions_en" class="form-control rounded-3" rows="3" dir="ltr"
+                                          placeholder="e.g. Please arrive 10 minutes prior to your appointment time.">{{ $settings['clinic_instructions_en'] ?? '' }}</textarea>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>{{-- end clinic-panel --}}
 
             </div>{{-- end tab-content --}}
 

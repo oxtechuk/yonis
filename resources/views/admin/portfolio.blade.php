@@ -299,6 +299,50 @@
                     </div>
                 </div>
 
+                <!-- Clinic Location & Address (كشف في العيادة) -->
+                <div class="card border border-danger-subtle bg-danger bg-opacity-10 p-3 rounded-4 mb-4">
+                    <h6 class="fw-bold mb-2 text-danger d-flex align-items-center gap-2">
+                        <i class="bi bi-hospital fs-5"></i> مقر وعنوان العيادة الفعلي (يظهر في كشف العيادة ونافذة الحجز والتطبيق)
+                    </h6>
+                    <p class="text-secondary small mb-3">
+                        يمكنك هنا تحديد وتغيير عنوان العيادة ورابط الخريطة ورقم هاتف الاستقبال بحرية كاملة.
+                    </p>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-dark">
+                                <i class="bi bi-geo-alt-fill text-danger me-1"></i> عنوان العيادة (بالعربية)
+                            </label>
+                            <input type="text" name="clinic_address" class="form-control" 
+                                   value="{{ \App\Models\Setting::get('clinic_address', '') }}" 
+                                   placeholder="مثال: بغداد - الكرادة / شارع العرصات - مجمع النخبة الطبي">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-dark">
+                                <i class="bi bi-geo-alt text-secondary me-1"></i> Clinic Address (English)
+                            </label>
+                            <input type="text" name="clinic_address_en" class="form-control" dir="ltr"
+                                   value="{{ \App\Models\Setting::get('clinic_address_en', '') }}" 
+                                   placeholder="e.g. Baghdad, Al-Karrada - Al-Arasat St.">
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label small fw-bold text-dark">
+                                <i class="bi bi-map-fill text-primary me-1"></i> رابط الموقع على خرائط جوجل (Google Maps URL)
+                            </label>
+                            <input type="url" name="clinic_map_url" class="form-control" 
+                                   value="{{ \App\Models\Setting::get('clinic_map_url', '') }}" 
+                                   placeholder="https://maps.app.goo.gl/... أو https://goo.gl/maps/...">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-dark">
+                                <i class="bi bi-telephone-fill text-success me-1"></i> هاتف الاستقبال بالعيادة
+                            </label>
+                            <input type="text" name="clinic_phone" class="form-control" 
+                                   value="{{ \App\Models\Setting::get('clinic_phone', '') }}" 
+                                   placeholder="+964...">
+                        </div>
+                    </div>
+                </div>
+
                 <div class="d-grid">
                     <button type="submit" class="btn btn-primary btn-lg rounded-pill py-3 fw-bold shadow-sm">
                         <i class="bi bi-check-circle-fill me-2"></i> حفظ جميع الصور والبيانات التعريفية

@@ -922,7 +922,7 @@
                                 <div class="type-card-radio"></div>
                             </div>
                             <div class="type-card-name">{{ $isArLocale ? 'كشف بالعيادة' : 'Clinic Visit' }}</div>
-                            <div class="type-card-desc">{{ $isArLocale ? 'بغداد / مقر العيادة' : 'Baghdad Clinic' }}</div>
+                            <div class="type-card-desc text-truncate" style="max-width: 140px;" title="{{ $isArLocale ? \App\Models\Setting::get('clinic_address', 'مقر العيادة') : (\App\Models\Setting::get('clinic_address_en') ?: \App\Models\Setting::get('clinic_address', 'Clinic Location')) }}">{{ $isArLocale ? \App\Models\Setting::get('clinic_address', 'مقر العيادة') : (\App\Models\Setting::get('clinic_address_en') ?: \App\Models\Setting::get('clinic_address', 'Clinic Location')) }}</div>
                             <span class="type-selected-tag d-none" id="badgeSelectedClinic">
                                 <i class="bi bi-check2"></i> {{ $isArLocale ? 'محدد' : 'Selected' }}
                             </span>

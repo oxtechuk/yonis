@@ -27,9 +27,15 @@ class HomeController extends Controller
         $doctorName = Setting::get('doctor_name', 'المعالج النفسي يونس المرشد');
         $ogImage = Setting::get('og_image', '');
 
+        $clinicAddress = Setting::get('clinic_address', 'بغداد - مقر العيادة الرئيسي');
+        $clinicAddressEn = Setting::get('clinic_address_en', 'Baghdad - Main Clinic');
+        $clinicMapUrl = Setting::get('clinic_map_url', '');
+        $clinicPhone = Setting::get('clinic_phone', '+9647800000000');
+
         return view('index', compact(
             'profile', 'services', 'reels', 'testimonials',
-            'whatsappNumber', 'googleVerification', 'doctorName', 'ogImage'
+            'whatsappNumber', 'googleVerification', 'doctorName', 'ogImage',
+            'clinicAddress', 'clinicAddressEn', 'clinicMapUrl', 'clinicPhone'
         ));
     }
 
