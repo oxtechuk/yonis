@@ -81,7 +81,7 @@ Route::middleware(['auth'])->prefix('patient')->name('patient.')->group(function
 });
 
 // Admin & Staff Control Panel Routes
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
     // Bookings (manage_bookings)
