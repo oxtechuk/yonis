@@ -609,6 +609,45 @@
         document.getElementById(`reschedule-selected-time-${bookingId}`).value = timeValue;
         document.getElementById(`reschedule-submit-btn-${bookingId}`).disabled = false;
     }
+
+    // Select All & Bulk Delete for Bookings
+    document.addEventListener('DOMContentLoaded', function () {
+        const selectAllBookings = document.getElementById('selectAllBookings');
+        const bookingCheckboxes = document.querySelectorAll('.booking-checkbox');
+        const bookingsBulkBar = document.getElementById('bookingsBulkBar');
+        const selectedBookingsCount = document.getElementById('selectedBookingsCount');
+        const bulkBookingsInput = document.getElementById('bulkBookingsInput');
+
+        function updateBookingsBulkState() {
+            const checked = Array.from(bookingCheckboxes).filter(cb => cb.checked);
+            const count = checked.length;
+
+            if (count > 0) {
+                bookingsBulkBar.classList.remove('d-none');
+                selectedBookingsCount.textContent = count;
+                bulkBookingsInput.value = checked.map(cb => cb.value).join(',');
+            } else {
+                bookingsBulkBar.classList.add('d-none');
+                bulkBookingsInput.value = '';
+            }
+
+            if (selectAllBookings) {
+                selectAllBookings.checked = (bookingCheckboxes.length > 0 && count === bookingCheckboxes.length);
+                selectAllBookings.indeterminate = (count > 0 && count < bookingCheckboxes.length);
+            }
+        }
+
+        if (selectAllBookings) {
+            selectAllBookings.addEventListener('change', function () {
+                bookingCheckboxes.forEach(cb => cb.checked = selectAllBookings.checked);
+                updateBookingsBulkState();
+            });
+        }
+
+        bookingCheckboxes.forEach(cb => {
+            cb.addEventListener('change', updateBookingsBulkState);
+        });
+    });
 </script>
 @endsection
 @endsection

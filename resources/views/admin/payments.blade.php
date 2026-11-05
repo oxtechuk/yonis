@@ -55,6 +55,22 @@
     </div>
 </div>
 
+<!-- Bulk Actions Bar -->
+<div id="paymentsBulkBar" class="alert alert-danger border-0 shadow-sm rounded-4 d-none mb-3 py-3 px-4 d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-check2-square fs-5 text-danger"></i>
+        <span class="fw-bold">تم تحديد <span id="selectedPaymentsCount" class="badge bg-danger text-white rounded-pill px-2.5">0</span> معاملة مالية</span>
+    </div>
+    <form id="bulkDeletePaymentsForm" action="{{ route('admin.payments.bulk-delete') }}" method="POST" class="m-0" onsubmit="return confirm('هل أنت متأكد من حذف جميع المعاملات المالية المحددة نهائياً؟')">
+        @csrf
+        <input type="hidden" name="payment_ids" id="bulkPaymentsInput" value="">
+        <button type="submit" class="btn btn-danger btn-sm rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center gap-1.5">
+            <i class="bi bi-trash3-fill"></i>
+            <span>حذف المحدد</span>
+        </button>
+    </form>
+</div>
+
 <!-- Payments Table Card -->
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
     <div class="card-header bg-white py-3 border-0">
@@ -65,20 +81,27 @@
             <table class="table align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th class="ps-4">معرف العملية</th>
+                        <th class="ps-4" style="width: 45px;">
+                            <input type="checkbox" id="selectAllPayments" class="form-check-input" title="تحديد الكل">
+                        </th>
+                        <th>معرف العملية</th>
                         <th>المريض</th>
                         <th>الخدمة المحجوزة</th>
                         <th>المبلغ</th>
                         <th>العملة</th>
                         <th>الحالة</th>
                         <th>المبلغ المسترد</th>
-                        <th class="pe-4">تاريخ المعاملة</th>
+                        <th>تاريخ المعاملة</th>
+                        <th class="pe-4 text-end">إجراءات</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($payments as $payment)
                         <tr>
-                            <td class="ps-4 fw-bold text-dark font-monospace small">{{ $payment->payment_intent_id }}</td>
+                            <td class="ps-4">
+                                <input type="checkbox" name="payment_ids[]" value="{{ $payment->id }}" class="form-check-input payment-checkbox">
+                            </td>
+                            <td class="fw-bold text-dark font-monospace small">{{ $payment->payment_intent_id }}</td>
                             <td>
                                 @if($payment->booking && $payment->booking->patient)
                                     <div class="fw-bold">{{ $payment->booking->patient->name }}</div>
@@ -116,11 +139,20 @@
                                     -
                                 @endif
                             </td>
-                            <td class="pe-4 text-secondary small">{{ $payment->created_at->format('Y-m-d H:i') }}</td>
+                            <td class="text-secondary small">{{ $payment->created_at->format('Y-m-d H:i') }}</td>
+                            <td class="pe-4 text-end">
+                                <form action="{{ route('admin.payments.destroy', $payment->id) }}" method="POST" class="d-inline m-0" onsubmit="return confirm('هل أنت متأكد من حذف هذا السجل المالي نهائياً؟')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2.5" title="حذف السجل المالي">
+                                        <i class="bi bi-trash3-fill"></i>
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center py-5 text-secondary">
+                            <td colspan="10" class="text-center py-5 text-secondary">
                                 <i class="bi bi-wallet2 fs-1 d-block mb-3 text-secondary"></i>
                                 لم يتم العثور على أي معاملات مالية مطابقة.
                             </td>
@@ -129,9 +161,56 @@
                 </tbody>
             </table>
         </div>
-        <div class="d-flex justify-content-center py-4">
-            {{ $payments->appends(request()->query())->links() }}
+        <div class="d-flex flex-wrap justify-content-between align-items-center p-4 border-top">
+            <div class="small text-muted mb-2 mb-md-0">
+                عرض <strong>{{ $payments->firstItem() ?? 0 }}</strong> إلى <strong>{{ $payments->lastItem() ?? 0 }}</strong> من أصل <strong>{{ $payments->total() }}</strong> معاملة مالية
+            </div>
+            <div>
+                {{ $payments->appends(request()->query())->links('pagination::bootstrap-5') }}
+            </div>
         </div>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const selectAllPayments = document.getElementById('selectAllPayments');
+        const paymentCheckboxes = document.querySelectorAll('.payment-checkbox');
+        const paymentsBulkBar = document.getElementById('paymentsBulkBar');
+        const selectedPaymentsCount = document.getElementById('selectedPaymentsCount');
+        const bulkPaymentsInput = document.getElementById('bulkPaymentsInput');
+
+        function updatePaymentsBulkState() {
+            const checked = Array.from(paymentCheckboxes).filter(cb => cb.checked);
+            const count = checked.length;
+
+            if (count > 0) {
+                paymentsBulkBar.classList.remove('d-none');
+                selectedPaymentsCount.textContent = count;
+                bulkPaymentsInput.value = checked.map(cb => cb.value).join(',');
+            } else {
+                paymentsBulkBar.classList.add('d-none');
+                bulkPaymentsInput.value = '';
+            }
+
+            if (selectAllPayments) {
+                selectAllPayments.checked = (paymentCheckboxes.length > 0 && count === paymentCheckboxes.length);
+                selectAllPayments.indeterminate = (count > 0 && count < paymentCheckboxes.length);
+            }
+        }
+
+        if (selectAllPayments) {
+            selectAllPayments.addEventListener('change', function () {
+                paymentCheckboxes.forEach(cb => cb.checked = selectAllPayments.checked);
+                updatePaymentsBulkState();
+            });
+        }
+
+        paymentCheckboxes.forEach(cb => {
+            cb.addEventListener('change', updatePaymentsBulkState);
+        });
+    });
+</script>
 @endsection

@@ -19,6 +19,22 @@
     </div>
 </div>
 
+<!-- Bulk Actions Bar -->
+<div id="patientsBulkBar" class="alert alert-danger border-0 shadow-sm rounded-4 d-none mb-3 py-3 px-4 d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-check2-square fs-5 text-danger"></i>
+        <span class="fw-bold">تم تحديد <span id="selectedPatientsCount" class="badge bg-danger text-white rounded-pill px-2.5">0</span> مريض</span>
+    </div>
+    <form id="bulkDeletePatientsForm" action="{{ route('admin.patients.bulk-delete') }}" method="POST" class="m-0" onsubmit="return confirm('هل أنت متأكد من حذف جميع المرضى المحددين نهائياً؟ سيتم حذف جميع حجوزاتهم وسجلاتهم المرتبطة.')">
+        @csrf
+        <input type="hidden" name="patient_ids" id="bulkPatientsInput" value="">
+        <button type="submit" class="btn btn-danger btn-sm rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center gap-1.5">
+            <i class="bi bi-trash3-fill"></i>
+            <span>حذف المرضى المحددين</span>
+        </button>
+    </form>
+</div>
+
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
     <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
         <h5 class="fw-bold m-0"><i class="bi bi-people-fill text-primary me-2"></i> سجل المرضى والمراجعين المسجلين</h5>
@@ -31,7 +47,10 @@
             <table class="table align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th class="ps-4">الاسم الكامل</th>
+                        <th class="ps-4" style="width: 45px;">
+                            <input type="checkbox" id="selectAllPatients" class="form-check-input" title="تحديد الكل">
+                        </th>
+                        <th>الاسم الكامل</th>
                         <th>رقم الجوال</th>
                         <th>البريد الإلكتروني</th>
                         <th>تاريخ التسجيل</th>
@@ -43,6 +62,9 @@
                     @forelse($patients as $patient)
                         <tr>
                             <td class="ps-4">
+                                <input type="checkbox" name="patient_ids[]" value="{{ $patient->id }}" class="form-check-input patient-checkbox">
+                            </td>
+                            <td>
                                 <div class="fw-bold text-dark">{{ $patient->name }}</div>
                             </td>
                             <td>{{ $patient->phone }}</td>
@@ -52,14 +74,23 @@
                                 <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1.5 rounded-pill">{{ $patient->bookings_count }} حجوزات</span>
                             </td>
                             <td class="pe-4 text-end">
-                                <a href="{{ route('admin.patients.details', $patient->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                    <i class="bi bi-folder2-open me-1"></i> عرض السجل الطبي
-                                </a>
+                                <div class="d-flex justify-content-end align-items-center gap-1.5">
+                                    <a href="{{ route('admin.patients.details', $patient->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                        <i class="bi bi-folder2-open me-1"></i> عرض السجل الطبي
+                                    </a>
+                                    <form action="{{ route('admin.patients.destroy', $patient->id) }}" method="POST" class="d-inline m-0" onsubmit="return confirm('هل أنت متأكد من حذف هذا المريض نهائياً؟ سيتم حذف كافة حجوزاته وسجلاته.')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2.5" title="حذف المريض">
+                                            <i class="bi bi-trash3-fill"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center py-5 text-secondary">
+                            <td colspan="7" class="text-center py-5 text-secondary">
                                 <i class="bi bi-people fs-1 d-block mb-3 text-secondary"></i>
                                 لم يتم العثور على أي مرضى مسجلين.
                             </td>
@@ -68,8 +99,13 @@
                 </tbody>
             </table>
         </div>
-        <div class="d-flex justify-content-center py-4">
-            {{ $patients->appends(request()->query())->links() }}
+        <div class="d-flex flex-wrap justify-content-between align-items-center p-4 border-top">
+            <div class="small text-muted mb-2 mb-md-0">
+                عرض <strong>{{ $patients->firstItem() ?? 0 }}</strong> إلى <strong>{{ $patients->lastItem() ?? 0 }}</strong> من أصل <strong>{{ $patients->total() }}</strong> مريض
+            </div>
+            <div>
+                {{ $patients->appends(request()->query())->links('pagination::bootstrap-5') }}
+            </div>
         </div>
     </div>
 </div>
@@ -110,4 +146,46 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const selectAllPatients = document.getElementById('selectAllPatients');
+        const patientCheckboxes = document.querySelectorAll('.patient-checkbox');
+        const patientsBulkBar = document.getElementById('patientsBulkBar');
+        const selectedPatientsCount = document.getElementById('selectedPatientsCount');
+        const bulkPatientsInput = document.getElementById('bulkPatientsInput');
+
+        function updatePatientsBulkState() {
+            const checked = Array.from(patientCheckboxes).filter(cb => cb.checked);
+            const count = checked.length;
+
+            if (count > 0) {
+                patientsBulkBar.classList.remove('d-none');
+                selectedPatientsCount.textContent = count;
+                bulkPatientsInput.value = checked.map(cb => cb.value).join(',');
+            } else {
+                patientsBulkBar.classList.add('d-none');
+                bulkPatientsInput.value = '';
+            }
+
+            if (selectAllPatients) {
+                selectAllPatients.checked = (patientCheckboxes.length > 0 && count === patientCheckboxes.length);
+                selectAllPatients.indeterminate = (count > 0 && count < patientCheckboxes.length);
+            }
+        }
+
+        if (selectAllPatients) {
+            selectAllPatients.addEventListener('change', function () {
+                patientCheckboxes.forEach(cb => cb.checked = selectAllPatients.checked);
+                updatePatientsBulkState();
+            });
+        }
+
+        patientCheckboxes.forEach(cb => {
+            cb.addEventListener('change', updatePatientsBulkState);
+        });
+    });
+</script>
 @endsection

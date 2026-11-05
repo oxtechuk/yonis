@@ -480,11 +480,11 @@
                         <div class="about-doctor-img d-flex align-items-center justify-content-center mx-auto mb-3" style="background: linear-gradient(135deg, var(--primary-color), #5b72c7); color:#fff; font-size:3rem;">Ψ</div>
                     @endif
                     <h4 class="fw-bold text-dark mb-1">{{ $doctorName }}</h4>
-                    <p class="text-secondary small">{{ $isAr ? ($profile->title ?? 'معالج نفسي ومدرب معتمد') : ($profile->title_en ?: ($profile->title ?? 'Licensed Psychological Therapist')) }}</p>
+                    <p class="text-secondary small">{{ $isAr ? ($profile?->title ?? 'معالج نفسي ومدرب معتمد') : ($profile?->title_en ?: ($profile?->title ?? 'Licensed Psychological Therapist')) }}</p>
                     @php
                         $credentialsList = $isAr
-                            ? (!empty($profile->education) ? $profile->education : [])
-                            : (!empty($profile->education_en) ? $profile->education_en : (!empty($profile->education) ? $profile->education : []));
+                            ? (!empty($profile?->education) ? $profile->education : [])
+                            : (!empty($profile?->education_en) ? $profile->education_en : (!empty($profile?->education) ? $profile->education : []));
 
                         if (empty($credentialsList)) {
                             $credentialsList = $isAr
@@ -506,14 +506,14 @@
 
                 <div class="col-lg-8">
                     <p class="fs-5 text-secondary lh-lg mb-4">
-                        {{ $isAr ? ($profile->bio ?? 'معالج نفسي مرخص بخبرة تزيد عن 10 سنوات في تقديم الاستشارات النفسية الفردية والزوجية والأسرية.') : ($profile->bio_en ?: ($profile->bio ?? 'Licensed psychological therapist with over 10 years of experience in providing individual and family counseling.')) }}
+                        {{ $isAr ? ($profile?->bio ?? 'معالج نفسي مرخص بخبرة تزيد عن 10 سنوات في تقديم الاستشارات النفسية الفردية والزوجية والأسرية.') : ($profile?->bio_en ?: ($profile?->bio ?? 'Licensed psychological therapist with over 10 years of experience in providing individual and family counseling.')) }}
                     </p>
 
                     <h5 class="fw-bold mb-3" style="color: var(--primary-color);">{{ $isAr ? 'مجالات التخصص:' : 'Specialties & Focus Areas:' }}</h5>
                     <div class="d-flex flex-wrap gap-2">
                         @php
                             $defaultSpecs = $isAr ? ['اضطرابات القلق والتوتر', 'الاكتئاب وضغوط الحياة', 'الاستشارات الزوجية', 'العلاج الأسري', 'نقص الانتباه ADHD', 'الصدمات النفسية', 'الإدمان', 'التطوير الذاتي'] : ['Anxiety & Stress', 'Depression & Pressure', 'Couples Counseling', 'Family Therapy', 'ADHD', 'Psychological Trauma', 'Addiction Recovery', 'Self Development'];
-                            $specialties = $isAr ? ($profile->specialties ?? $defaultSpecs) : ($profile->specialties_en ?: ($profile->specialties ?? $defaultSpecs));
+                            $specialties = $isAr ? ($profile?->specialties ?? $defaultSpecs) : ($profile?->specialties_en ?: ($profile?->specialties ?? $defaultSpecs));
                         @endphp
                         @foreach($specialties as $spec)
                             <div class="tag-pill"><i class="bi bi-check-circle-fill" style="color: var(--primary-color);"></i> {{ $spec }}</div>
